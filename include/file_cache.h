@@ -25,13 +25,13 @@ namespace pigeon {
 		static std::mutex _mtx;
 		static std::shared_ptr<file_cache> instance;
 
-		bool is_directory(string &, uv_loop_t*);
+		bool is_directory(string &);
 
 		void compress_item(file_info &);
 
 		void cache_item(string&);
 
-		void load_files(string, uv_loop_t*, bool);
+		void load_files(string, bool);
 
 	public:
 
@@ -39,13 +39,13 @@ namespace pigeon {
 
 		~file_cache();
 
-		void load(string, uv_loop_t*);
+		void load(string);
 
 		void unload();
 
 		void reload();
 
-		void reload_item(string&, uv_loop_t*);
+		void reload_item(string&);
 
 		void get_item(string &, file_info &);
 
