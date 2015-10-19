@@ -62,7 +62,7 @@ void server::start() {
 
     uv_loop = uv_default_loop();
 
-    file_cache::get()->load(config::get()->get_resource_location(), uv_loop);
+    file_cache::get()->load(config::get()->get_resource_location());
 
     initialise_parser();
     initialise_tcp();
