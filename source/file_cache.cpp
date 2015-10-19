@@ -22,6 +22,7 @@ void refresh(uv_fs_event_t *handle, const char *filename, int events, int status
 
     if (events & UV_CHANGE){
         string file(path);
+        uv_fs_event_stop(handle, refresh, file.c_str(), 0);
         file_cache::get()->reload_item(file);
     }
 
@@ -35,13 +36,13 @@ file_cache::~file_cache() {
 
 }
 
-void file_cache::load(string path, uv_loop_t* loop) {
+void file_cache::load(string path) {
     _path = path.append("/");
 
-    load_files(_path, loop, true);
+    load_files(_path,true);
 }
 
-void file_cache::load_files(string filepath, uv_loop_t* loop, bool recursive) {
+void file_cache::load_files(string filepath, bool recursive) {
 
     DIR *dp;
     struct dirent *dirp;
@@ -54,8 +55,8 @@ void file_cache::load_files(string filepath, uv_loop_t* loop, bool recursive) {
             if (dirp->d_name != string(".") && dirp->d_name != string("..")) {
                 string srchPath = filepath + dirp->d_name;
 
-                if (is_directory(srchPath, loop) == true && recursive == true) {
-                    load_files(filepath + dirp->d_name + "/", loop, true);
+                if (is_directory(srchPath) == true && recursive == true) {
+                    load_files(filepath + dirp->d_name + "/", true);
                 }
             }
         }
@@ -68,7 +69,7 @@ void file_cache::unload() {
 	cache_data.clear();
 }
 
-bool file_cache::is_directory(string &file, uv_loop_t* loop) {
+bool file_cache::is_directory(string &file) {
 
 	struct stat fileInfo;
 	stat(file.c_str(), &fileInfo);
@@ -78,10 +79,10 @@ bool file_cache::is_directory(string &file, uv_loop_t* loop) {
 		result = true;
 	} else {
 		cache_item(file);
-        uv_fs_event_t* fs_event;
-        fs_event = (uv_fs_event_t*)malloc(sizeof(uv_fs_event_t));
-        uv_fs_event_init(loop, fs_event);
-        uv_fs_event_start(fs_event, refresh, file.c_str(), 0);
+	        uv_fs_event_t* fs_event;
+	        fs_event = (uv_fs_event_t*)malloc(sizeof(uv_fs_event_t));
+	        uv_fs_event_init(uv_default_loop(), fs_event);
+	        uv_fs_event_start(fs_event, refresh, file.c_str(), 0);
 		result =  false;
 	}
 
@@ -105,7 +106,12 @@ void file_cache::reload_item(string &file, uv_loop_t* loop) {
 		cache_data.erase(cacheItem);
 	}
 
-	load(file, loop);
+	cache_item(file);
+	
+	uv_fs_event_t* fs_event;
+        fs_event = (uv_fs_event_t*)malloc(sizeof(uv_fs_event_t));
+        uv_fs_event_init(uv_default_loop(), fs_event);
+        uv_fs_event_start(fs_event, refresh, file.c_str(), 0);
 
 }
 
