@@ -40,26 +40,33 @@ void file_cache::load(string path) {
     load_files(_path,true);
 }
 
-void file_cache::load_files(string filepath, bool recursive) {
+void file_cache::load_files(string filepath, uv_fs_t* req) {
 
-    DIR *dp;
-    struct dirent *dirp;
+    uv_dirent_t dent;
 
+	int r = uv_fs_scandir(loop, req, filepath.c_str(), 0, NULL);
+	
+	while (!uv_fs_scandir_next(req, &dent)) {
+		
+		switch (dent.type) {
 
-    if ((dp = opendir(filepath.c_str())) == NULL) {
-        return;
-    } else {
-        while ((dirp = readdir(dp)) != NULL) {
-            if (dirp->d_name != string(".") && dirp->d_name != string("..")) {
-                string srchPath = filepath + dirp->d_name;
+		case UV_DIRENT_FILE:
+			cout << "File: " << req->path << "\\" << dent.name << endl;
+			break;
+		case UV_DIRENT_DIR:
+			
+			path.clear();
+			path.append(req->path);
+			path.append("\\");
+			path.append(dent.name);
+			uv_fs_t* fsreq = (uv_fs_t*)malloc(sizeof(uv_fs_t));
+			load_files(path, fsreq);
+			cout << "Directory: " << path << endl;
+			 
+		}
+	}
 
-                if (is_directory(srchPath)  && recursive ) {
-                    load_files(filepath + dirp->d_name + "/", true);
-                }
-            }
-        }
-        closedir(dp);
-    }
+	uv_fs_req_cleanup(req);
 
 }
 

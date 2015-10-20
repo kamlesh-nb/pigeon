@@ -31,7 +31,7 @@ namespace pigeon {
 
 		void cache_item(string&);
 
-		void load_files(string, bool);
+		void load_files(string);
 
 	public:
 
