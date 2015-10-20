@@ -77,10 +77,10 @@ bool file_cache::is_directory(string &file) {
 		result = true;
 	} else {
 		cache_item(file);
-	        uv_fs_event_t* fs_event;
-	        fs_event = (uv_fs_event_t*)malloc(sizeof(uv_fs_event_t));
-	        uv_fs_event_init(uv_default_loop(), fs_event);
-	        uv_fs_event_start(fs_event, refresh, file.c_str(), 0);
+		uv_fs_event_t* fs_event;
+		fs_event = (uv_fs_event_t*)malloc(sizeof(uv_fs_event_t));
+		uv_fs_event_init(uv_default_loop(), fs_event);
+		uv_fs_event_start(fs_event, refresh, file.c_str(), 0);
 		result =  false;
 	}
 

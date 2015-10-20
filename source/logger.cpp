@@ -21,8 +21,17 @@ logger::~logger() {
 }
 
 void logger::write(LogType type, Severity severity, string message) {
+
     lf << app_constants::get_log_type(type) << ": " << app_constants::get_severity(severity) << ": " << app_constants::now() << " : " << message << endl;
     lf.flush();
+
+}
+
+void logger::write(LogType type, string message) {
+
+    lf << app_constants::get_log_type(type) << ": " << app_constants::now() << " : " << message << endl;
+    lf.flush();
+
 }
 
 void logger::close() {

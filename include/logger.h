@@ -27,6 +27,7 @@ namespace pigeon {
         logger(const logger &lgr);
         ~logger();
         void write(LogType, Severity, string);
+        void write(LogType, string);
         void close();
         static std::shared_ptr<logger>& get();
 

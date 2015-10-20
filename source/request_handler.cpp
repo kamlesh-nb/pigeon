@@ -143,7 +143,9 @@ void request_handler::process_resource_request(http_request & req, http_response
 
 	}
 	catch (std::exception& ex){
+
 		logger::get()->write(LogType::Error, Severity::Critical, ex.what());
+
 	}
 
 }
