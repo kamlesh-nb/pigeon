@@ -213,7 +213,7 @@ void server::initialise_tcp() {
 
     };
 
-    on_read = [](uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf){
+    on_read = [&](uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf){
 
         try {
 
@@ -267,11 +267,12 @@ void server::initialise_tcp() {
                 logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
             }
             uv_read_start((uv_stream_t*)&client->handle,
-                          [](uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
+                          [&](uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
                               *buf = uv_buf_init((char *)malloc(suggested_size), suggested_size);
-                          }, [](uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf) {
-                        on_read(tcp, nread, buf);
-                    });
+                          },
+                          [&](uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf) {
+                              on_read(tcp, nread, buf);
+                          });
 
 
         } catch (std::exception& ex){
