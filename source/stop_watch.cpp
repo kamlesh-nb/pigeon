@@ -1,7 +1,7 @@
 #include "stop_watch.h"
 
 
-using namespace pigeon;
+using namespace pigeon::util;
 
 
 stop_watch::stop_watch(){

@@ -5,12 +5,12 @@
 #include <vector>
 #include <algorithm>
 #include "key_value_pair.h"
-#include "app_constants.h"
+
 
 using namespace std;
 
-
 namespace  pigeon {
+
     class http_msg {
 
     private:
@@ -34,7 +34,6 @@ namespace  pigeon {
 
     };
 
-
     class http_response : public http_msg {
 
 
@@ -43,7 +42,7 @@ namespace  pigeon {
 
     public:
 
-        HttpStatus status;
+        unsigned int status;
         string message;
 
     };

@@ -13,30 +13,34 @@
 
 namespace pigeon {
 
-	class stop_watch {
-	public:
-		stop_watch();
+    namespace util {
 
-		~stop_watch();
+        class stop_watch {
+        public:
+            stop_watch();
 
-		void start();
+            ~stop_watch();
 
-		void stop();
+            void start();
 
-		int64_t elapsed_miliseconds();
+            void stop();
 
-		int64_t elapsed_microseconds();
+            int64_t elapsed_miliseconds();
 
-		int64_t elapsed_nanoseconds();
+            int64_t elapsed_microseconds();
 
-		double elapsed_seconds();
+            int64_t elapsed_nanoseconds();
 
-	private:
-		std::chrono::steady_clock::time_point begin;
-		std::chrono::steady_clock::time_point end;
+            double elapsed_seconds();
+
+        private:
+            std::chrono::steady_clock::time_point begin;
+            std::chrono::steady_clock::time_point end;
 
 
-	};
+        };
+
+    }
 
 }
 

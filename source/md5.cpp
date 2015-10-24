@@ -124,7 +124,7 @@ void MD5::init()
 	count[0] = 0;
 	count[1] = 0;
 
-	// load magic initialization constants.
+	// load magic initialization http_util.
 	state[0] = 0x67452301;
 	state[1] = 0xefcdab89;
 	state[2] = 0x98badcfe;

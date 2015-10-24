@@ -10,21 +10,23 @@ include_directories("${pigeon_SOURCE_DIR}/include")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 set(SOURCE_FILES main.cpp
-        source/config.cpp include/config.h
-        source/file_cache.cpp include/file_cache.h
         include/file_info.h
         include/key_value_pair.h
-        include/api_handler_base.h
+        include/http_handler_base.h
         source/logger.cpp include/logger.h
-        source/app_constants.cpp include/app_constants.h
+        source/http_util.cpp include/http_util.h
         source/http_msg.cpp include/http_msg.h
-        source/request_handler.cpp include/request_handler.h
+        source/http_handler.cpp include/http_handler.h
         source/stop_watch.cpp include/stop_watch.h
         source/md5.cpp include/md5.h
-        include/server.h
-        app_service.cpp app_service.h source/server.cpp)
+        source/server.cpp include/server.h
+        include/http_context.h include/http_context.h
+        source/app.cpp include/app.h
+        source/http_handler.cpp include/http_handler.h
+        source/cache.cpp include/cache.h
+        source/settings.cpp include/settings.h)
 
-add_executable(pigeon ${SOURCE_FILES})
+add_library(pigeon ${SOURCE_FILES})
 target_link_libraries (pigeon ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (pigeon ${LIBZ})
 target_link_libraries (pigeon ${LIBUV})

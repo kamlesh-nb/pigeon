@@ -1,16 +1,16 @@
 
 
-#include "app_service.h"
+
+
+#include <iostream>
+#include "app.h"
 
 using namespace std;
 using namespace pigeon;
- 
-
 int main() {
 
-
-    app_service::get()->run();
-
-
+//    app a;
+//    a.create();
+//    a.run();
     return 0;
 }

@@ -6,9 +6,9 @@
 
 using namespace pigeon;
 
-logger::logger() {
+logger::logger(app* p_app) {
     if (!lf.is_open()) {
-        lf.open(config::get()->get_log_location() , ios::app);
+        lf.open( p_app->get_settings()->log_location , ios::app);
     }
 }
 
@@ -20,16 +20,16 @@ logger::~logger() {
 
 }
 
-void logger::write(LogType type, Severity severity, string message) {
+void logger::write(http_util::LogType type, http_util::Severity severity, string message) {
 
-    lf << app_constants::get_log_type(type) << ": " << app_constants::get_severity(severity) << ": " << app_constants::now() << " : " << message << endl;
+    lf << get_log_type(type) << ": " << get_severity(severity) << ": " << now() << " : " << message << endl;
     lf.flush();
 
 }
 
-void logger::write(LogType type, string message) {
+void logger::write(http_util::LogType type, string message) {
 
-    lf << app_constants::get_log_type(type) << ": " << app_constants::now() << " : " << message << endl;
+    lf << http_util::get_log_type(type) << ": " << http_util::now() << " : " << message << endl;
     lf.flush();
 
 }
@@ -44,7 +44,7 @@ std::shared_ptr<logger> logger::instance = nullptr;
 
 std::mutex logger::_mtx;
 
-std::shared_ptr<logger>&logger::get()
+std::shared_ptr<logger>&logger::get(app* p_app)
 {
     static std::shared_ptr<logger> tmp = instance;
 
@@ -53,7 +53,7 @@ std::shared_ptr<logger>&logger::get()
         std::lock_guard<std::mutex> lock(_mtx);
         if (!tmp)
         {
-            instance.reset(new logger());
+            instance.reset(new logger(p_app));
             tmp = instance;
         }
     }

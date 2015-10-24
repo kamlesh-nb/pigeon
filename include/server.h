@@ -8,6 +8,8 @@
 #include <functional>
 #include "logger.h"
 #include <uv.h>
+#include "app.h"
+#include "settings.h"
 
 using namespace std;
 
@@ -32,6 +34,9 @@ namespace pigeon {
         void on_send_complete_cb();
         void on_close_cb();
 
+        app* m_app;
+
+        string m_log_file;
 
         ///setup all the uv callbacks
         void initialise();
@@ -47,7 +52,7 @@ namespace pigeon {
 
     public:
 
-        server();
+        server(app*);
         ~server();
         void start();
         void stop();

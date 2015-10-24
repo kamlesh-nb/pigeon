@@ -7,18 +7,21 @@
 #include <iostream>
 #include <sstream>
 #include <assert.h>
-#include <request_handler.h>
-#include <file_cache.h>
+#include "http_handler.h"
+#include "cache.h"
 #include <http_parser.h>
 #include "server.h"
+#include "http_context.h"
+
 #define MAX_WRITE_HANDLES 1000
 
 
 using namespace pigeon;
-request_handler * mrequest_handler;
+
+
 uv_loop_t* uv_loop;
 uv_tcp_t uv_tcp;
-http_parser_settings settings;
+http_parser_settings parser_settings;
 
 function<void(uv_stream_t *socket, int status)> server::on_connect = nullptr;
 function<void(uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf)> server::on_read = nullptr;
@@ -28,13 +31,14 @@ function<void(uv_write_t *req, int status)> server::on_send_complete = nullptr;
 function<void(uv_handle_t *handler)> server::on_close = nullptr;
 
 
+
+
 typedef struct {
 
     uv_tcp_t handle;
     http_parser parser;
     uv_write_t write_req;
-    http_request * request;
-    http_response * response;
+    http_context* context;
 
 } client_t;
 
@@ -48,21 +52,24 @@ typedef struct {
 
 } msg_baton_t;
 
-server::server() { }
+server::server(app* p_app) : m_app(p_app) { }
 
 server::~server() { }
 
 void server::start() {
 
+    cache * resourceCache = m_app->get_resource_cache();
+    settings * appSettings = m_app->get_settings();
 
-    mrequest_handler = new request_handler;
+    m_log_file = appSettings->get_log_location();
+
     signal(SIGPIPE, SIG_IGN);
 
     setup_thread_pool();
 
     uv_loop = uv_default_loop();
 
-    file_cache::get()->load(config::get()->get_resource_location());
+    resourceCache->load(appSettings->get_resource_location());
 
     initialise_parser();
     initialise_tcp();
@@ -70,26 +77,26 @@ void server::start() {
     int r = uv_tcp_init(uv_loop, &uv_tcp);
 
     if(r != 0){
-        logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(r));
     }
 
     r = uv_tcp_keepalive(&uv_tcp,1,60);
     if(r != 0){
-        logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(r));
     }
 
-    string _address = config::get()->get_address();
-    int _port = config::get()->get_port();
+    string _address = appSettings->get_address();
+    int _port = appSettings->get_port();
 
     struct sockaddr_in address;
     r = uv_ip4_addr(_address.c_str(), _port, &address);
     if(r != 0){
-        logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(r));
     }
 
     r = uv_tcp_bind(&uv_tcp, (const struct sockaddr*)&address, 0);
     if(r != 0){
-        logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(r));
     }
 
     r = uv_listen((uv_stream_t*)&uv_tcp, MAX_WRITE_HANDLES,  [](uv_stream_t *socket, int status) {
@@ -97,10 +104,10 @@ void server::start() {
     });
 
     if(r != 0){
-        logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(r));
     }
 
-    logger::get()->write(LogType::Information, Severity::Medium, "Server Started...");
+    logger::get(m_app)->write(LogType::Information, Severity::Medium, "Server Started...");
 
     uv_run(uv_loop, UV_RUN_DEFAULT);
 
@@ -114,9 +121,9 @@ void server::stop() {
 }
 
 void server::setup_thread_pool() {
-
+    settings * appSettings = m_app->get_settings();
     stringstream ss;
-    ss << config::get()->get_num_worker_threads();
+    ss << appSettings->get_num_worker_threads();
     setenv("UV_THREADPOOL_SIZE", ss.str().c_str(), 1);
 
 }
@@ -129,8 +136,7 @@ void server::initialise_tcp() {
         try {
 
             client_t* client = (client_t*) handle->data;
-            delete client->response;
-            delete client->request;
+            delete client->context;
             free(client);
 
         } catch (std::exception ex) {
@@ -145,7 +151,7 @@ void server::initialise_tcp() {
         try {
 
             if(status != 0){
-                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
+                logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(status));
             }
             if (!uv_is_closing((uv_handle_t*)req->handle))
             {
@@ -186,7 +192,7 @@ void server::initialise_tcp() {
                              });
 
             if(r != 0){
-                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(r));
             }
 
         } catch (std::exception& ex) {
@@ -202,10 +208,10 @@ void server::initialise_tcp() {
             msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
             client_t* client = (client_t*) closure->client;
 
-            mrequest_handler->handle_request(*client->request, *client->response);
+            process(client->context);
 
-            closure->result = (char*) client->response->message.c_str();
-            closure->length = client->response->message.size();
+            closure->result = (char*) client->context->response->message.c_str();
+            closure->length = client->context->response->message.size();
 
         } catch (std::exception& ex) {
 
@@ -221,16 +227,16 @@ void server::initialise_tcp() {
             client_t *client = (client_t *) tcp->data;
             if (nread >= 0) {
                 parsed = (ssize_t) http_parser_execute(
-                        &client->parser, &settings, buf->base, nread);
+                        &client->parser, &parser_settings, buf->base, nread);
                 if (parsed < nread) {
-                    logger::get()->write(LogType::Error, Severity::Critical, "parse failed");
+                    logger::get(m_app)->write(LogType::Error, Severity::Critical, "parse failed");
                     uv_close((uv_handle_t *) &client->handle, [](uv_handle_t *handle){
                         on_close(handle);
                     });
                 }
             } else {
                 if (nread != UV_EOF) {
-                    logger::get()->write(LogType::Error, Severity::Critical, "read failed");
+                    logger::get(m_app)->write(LogType::Error, Severity::Critical, "read failed");
                 }
                 uv_close((uv_handle_t *) &client->handle, [](uv_handle_t *handle){
                     on_close(handle);
@@ -253,8 +259,8 @@ void server::initialise_tcp() {
 
             client_t* client = (client_t*)malloc(sizeof(client_t));
 
-            client->request = new http_request;
-            client->response = new http_response;
+            client->context = new http_context;
+            client->context->application = m_app;
 
             uv_tcp_init(uv_loop, &client->handle);
             http_parser_init(&client->parser, HTTP_REQUEST);
@@ -264,7 +270,7 @@ void server::initialise_tcp() {
 
             int r = uv_accept(server_handle, (uv_stream_t*)&client->handle);
             if(r != 0){
-                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(r));
             }
             uv_read_start((uv_stream_t*)&client->handle,
                           [&](uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
@@ -286,65 +292,68 @@ void server::initialise_tcp() {
 void server::initialise_parser() {
 
 
-    settings.on_url = [](http_parser* parser, const char* at, size_t len) -> int {
+    parser_settings.on_url = [](http_parser* parser, const char* at, size_t len) -> int {
         client_t* client = (client_t*) parser->data;
-        if (at && client->request) {
+        if (at && client->context->request) {
             string s(at, len);
-            client->request->url = s;
+            client->context->request->url = s;
         }
         return 0;
     };
 
-    settings.on_header_field = [](http_parser* parser, const char* at, size_t len) -> int {
+    parser_settings.on_header_field = [](http_parser* parser, const char* at, size_t len) -> int {
 
                 client_t* client = (client_t*) parser->data;
-                if (at && client->request) {
+                if (at && client->context->request) {
                     string s(at, len);
-                    client->request->set_header_field(s);
+                    client->context->request->set_header_field(s);
                 }
                 return 0;
 
     };
 
-    settings.on_header_value = [](http_parser* parser, const char* at, size_t len) -> int {
+    parser_settings.on_header_value = [](http_parser* parser, const char* at, size_t len) -> int {
 
                 client_t* client = (client_t*) parser->data;
-                if (at && client->request) {
+                if (at && client->context->request) {
                     string s(at, len);
-                    client->request->set_header_value(s);
+                    client->context->request->set_header_value(s);
                 }
                 return 0;
 
     };
 
-    settings.on_headers_complete = [](http_parser* parser) -> int {
+    parser_settings.on_headers_complete = [](http_parser* parser) -> int {
 
                 client_t* client = (client_t*) parser->data;
-                client->request->method = parser->method;
-                client->request->http_major_version = parser->http_major;
-                client->request->http_minor_version = parser->http_minor;
+                client->context->request->method = parser->method;
+                client->context->request->http_major_version = parser->http_major;
+                client->context->request->http_minor_version = parser->http_minor;
                 return 0;
 
     };
 
-    settings.on_body = [](http_parser* parser, const char* at, size_t len) -> int {
+    parser_settings.on_body = [](http_parser* parser, const char* at, size_t len) -> int {
 
                 client_t* client = (client_t*) parser->data;
-                if (at && client->request) {
+                if (at && client->context->request) {
                     string s(at, len);
-                    client->request->content = s;
+                    client->context->request->content = s;
                 }
                 return 0;
 
     };
 
-    settings.on_message_complete = [](http_parser* parser) -> int {
+    parser_settings.on_message_complete = [](http_parser* parser) -> int {
 
         client_t* client = (client_t*) parser->data;
         msg_baton_t *closure = new msg_baton_t();
         closure->request.data = closure;
         closure->client = client;
         closure->error = false;
+
+        client->context->request->is_api = is_api(client->context->request->url);
+        parse_query_string(*client->context->request);
 
         int status = uv_queue_work(uv_loop,
                                    &closure->request,
