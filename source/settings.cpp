@@ -94,6 +94,35 @@ auto settings::get_app_setting(key_value_pair& kvp) -> void {
 
 }
 
+auto settings::get_file_upload_location() -> string & {
+    return file_upload_location;
+}
+
+
+auto settings::set_corsheaders_key(string &_key) -> void {
+    key_value_pair kvp;
+    kvp.key = _key;
+    corsheaders.push_back(kvp);
+}
+
+auto settings::set_corsheaders_value(string &_value) -> void {
+
+    if(corsheaders.empty()) {
+        return;
+    }
+    corsheaders.back().value = _value;
+
+}
+
+auto settings::get_corsheaders(key_value_pair &kvp) -> void {
+
+    for(auto& hdr : corsheaders){
+        if(hdr.key == kvp.key){
+            kvp = hdr;
+        }
+    }
+}
+
 auto settings::load_setting() -> void {
 
     char path[1024];
@@ -122,6 +151,32 @@ auto settings::load_setting() -> void {
     log_location = doc["log_location"].GetString();
     db_conn_string = doc["db_conn_string"].GetString();
 
+
+
+
+
+    for (Value::ConstMemberIterator it = doc["cors_headers"].MemberBegin(); it != doc["cors_headers"].MemberEnd(); ++it) {
+        key_value_pair kvp;
+        kvp.key = it->name.GetString();
+        kvp.value = it->value.GetString();
+        corsheaders.push_back(kvp);
+    }
+
+
+
+
+    for (Value::ConstMemberIterator it = doc["app_settings"].MemberBegin(); it != doc["app_settings"].MemberEnd(); ++it) {
+        key_value_pair kvp;
+        kvp.key = it->name.GetString();
+        kvp.value = it->value.GetString();
+        appsettings.push_back(kvp);
+
+    }
+
+
+
+
 }
+
 
 

@@ -29,12 +29,14 @@ namespace pigeon {
         int num_worker_threads;
         string document_root;
         string resource_location;
+        string file_upload_location;
         string default_page;
         string log_location;
         string db_conn_string;
         string api_route;
 
         vector<key_value_pair> appsettings;
+        vector<key_value_pair> corsheaders;
 
     public:
 
@@ -58,6 +60,8 @@ namespace pigeon {
 
         auto get_resource_location() -> string&;
 
+        auto get_file_upload_location() -> string&;
+
         auto get_service_name() -> string&;
 
         auto get_ssl_cert_file() -> string&;
@@ -71,6 +75,12 @@ namespace pigeon {
         auto set_app_setting_value(string& _value) -> void;
 
         auto get_app_setting(key_value_pair& kvp) -> void;
+
+        auto set_corsheaders_key(string& _key) -> void;
+
+        auto set_corsheaders_value(string& _value) -> void;
+
+        auto get_corsheaders(key_value_pair& kvp) -> void;
 
         auto load_setting() -> void;
 

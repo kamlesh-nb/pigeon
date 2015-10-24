@@ -9,8 +9,23 @@
   "ssl_key_file": "/home/kamlesh/Documents/re-app/pigen.pem",
   "document_root": "/home/kamlesh/h5as-App",
   "resource_location": "/home/kamlesh/h5as-App/resources",
+  "file_upload_location": "/home/kamlesh/h5as-App/resources/uploads",
   "default_page": "index.html",
   "api_route": "/api/",
   "db_conn_string": "localhost:27017",
-  "log_location": "/home/kamlesh/Documents/log/service.log"
+  "log_location": "/home/kamlesh/Documents/log/service.log",
+
+  "cors_headers": {
+        "Access-Control-Allow-Origin:": "http://foo.example",
+        "Access-Control-Allow-Methods:": "POST, GET, OPTIONS",
+        "Access-Control-Allow-Headers:": "X-PINGOTHER",
+        "Access-Control-Max-Age:": "1728000",
+        "Access-Control-Allow-Credentials:": "false",
+        "Access-Control-Expose-Headers:": "none"
+    },
+
+  "app_settings": {
+      "custom_log": "none",
+      "no_of_month_to_backtest": "3"
+  }
 }

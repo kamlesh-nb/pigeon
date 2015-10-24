@@ -28,9 +28,9 @@ set(SOURCE_FILES
         source/http_handler.cpp include/http_handler.h
         source/cache.cpp include/cache.h
         source/settings.cpp include/settings.h
-        source/rest_handlers.cpp include/rest_handlers.h)
+        source/rest_handlers.cpp include/rest_handlers.h main.cpp)
 
-add_library(pigeon ${SOURCE_FILES})
+add_executable(pigeon ${SOURCE_FILES})
 target_link_libraries (pigeon ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (pigeon ${LIBZ})
 target_link_libraries (pigeon ${LIBUV})

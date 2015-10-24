@@ -9,7 +9,7 @@
 
 using namespace pigeon;
 
-struct logtype {
+    struct logtype {
         int log_id;
         const char *log_type;
     } logtypes[] =
@@ -177,8 +177,6 @@ struct logtype {
     const char *err_msg1 = "<!DOCTYPE html><html><head lang='en'><meta charset='UTF-8'><title>Status</title></head><body><table><th>Status Code</th><th>Message</th><tr><td>";
     const char *err_msg3 = "</td><td>";
     const char *err_msg5 = "</td></tr></table></body></html>";
-
-
 
 namespace http_util {
 
@@ -371,30 +369,23 @@ namespace http_util {
 
     }
 
-
-
-
     void process(http_context *context) {
 
         if(context->request->is_api){
+
             shared_ptr<http_handler_base> handler = rest_handlers::get()->get_handler(context->request->url);
-
-
             if (!handler)
             {
                 prepare(HttpStatus::NotFound, context);
                 return;
             }
             handler->process(context);
-
             prepare(HttpStatus::OK, context);
             {
                 context->response->message += get_header_field(HttpHeader::Content_Length);
                 context->response->message += std::to_string(context->response->content.size());
                 context->response->message += "\r\n";
-
             }
-
             finish(HttpStatus::OK, context);
 
         } else {
