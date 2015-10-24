@@ -49,6 +49,8 @@ namespace pigeon {
 
 	};
 
+
+
 	template<typename T>
 	inline std::shared_ptr<http_handler_base> create_api_handler() {
 		return std::make_shared<T>();

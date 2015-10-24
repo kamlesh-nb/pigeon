@@ -34,7 +34,8 @@ namespace pigeon {
         void on_send_complete_cb();
         void on_close_cb();
 
-        app* m_app;
+        settings* m_settings;
+        cache* m_cache;
 
         string m_log_file;
 
@@ -52,7 +53,7 @@ namespace pigeon {
 
     public:
 
-        server(app*);
+        server();
         ~server();
         void start();
         void stop();

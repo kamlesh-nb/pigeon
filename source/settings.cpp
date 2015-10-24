@@ -123,3 +123,5 @@ auto settings::load_setting() -> void {
     db_conn_string = doc["db_conn_string"].GetString();
 
 }
+
+

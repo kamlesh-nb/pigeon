@@ -19,8 +19,8 @@ void http_handler::get(http_context *context) {
 
     try {
 
-        settings * appSettings = context->application->get_settings();
-        cache * resourceCache = context->application->get_resource_cache();
+        settings * appSettings = context->Settings;
+        cache * resourceCache = context->Cache;
         resource_location = appSettings->get_resource_location();
 
         std::string request_path;
@@ -101,7 +101,7 @@ void http_handler::get(http_context *context) {
     }
     catch (std::exception& ex){
 
-        logger::get(context->application)->write(LogType::Error, Severity::Critical, ex.what());
+        logger::get(context->Settings)->write(LogType::Error, Severity::Critical, ex.what());
 
     }
 

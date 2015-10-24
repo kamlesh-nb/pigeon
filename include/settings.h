@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <key_value_pair.h>
+#include <map>
 
 using namespace std;
 
@@ -15,6 +16,9 @@ namespace pigeon {
 
     class settings {
     private:
+
+
+
 
         string service_name;
         string address;
@@ -69,6 +73,7 @@ namespace pigeon {
         auto get_app_setting(key_value_pair& kvp) -> void;
 
         auto load_setting() -> void;
+
 
     };
 

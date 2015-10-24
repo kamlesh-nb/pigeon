@@ -52,16 +52,18 @@ typedef struct {
 
 } msg_baton_t;
 
-server::server(app* p_app) : m_app(p_app) { }
+server::server() { }
 
 server::~server() { }
 
 void server::start() {
 
-    cache * resourceCache = m_app->get_resource_cache();
-    settings * appSettings = m_app->get_settings();
+    m_settings = new settings;
+    m_cache = new cache;
 
-    m_log_file = appSettings->get_log_location();
+    m_settings->load_setting();
+
+    m_log_file = m_settings->get_log_location();
 
     signal(SIGPIPE, SIG_IGN);
 
@@ -69,7 +71,7 @@ void server::start() {
 
     uv_loop = uv_default_loop();
 
-    resourceCache->load(appSettings->get_resource_location());
+    m_cache->load(m_settings->get_resource_location());
 
     initialise_parser();
     initialise_tcp();
@@ -77,26 +79,26 @@ void server::start() {
     int r = uv_tcp_init(uv_loop, &uv_tcp);
 
     if(r != 0){
-        logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        logger::get(m_settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
     }
 
     r = uv_tcp_keepalive(&uv_tcp,1,60);
     if(r != 0){
-        logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        logger::get(m_settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
     }
 
-    string _address = appSettings->get_address();
-    int _port = appSettings->get_port();
+    string _address = m_settings->get_address();
+    int _port = m_settings->get_port();
 
     struct sockaddr_in address;
     r = uv_ip4_addr(_address.c_str(), _port, &address);
     if(r != 0){
-        logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        logger::get(m_settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
     }
 
     r = uv_tcp_bind(&uv_tcp, (const struct sockaddr*)&address, 0);
     if(r != 0){
-        logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        logger::get(m_settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
     }
 
     r = uv_listen((uv_stream_t*)&uv_tcp, MAX_WRITE_HANDLES,  [](uv_stream_t *socket, int status) {
@@ -104,10 +106,10 @@ void server::start() {
     });
 
     if(r != 0){
-        logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        logger::get(m_settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
     }
 
-    logger::get(m_app)->write(LogType::Information, Severity::Medium, "Server Started...");
+    logger::get(m_settings)->write(LogType::Information, Severity::Medium, "Server Started...");
 
     uv_run(uv_loop, UV_RUN_DEFAULT);
 
@@ -121,9 +123,9 @@ void server::stop() {
 }
 
 void server::setup_thread_pool() {
-    settings * appSettings = m_app->get_settings();
+
     stringstream ss;
-    ss << appSettings->get_num_worker_threads();
+    ss << m_settings->get_num_worker_threads();
     setenv("UV_THREADPOOL_SIZE", ss.str().c_str(), 1);
 
 }
@@ -151,7 +153,7 @@ void server::initialise_tcp() {
         try {
 
             if(status != 0){
-                logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(status));
+                logger::get(m_settings)->write(LogType::Error, Severity::Critical, uv_err_name(status));
             }
             if (!uv_is_closing((uv_handle_t*)req->handle))
             {
@@ -192,7 +194,7 @@ void server::initialise_tcp() {
                              });
 
             if(r != 0){
-                logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                logger::get(m_settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
             }
 
         } catch (std::exception& ex) {
@@ -229,14 +231,14 @@ void server::initialise_tcp() {
                 parsed = (ssize_t) http_parser_execute(
                         &client->parser, &parser_settings, buf->base, nread);
                 if (parsed < nread) {
-                    logger::get(m_app)->write(LogType::Error, Severity::Critical, "parse failed");
+                    logger::get(m_settings)->write(LogType::Error, Severity::Critical, "parse failed");
                     uv_close((uv_handle_t *) &client->handle, [](uv_handle_t *handle){
                         on_close(handle);
                     });
                 }
             } else {
                 if (nread != UV_EOF) {
-                    logger::get(m_app)->write(LogType::Error, Severity::Critical, "read failed");
+                    logger::get(m_settings)->write(LogType::Error, Severity::Critical, "read failed");
                 }
                 uv_close((uv_handle_t *) &client->handle, [](uv_handle_t *handle){
                     on_close(handle);
@@ -260,7 +262,9 @@ void server::initialise_tcp() {
             client_t* client = (client_t*)malloc(sizeof(client_t));
 
             client->context = new http_context;
-            client->context->application = m_app;
+            client->context->Settings = m_settings;
+            client->context->Cache = m_cache;
+
 
             uv_tcp_init(uv_loop, &client->handle);
             http_parser_init(&client->parser, HTTP_REQUEST);
@@ -270,7 +274,7 @@ void server::initialise_tcp() {
 
             int r = uv_accept(server_handle, (uv_stream_t*)&client->handle);
             if(r != 0){
-                logger::get(m_app)->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                logger::get(m_settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
             }
             uv_read_start((uv_stream_t*)&client->handle,
                           [&](uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {

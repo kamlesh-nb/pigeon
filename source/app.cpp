@@ -10,7 +10,6 @@
 #include <stdexcept>
 #include <sstream>
 #include <fstream>
-#include <md5.h>
 #include "http_util.h"
 #include <logger.h>
 #include "app.h"
@@ -25,25 +24,13 @@ namespace pigeon {
 
     auto app::run() -> void {
 
-        server s(this);
+        server s;
         s.start();
 
     }
 
-    auto app::create() -> void {
-        m_app_settings = new settings;
-        m_resource_cache = new cache;
-        m_app_settings->load_setting();
-        m_resource_cache->load(m_app_settings->get_resource_location());
-    }
 
-    auto app::get_resource_cache() -> cache * {
-        return m_resource_cache;
-    }
 
-    auto app::get_settings() -> settings * {
-        return m_app_settings;
-    }
 
 }
 

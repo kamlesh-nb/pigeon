@@ -3,10 +3,12 @@
 
 #include <string>
 #include "http_context.h"
+#include "http_handler_base.h"
 
 
 using namespace std;
 using namespace pigeon;
+
 
 namespace http_util {
 
@@ -71,6 +73,10 @@ namespace http_util {
 
     };
 
+
+
+
+
     string get_cached_response(bool is_api);
     char *now();
     string get_header_field(HttpHeader hdr);
@@ -85,7 +91,6 @@ namespace http_util {
     void prepare(HttpStatus status, http_context *context);
     void finish(HttpStatus status, http_context *context);
     void process(http_context*);
-
 
 }
 

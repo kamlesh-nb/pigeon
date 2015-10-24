@@ -3,9 +3,11 @@
 #include <string.h>
 #include <chrono>
 #include <sstream>
-#include <http_handler_base.h>
 #include <http_handler.h>
+#include <rest_handlers.h>
 #include <iterator>
+
+using namespace pigeon;
 
 struct logtype {
         int log_id;
@@ -369,16 +371,39 @@ namespace http_util {
 
     }
 
+
+
+
     void process(http_context *context) {
 
         if(context->request->is_api){
-            //auto handler =
+            shared_ptr<http_handler_base> handler = rest_handlers::get()->get_handler(context->request->url);
+
+
+            if (!handler)
+            {
+                prepare(HttpStatus::NotFound, context);
+                return;
+            }
+            handler->process(context);
+
+            prepare(HttpStatus::OK, context);
+            {
+                context->response->message += get_header_field(HttpHeader::Content_Length);
+                context->response->message += std::to_string(context->response->content.size());
+                context->response->message += "\r\n";
+
+            }
+
+            finish(HttpStatus::OK, context);
+
         } else {
 
             auto handler = std::make_shared<http_handler>();
             handler->process(context);
         }
     }
+
 
 }
 
