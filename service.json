@@ -3,7 +3,6 @@
   "address": "127.0.0.1",
   "port":  8000,
   "worker_threads": 3,
-  "max_request_size": 16384,
   "use_ssl": false,
   "ssl_cert_file": "/home/kamlesh/Documents/re-app/pigen.pem",
   "ssl_key_file": "/home/kamlesh/Documents/re-app/pigen.pem",
@@ -26,6 +25,6 @@
 
   "app_settings": {
       "custom_log": "none",
-      "no_of_month_to_backtest": "3"
+      "backtest_durations": "3"
   }
 }

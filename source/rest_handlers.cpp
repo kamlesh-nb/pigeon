@@ -10,7 +10,6 @@ using namespace pigeon;
 
 auto rest_handlers::add_handler(const string &handler_name, CreateHandler handler) -> void {
     registry[handler_name] = handler;
-    cout << registry.size() << endl;
 }
 
 auto rest_handlers::get_handler(const string &handler_name) -> std::shared_ptr<http_handler_base> const {
