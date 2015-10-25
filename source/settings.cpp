@@ -98,7 +98,6 @@ auto settings::get_file_upload_location() -> string & {
     return file_upload_location;
 }
 
-
 auto settings::set_corsheaders_key(string &_key) -> void {
     key_value_pair kvp;
     kvp.key = _key;
@@ -121,6 +120,10 @@ auto settings::get_corsheaders(key_value_pair &kvp) -> void {
             kvp = hdr;
         }
     }
+}
+
+auto settings::get_enable_cors() -> bool {
+    return enable_cors;
 }
 
 auto settings::load_setting() -> void {
@@ -150,10 +153,7 @@ auto settings::load_setting() -> void {
     api_route = doc["api_route"].GetString();
     log_location = doc["log_location"].GetString();
     db_conn_string = doc["db_conn_string"].GetString();
-
-
-
-
+    enable_cors = doc["enable_cors"].GetBool();
 
     for (Value::ConstMemberIterator it = doc["cors_headers"].MemberBegin(); it != doc["cors_headers"].MemberEnd(); ++it) {
         key_value_pair kvp;
@@ -162,9 +162,6 @@ auto settings::load_setting() -> void {
         corsheaders.push_back(kvp);
     }
 
-
-
-
     for (Value::ConstMemberIterator it = doc["app_settings"].MemberBegin(); it != doc["app_settings"].MemberEnd(); ++it) {
         key_value_pair kvp;
         kvp.key = it->name.GetString();
@@ -172,9 +169,6 @@ auto settings::load_setting() -> void {
         appsettings.push_back(kvp);
 
     }
-
-
-
 
 }
 

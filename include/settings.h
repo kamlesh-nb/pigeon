@@ -34,7 +34,7 @@ namespace pigeon {
         string log_location;
         string db_conn_string;
         string api_route;
-
+        bool enable_cors;
         vector<key_value_pair> appsettings;
         vector<key_value_pair> corsheaders;
 
@@ -81,6 +81,8 @@ namespace pigeon {
         auto set_corsheaders_value(string& _value) -> void;
 
         auto get_corsheaders(key_value_pair& kvp) -> void;
+
+        auto get_enable_cors() -> bool;
 
         auto load_setting() -> void;
 

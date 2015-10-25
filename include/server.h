@@ -26,14 +26,6 @@ namespace pigeon {
         static function<void(uv_write_t *req, int status)> on_send_complete;
         static function<void(uv_handle_t *handler)> on_close;
 
-        //setup callback lambda's
-        void on_connect_cb();
-        void on_read_cb();
-        void on_render_cb();
-        void on_render_complete_cb();
-        void on_send_complete_cb();
-        void on_close_cb();
-
         settings* m_settings;
         cache* m_cache;
 
