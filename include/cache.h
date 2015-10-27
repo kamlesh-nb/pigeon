@@ -2,8 +2,8 @@
 // Created by kamlesh on 23/10/15.
 //
 
-#ifndef PIGEON_RESOURCE_CACHE_H
-#define PIGEON_RESOURCE_CACHE_H
+#ifndef PIGEON_CACHE_H
+#define PIGEON_CACHE_H
 
 #include <uv.h>
 #include "file_info.h"
@@ -48,4 +48,4 @@ namespace pigeon {
 
 
 
-#endif //PIGEON_RESOURCE_CACHE_H
+#endif //PIGEON_CACHE_H

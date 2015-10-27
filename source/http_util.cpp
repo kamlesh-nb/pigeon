@@ -197,7 +197,7 @@ namespace http_util {
         string cached_response;
 
         cached_response += cached_date_response;
-        // cached_response += now();
+        cached_response += now();
 
         if (is_api) {
             cached_response += api_cached_response;

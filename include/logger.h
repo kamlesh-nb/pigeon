@@ -2,8 +2,8 @@
 // Created by kamlesh on 30/9/15.
 //
 
-#ifndef PIGEONWEB_LOGGER_H
-#define PIGEONWEB_LOGGER_H
+#ifndef PIGEON_LOGGER_H
+#define PIGEON_LOGGER_H
 
 #include <mutex>
 #include <fstream>
@@ -38,4 +38,4 @@ namespace pigeon {
 
     };
 }
-#endif //PIGEONWEB_LOGGER_H
+#endif //PIGEON_LOGGER_H

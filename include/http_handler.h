@@ -2,8 +2,8 @@
 // Created by kamlesh on 23/10/15.
 //
 
-#ifndef PIGEON_RESOURCE_HANDLER_H
-#define PIGEON_RESOURCE_HANDLER_H
+#ifndef PIGEON_HTTP_HANDLER_H
+#define PIGEON_HTTP_HANDLER_H
 
 #include "http_context.h"
 #include "http_handler_base.h"
@@ -33,4 +33,4 @@ namespace pigeon {
 
 }
 
-#endif //PIGEON_RESOURCE_HANDLER_H
+#endif //PIGEON_HTTP_HANDLER_H

@@ -53,7 +53,7 @@ void cache::compress_item(file_info& fi){
         throw(std::runtime_error("deflateInit failed while compressing."));
 
     zs.next_in = (Bytef*)str.data();
-    zs.avail_in = str.size();           // set the z_stream's input
+    zs.avail_in = static_cast<unsigned int>(str.size());           // set the z_stream's input
 
     int ret;
     char outbuffer[32768];
@@ -101,20 +101,23 @@ void cache::cache_item(string& file){
 
         time_t  lwt_t;
         char* lwt;
+		uv_fs_t req;
+		int r = uv_fs_stat(uv_default_loop(), &req, file.c_str(), NULL);
 
-        lwt_t = (time_t)file_stat.st_mtim.tv_sec;
+
+        lwt_t = (time_t)req.statbuf.st_mtim.tv_sec;
 
         lwt = ctime(&lwt_t);
 
-        lwt[strlen(lwt) - 1] = '\0';
+        lwt[strlen(lwt) - 1] = '\0'; 
 
 
         fi.file_size = content.size();
-        fi.last_write_time = lwt;
+		fi.last_write_time = lwt;
 
         string md5_src = file;
         md5_src += lwt;
-        fi.etag = md5(md5_src);
+        fi.etag = md5(md5_src); 
 
         std::size_t last_slash_pos = file.find_last_of("/");
         std::size_t last_dot_pos = file.find_last_of(".");
@@ -258,6 +261,7 @@ void cache::reload_item(string &file) {
     fs_event->data = this;
     uv_fs_event_init(uv_default_loop(), fs_event);
     uv_fs_event_start(fs_event, refresh, file.c_str(), 0);
+
 }
 
 void cache::get_item(string &file, file_info& fi) {

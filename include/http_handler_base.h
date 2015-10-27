@@ -1,5 +1,5 @@
-#ifndef API_HANDLER_BASE_H
-#define API_HANDLER_BASE_H
+#ifndef PIGEON_HTTP_HANDLER_BASE_H
+#define PIGEON_HTTP_HANDLER_BASE_H
 
 #include "http_msg.h"
 #include "http_context.h"
@@ -61,4 +61,4 @@ namespace pigeon {
 
 
 
-#endif //API_HANDLER_BASE_H
+#endif //PIGEON_HTTP_HANDLER_BASE_H
