@@ -12,10 +12,11 @@ FIND_LIBRARY(LIBMONGOCLIENT NAMES mongoclient PATHS /usr/local/lib)
 include_directories("${pigeon_SOURCE_DIR}/include")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
-set(SOURCE_FILES
+set(SOURCE_FILES main.cpp
         include/file_info.h
         include/key_value_pair.h
         include/http_handler_base.h
+        include/uv_http.h
         source/logger.cpp include/logger.h
         source/http_util.cpp include/http_util.h
         source/http_msg.cpp include/http_msg.h
@@ -30,7 +31,9 @@ set(SOURCE_FILES
         source/settings.cpp include/settings.h
         source/rest_handlers.cpp include/rest_handlers.h)
 
-add_library(pigeon ${SOURCE_FILES})
+#add_library(pigeon ${SOURCE_FILES})
+add_executable(pigeon ${SOURCE_FILES})
+
 target_link_libraries (pigeon ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (pigeon ${LIBZ})
 target_link_libraries (pigeon ${LIBUV})

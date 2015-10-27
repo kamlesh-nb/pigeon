@@ -94,6 +94,7 @@ namespace pigeon {
 #ifndef _WIN32
 		signal(SIGPIPE, SIG_IGN);
 #endif
+
 		_init();
 		_pool_size();
 		_parser();
@@ -116,7 +117,7 @@ namespace pigeon {
 		SetEnvironmentVariable(VARNAME, (LPTSTR)num_of_threads.c_str());
 #else
 		stringstream ss;
-		ss << m_settings->get_num_worker_threads();
+		ss << http::_Settings->get_num_worker_threads();
 		setenv("UV_THREADPOOL_SIZE", ss.str().c_str(), 1);
 #endif
 

@@ -392,6 +392,7 @@ namespace http_util {
 
             auto handler = std::make_shared<http_handler>();
             handler->process(context);
+
         }
     }
 

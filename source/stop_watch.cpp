@@ -5,8 +5,8 @@ using namespace pigeon;
 
 
 stop_watch::stop_watch(){
-	begin = std::chrono::steady_clock::now();
-	end = std::chrono::steady_clock::now();
+	begin = std::chrono::high_resolution_clock::now();
+	end = std::chrono::high_resolution_clock::now();
 }
 
 stop_watch::~stop_watch() {}

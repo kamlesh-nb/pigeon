@@ -181,7 +181,7 @@ namespace pigeon {
 
 					uv_buf_t resbuf;
 					resbuf.base = closure->result;
-					resbuf.len = (ULONG)closure->length;
+					resbuf.len = (ulong)closure->length;
 
 					client->write_req.data = closure;
 
@@ -213,8 +213,12 @@ namespace pigeon {
 
 				iconnection_t* client = (iconnection_t*)parser->data;
 				if (at && client->context->request) {
-					string s(at, len);
-					client->context->request->url = s;
+					//string s(at, len);
+                    char *data = (char *)malloc(sizeof(char) * len + 1);
+                    strncpy(data, at, len);
+                    data[len] = '\0';
+					client->context->request->url += data;
+                    free(data);
 				}
 				return 0;
 
@@ -224,7 +228,13 @@ namespace pigeon {
 
 				iconnection_t* client = (iconnection_t*)parser->data;
 				if (at && client->context->request) {
-					string s(at, len);
+					string s;
+                    char *data = (char *)malloc(sizeof(char) * len + 1);
+                    strncpy(data, at, len);
+                    data[len] = '\0';
+                    s += data;
+                    free(data);
+
 					client->context->request->set_header_field(s);
 				}
 				return 0;
@@ -235,7 +245,12 @@ namespace pigeon {
 
 				iconnection_t* client = (iconnection_t*)parser->data;
 				if (at && client->context->request) {
-					string s(at, len);
+                    string s;
+                    char *data = (char *)malloc(sizeof(char) * len + 1);
+                    strncpy(data, at, len);
+                    data[len] = '\0';
+                    s += data;
+                    free(data);
 					client->context->request->set_header_value(s);
 				}
 				return 0;
@@ -256,8 +271,13 @@ namespace pigeon {
 
 				iconnection_t* client = (iconnection_t*)parser->data;
 				if (at && client->context->request) {
-					string s(at, len);
-					client->context->request->content = s;
+
+                    char *data = (char *)malloc(sizeof(char) * len + 1);
+                    strncpy(data, at, len);
+                    data[len] = '\0';
+                    client->context->request->content += data;
+                    free(data);
+
 				}
 				return 0;
 
