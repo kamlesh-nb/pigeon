@@ -13,8 +13,7 @@
 
 namespace pigeon {
 
-    namespace util {
-
+    
         class stop_watch {
         public:
             stop_watch();
@@ -40,8 +39,7 @@ namespace pigeon {
 
         };
 
-    }
-
+   
 }
 
 

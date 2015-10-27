@@ -122,7 +122,6 @@ namespace pigeon {
 
 
 	}
-
  
 	void server::_parser() {
 

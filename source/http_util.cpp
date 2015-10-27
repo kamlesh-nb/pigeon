@@ -239,7 +239,7 @@ namespace http_util {
         return "unknown msg";
     }
 
-    string get_mime_type(string &extension) {
+    string get_mime_type(string& extension) {
 
         for (mapping *m = mappings; m->extension; ++m) {
             if (m->extension == extension) {
@@ -277,7 +277,7 @@ namespace http_util {
         return pos != string::npos;
     }
 
-    void parse_query_string(http_request & req){
+    void parse_query_string(http_request& req){
 
         string query_uri(req.url);
         std::size_t _parStart = req.url.find('?');
@@ -304,7 +304,7 @@ namespace http_util {
         }
     }
 
-    bool url_decode(const string &in, string &out) {
+    bool url_decode(const string& in, string& out) {
 
         out.clear();
         out.reserve(in.size());

@@ -53,14 +53,14 @@ auto http_request::get_parameter(key_value_pair& kvp) -> void {
 
 }
 
+auto http_request::set_parameter(key_value_pair& kvp) -> void {
+    parameters.push_back(std::move(kvp));
+}
+
 http_response::~http_response() {
 
 }
 
 http_request::~http_request() {
 
-}
-
-auto http_request::set_parameter(key_value_pair &kvp) -> void {
-    parameters.push_back(std::move(kvp));
 }

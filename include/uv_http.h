@@ -7,7 +7,11 @@
 #include <exception>
 #include <http_context.h>
 #include <logger.h>
+#include <iostream>
 
+#include "stop_watch.h"
+
+using namespace std;
 
 namespace pigeon {
 
@@ -169,7 +173,7 @@ namespace pigeon {
 				}
 			}
 
-			auto on_render_complete(uv_work_t *req) -> void {
+			auto on_render_complete(uv_work_t *req, int status) -> void {
 				try {
 
 					msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
@@ -267,14 +271,15 @@ namespace pigeon {
 				closure->request.data = closure;
 				closure->client = client;
 				closure->error = false;
-
+				
 				client->context->request->is_api = is_api(client->context->request->url);
 				parse_query_string(*client->context->request);
 
 				int status = uv_queue_work(uv_loop,
 					&closure->request,
-					[](uv_work_t *req) { server::on_render(req); },
-					[](uv_work_t *req, int status) { server::on_render_complete(req); });
+					server::on_render,
+					server::on_render_complete);
+
 				return status;
 
 			}

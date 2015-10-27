@@ -15,7 +15,6 @@ using namespace rapidjson;
 using namespace pigeon;
 
 auto settings::get_address() -> string& {
-
     return address;
 }
 
