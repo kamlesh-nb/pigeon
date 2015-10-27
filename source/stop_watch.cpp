@@ -12,11 +12,11 @@ stop_watch::stop_watch(){
 stop_watch::~stop_watch() {}
 
 void stop_watch::start() {
-	begin = std::chrono::steady_clock::now();
+	begin = std::chrono::high_resolution_clock::now();
 }
 
 void stop_watch::stop() {
-	end = std::chrono::steady_clock::now();
+	end = std::chrono::high_resolution_clock::now();
 }
 
 int64_t stop_watch::elapsed_miliseconds() {
