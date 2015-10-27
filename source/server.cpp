@@ -95,7 +95,7 @@ namespace pigeon {
 		signal(SIGPIPE, SIG_IGN);
 #endif
 		_init();
-		set_thread_pool_env();
+		_pool_size();
 		_parser();
 		_tcp();
 		_bind();
@@ -109,7 +109,7 @@ namespace pigeon {
 
 	}
 
-	void server::set_thread_pool_env() {
+	void server::_pool_size() {
 
 #ifdef _WIN32
 		string num_of_threads = std::to_string(http::_Settings->get_num_worker_threads());

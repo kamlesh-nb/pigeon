@@ -15,21 +15,13 @@ namespace pigeon {
     private:
 
         
-        ///setup all the uv callbacks
+         
         void _init();
-
-        //initialise tcp
         void _tcp();
-
 		void _bind();
-
 		void _listen();
-
-        ///initialise all http parser
         void _parser();
-
-        ///setup thread pool environment variable
-		void set_thread_pool_env();
+		void _pool_size();
 
     public:
 
