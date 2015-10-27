@@ -30,25 +30,19 @@ namespace pigeon {
 
 	server::~server() { }
 
-	void server::start() {
+	void server::_init(){
 
 		http::_Settings = new settings;
 		http::_Cache = new cache;
-
 		http::_Settings->load_setting();
 
-
-#ifndef _WIN32
-		signal(SIGPIPE, SIG_IGN);
-#endif
-
-		set_thread_pool_env();
-
+		//initialise loop, so that we can add filie watchers when loading them into the cache
 		http::uv_loop = uv_default_loop();
-
 		http::_Cache->load(http::_Settings->get_resource_location());
 
-		initialise_parser();
+	}
+
+	void server::_tcp(){
 
 		int r = uv_tcp_init(http::uv_loop, &http::uv_tcp);
 
@@ -61,11 +55,15 @@ namespace pigeon {
 			logger::get(http::_Settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
 		}
 
+	}
+
+	void server::_bind(){
+
 		string _address = http::_Settings->get_address();
 		int _port = http::_Settings->get_port();
 
 		struct sockaddr_in address;
-		r = uv_ip4_addr(_address.c_str(), _port, &address);
+		int r = uv_ip4_addr(_address.c_str(), _port, &address);
 		if (r != 0){
 			logger::get(http::_Settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
 		}
@@ -75,7 +73,11 @@ namespace pigeon {
 			logger::get(http::_Settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
 		}
 
-		r = uv_listen((uv_stream_t*)&http::uv_tcp, MAX_WRITE_HANDLES, http::server::on_connect);
+	}
+
+	void server::_listen(){
+
+		int r = uv_listen((uv_stream_t*)&http::uv_tcp, MAX_WRITE_HANDLES, http::server::on_connect);
 
 		if (r != 0){
 			logger::get(http::_Settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
@@ -85,6 +87,19 @@ namespace pigeon {
 
 		uv_run(http::uv_loop, UV_RUN_DEFAULT);
 
+	}
+
+	void server::start() {
+ 
+#ifndef _WIN32
+		signal(SIGPIPE, SIG_IGN);
+#endif
+		_init();
+		set_thread_pool_env();
+		_parser();
+		_tcp();
+		_bind();
+		_listen();
 
 	}
 
@@ -109,7 +124,7 @@ namespace pigeon {
 	}
 
  
-	void server::initialise_parser() {
+	void server::_parser() {
 
 		http::parser_settings.on_url = http::parser::on_url;
 		http::parser_settings.on_header_field = http::parser::on_header_field;

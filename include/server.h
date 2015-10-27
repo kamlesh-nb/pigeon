@@ -16,13 +16,17 @@ namespace pigeon {
 
         
         ///setup all the uv callbacks
-        void initialise();
+        void _init();
 
         //initialise tcp
-        void initialise_tcp();
+        void _tcp();
+
+		void _bind();
+
+		void _listen();
 
         ///initialise all http parser
-        void initialise_parser();
+        void _parser();
 
         ///setup thread pool environment variable
 		void set_thread_pool_env();
