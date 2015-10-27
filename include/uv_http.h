@@ -31,20 +31,20 @@ namespace pigeon {
 			uv_write_t write_req;
 			http_context* context;
 
-		} client_t;
+		} iconnection_t;
 
 		typedef struct {
 
 			uv_work_t request;
-			client_t* client;
+			iconnection_t* client;
 			bool error;
 			char* result;
 			size_t length;
 
 		} msg_baton_t;
 
-		struct server_t {
-			server_t() :
+		struct oconnection_t {
+			oconnection_t() :
 			body() {}
 			http_parser parser;
 			int request_num;
@@ -57,7 +57,6 @@ namespace pigeon {
 
 		namespace server {
 
-
 			auto on_alloc(uv_handle_t * /*handle*/, size_t suggested_size, uv_buf_t* buf) -> void {
 				*buf = uv_buf_init((char*)malloc(suggested_size), suggested_size);
 			}
@@ -66,7 +65,7 @@ namespace pigeon {
 
 				try {
 
-					client_t* client = (client_t*)handle->data;
+					iconnection_t* client = (iconnection_t*)handle->data;
 					delete client->context;
 					free(client);
 
@@ -101,7 +100,7 @@ namespace pigeon {
 				try {
 
 					ssize_t parsed;
-					client_t *client = (client_t *)tcp->data;
+					iconnection_t *client = (iconnection_t *)tcp->data;
 					if (nread >= 0) {
 						parsed = (ssize_t)http_parser_execute(&client->parser, &parser_settings, buf->base, nread);
 						if (parsed < nread) {
@@ -129,7 +128,7 @@ namespace pigeon {
 
 					assert((uv_tcp_t*)server_handle == &uv_tcp);
 
-					client_t* client = (client_t*)malloc(sizeof(client_t));
+					iconnection_t* client = (iconnection_t*)malloc(sizeof(iconnection_t));
 
 					client->context = new http_context;
 					client->context->Settings = _Settings;
@@ -160,7 +159,7 @@ namespace pigeon {
 				try {
 
 					msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
-					client_t* client = (client_t*)closure->client;
+					iconnection_t* client = (iconnection_t*)closure->client;
 
 					process(client->context);
 
@@ -177,7 +176,7 @@ namespace pigeon {
 				try {
 
 					msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
-					client_t* client = (client_t*)closure->client;
+					iconnection_t* client = (iconnection_t*)closure->client;
 
 
 					uv_buf_t resbuf;
@@ -205,14 +204,14 @@ namespace pigeon {
 		}
 
 		namespace client {
-
+			
 		}
 
 		namespace parser {
 
 			auto on_url(http_parser* parser, const char* at, size_t len) -> int {
 
-				client_t* client = (client_t*)parser->data;
+				iconnection_t* client = (iconnection_t*)parser->data;
 				if (at && client->context->request) {
 					string s(at, len);
 					client->context->request->url = s;
@@ -223,7 +222,7 @@ namespace pigeon {
 
 			auto on_header_field(http_parser* parser, const char* at, size_t len) -> int {
 
-				client_t* client = (client_t*)parser->data;
+				iconnection_t* client = (iconnection_t*)parser->data;
 				if (at && client->context->request) {
 					string s(at, len);
 					client->context->request->set_header_field(s);
@@ -234,7 +233,7 @@ namespace pigeon {
 
 			auto on_header_value(http_parser* parser, const char* at, size_t len) -> int {
 
-				client_t* client = (client_t*)parser->data;
+				iconnection_t* client = (iconnection_t*)parser->data;
 				if (at && client->context->request) {
 					string s(at, len);
 					client->context->request->set_header_value(s);
@@ -245,7 +244,7 @@ namespace pigeon {
 
 			auto on_headers_complete(http_parser* parser) -> int {
 
-				client_t* client = (client_t*)parser->data;
+				iconnection_t* client = (iconnection_t*)parser->data;
 				client->context->request->method = parser->method;
 				client->context->request->http_major_version = parser->http_major;
 				client->context->request->http_minor_version = parser->http_minor;
@@ -255,7 +254,7 @@ namespace pigeon {
 
 			auto on_body(http_parser* parser, const char* at, size_t len) -> int {
 
-				client_t* client = (client_t*)parser->data;
+				iconnection_t* client = (iconnection_t*)parser->data;
 				if (at && client->context->request) {
 					string s(at, len);
 					client->context->request->content = s;
@@ -266,7 +265,7 @@ namespace pigeon {
 
 			auto on_message_complete(http_parser* parser) -> int {
 
-				client_t* client = (client_t*)parser->data;
+				iconnection_t* client = (iconnection_t*)parser->data;
 				msg_baton_t *closure = new msg_baton_t();
 				closure->request.data = closure;
 				closure->client = client;
