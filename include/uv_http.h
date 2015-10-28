@@ -181,7 +181,7 @@ namespace pigeon {
 
 					uv_buf_t resbuf;
 					resbuf.base = closure->result;
-					resbuf.len = (ulong)closure->length;
+					resbuf.len = (unsigned long)closure->length;
 
 					client->write_req.data = closure;
 

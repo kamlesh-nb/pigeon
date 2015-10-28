@@ -378,6 +378,7 @@ namespace http_util {
             if (!handler)
             {
                 prepare(HttpStatus::NotFound, context);
+				finish(HttpStatus::NotFound, context);
                 return;
             }
             handler->process(context);
