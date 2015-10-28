@@ -14,7 +14,7 @@ auto rest_handlers::add_handler(const string &handler_name, CreateHandler handle
 
 auto rest_handlers::get_handler(const string &handler_name) -> std::shared_ptr<http_handler_base> const {
 
-    std::shared_ptr<http_handler_base> op_handler;
+    std::shared_ptr<http_handler_base> op_handler = nullptr;
     handlers::const_iterator regEntry = registry.find(handler_name);
     if (regEntry != registry.end())
     {

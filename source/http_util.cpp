@@ -273,8 +273,9 @@ namespace http_util {
     }
 
     bool is_api(string& Uri){
-        std::size_t pos = Uri.find("/api/");
-        return pos != string::npos;
+		const char* pos = strstr(Uri.c_str(), "/api/");
+		if (pos){ return true; }
+		else { return false; }
     }
 
     void parse_query_string(http_request& req){
