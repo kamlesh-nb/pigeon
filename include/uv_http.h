@@ -29,6 +29,7 @@ namespace pigeon {
 			uv_tcp_t handle;
 			http_parser parser;
 			uv_write_t write_req;
+            char* client_adress;
 			http_context* context;
 
 		} iconnection_t;
@@ -142,6 +143,23 @@ namespace pigeon {
 					iConn->handle.data = iConn;
 
 					int r = uv_accept(server_handle, (uv_stream_t*)&iConn->handle);
+                    if (r != 0){
+                        logger::get(_Settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                    }
+
+                    struct sockaddr_in name;
+                    int namelen = sizeof(name);
+                    r = uv_tcp_getpeername(&iConn->handle, (struct sockaddr*) &name, &namelen);
+                    if (r != 0){
+                        logger::get(_Settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                    }
+
+                    char addr[16];
+                    char buf[32];
+                    uv_inet_ntop(AF_INET, &name.sin_addr, addr, sizeof(addr));
+                    snprintf(buf, sizeof(buf), "%s:%d", addr, ntohs(name.sin_port));
+                    iConn->client_adress = buf;
+
 					if (r != 0){
 						logger::get(_Settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
 					}

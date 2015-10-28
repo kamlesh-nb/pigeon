@@ -75,8 +75,6 @@ namespace http_util {
 
 
 
-
-
     string get_cached_response(bool is_api);
     char *now();
     string get_header_field(HttpHeader hdr);
