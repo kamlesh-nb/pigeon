@@ -5,7 +5,7 @@
 #ifndef PIGEON_APP_ENV_H
 #define PIGEON_APP_ENV_H
 
-#include <map>
+#include <settings.h>
 
 
 using namespace std;
