@@ -11,6 +11,9 @@
 
 #include "stop_watch.h"
 
+#define container_of(ptr, type, member) \
+	((type *)((char *)(ptr)-offsetof(type, member)))
+
 using namespace std;
 
 namespace pigeon {
@@ -23,6 +26,11 @@ namespace pigeon {
 
 		settings* _Settings;
 		cache* _Cache;
+
+		typedef struct {
+			uv_tcp_t handle;
+			uv_shutdown_t shutdown_req;
+		} conn_rec_t;
 
 		typedef struct {
 
@@ -62,6 +70,8 @@ namespace pigeon {
 				*buf = uv_buf_init((char*)malloc(suggested_size), suggested_size);
 			}
 
+			
+
 			auto on_close(uv_handle_t *handle) -> void {
 
 				try {
@@ -76,6 +86,15 @@ namespace pigeon {
 				}
 			}
 
+			auto on_shutdown(uv_shutdown_t* req, int status) -> void {
+
+				conn_rec_t* conn = container_of(req, conn_rec_t, shutdown_req);
+				msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
+				delete closure;
+				uv_close((uv_handle_t*)&conn->handle, on_close);
+
+			}
+
 			auto on_send_complete(uv_write_t *req, int status) -> void {
 
 				try {
@@ -83,13 +102,28 @@ namespace pigeon {
 					if (status != 0){
 						logger::get(_Settings)->write(LogType::Error, Severity::Critical, uv_err_name(status));
 					}
-					if (!uv_is_closing((uv_handle_t*)req->handle))
-					{
+
+					conn_rec_t* conn = container_of(req, conn_rec_t, shutdown_req);
+
+					size_t _write_queue_size = ((uv_stream_t *)conn)->write_queue_size;
+
+					if (uv_is_writable((uv_stream_t *)req) && _write_queue_size > 0) {
+						 
+						uv_shutdown(&conn->shutdown_req, (uv_stream_t *)conn, on_shutdown);
+					}
+					else {
 						msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
 						delete closure;
 						uv_close((uv_handle_t*)req->handle, on_close);
 					}
 
+					//if (!uv_is_closing((uv_handle_t*)req->handle))
+					//{
+					//	msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
+					//	delete closure;
+					//	uv_close((uv_handle_t*)req->handle, on_close);
+					//}
+					 
 				}
 				catch (std::exception& ex){
 					throw std::runtime_error(ex.what());
@@ -157,9 +191,9 @@ namespace pigeon {
                     char addr[16];
                     char buf[32];
                     uv_inet_ntop(AF_INET, &name.sin_addr, addr, sizeof(addr));
-                    snprintf(buf, sizeof(buf), "%s:%d", addr, ntohs(name.sin_port));
+                    _snprintf(buf, sizeof(buf), "%s:%d", addr, ntohs(name.sin_port));
                     iConn->client_adress = buf;
-
+					 
 					if (r != 0){
 						logger::get(_Settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
 					}
@@ -221,9 +255,7 @@ namespace pigeon {
 
 		}
 
-		namespace iConn {
-			
-		}
+	
 
 		namespace parser {
 
@@ -231,7 +263,6 @@ namespace pigeon {
 
 				iconnection_t* iConn = (iconnection_t*)parser->data;
 				if (at && iConn->context->request) {
-					//string s(at, len);
                     char *data = (char *)malloc(sizeof(char) * len + 1);
                     strncpy(data, at, len);
                     data[len] = '\0';

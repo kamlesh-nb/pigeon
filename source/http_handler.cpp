@@ -8,8 +8,8 @@
 #include <http_handler.h>
 
 using namespace pigeon;
-
-
+#include <iostream>
+using namespace std;
 
 http_handler::~http_handler() {
 
@@ -71,7 +71,7 @@ void http_handler::get(http_context *context) {
 
         prepare(HttpStatus::OK, context);
 
-        ///check if http compression is enabled
+        ///check if http compression is accepted
         string key2("Accept-Encoding");
         key_value_pair kvp_accept_enc;
         kvp_accept_enc.key = key2;
@@ -108,7 +108,7 @@ void http_handler::get(http_context *context) {
 }
 
 void http_handler::post(http_context *context) {
-
+	cout << context->request->url << endl;
 }
 
 void http_handler::put(http_context *context) {
