@@ -25,8 +25,8 @@ set(SOURCE_FILES main.cpp
         source/cache.cpp include/cache.h
         source/settings.cpp include/settings.h)
 
-add_library(pigeon ${SOURCE_FILES})
-#add_executable(pigeon ${SOURCE_FILES})
+#add_library(pigeon ${SOURCE_FILES})
+add_executable(pigeon ${SOURCE_FILES})
 
 target_link_libraries (pigeon ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (pigeon ${LIBZ})
