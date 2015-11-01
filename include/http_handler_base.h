@@ -1,9 +1,7 @@
 #ifndef PIGEON_HTTP_HANDLER_BASE_H
 #define PIGEON_HTTP_HANDLER_BASE_H
 
-#include "http_msg.h"
-#include "http_context.h"
-#include <memory>
+#include <http_context.h>
 #include <http_parser.h>
 
 namespace pigeon {
@@ -48,14 +46,6 @@ namespace pigeon {
         }
 
 	};
-
-
-
-	template<typename T>
-	inline std::shared_ptr<http_handler_base> create_api_handler() {
-		return std::make_shared<T>();
-	};
-
 
 }
 

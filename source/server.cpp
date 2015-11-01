@@ -423,7 +423,7 @@ namespace pigeon {
 
 
 	server::server() {
-     _Impl = new server_impl;
+        _Impl = new server_impl;
     }
 
 	server::~server() { }
@@ -439,10 +439,5 @@ namespace pigeon {
     void server::add_filter(string &filter_name, http_filter_base *filter) {
         _Impl->add_filter(filter_name, filter);
     }
-
-
-
-
-
 
 }

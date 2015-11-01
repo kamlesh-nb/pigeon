@@ -13,6 +13,7 @@ set(SOURCE_FILES main.cpp
         include/key_value_pair.h
         include/http_handler_base.h
         include/http_filter_base.h
+        include/http_context.h
         source/logger.cpp include/logger.h
         source/http_util.cpp include/http_util.h
         source/http_msg.cpp include/http_msg.h
@@ -20,7 +21,6 @@ set(SOURCE_FILES main.cpp
         source/stop_watch.cpp include/stop_watch.h
         source/md5.cpp include/md5.h
         source/server.cpp include/server.h
-        include/http_context.h include/http_context.h
         source/http_handler.cpp include/http_handler.h
         source/cache.cpp include/cache.h
         source/settings.cpp include/settings.h)

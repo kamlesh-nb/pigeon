@@ -5,9 +5,7 @@
 #ifndef PIGEON_HTTP_CONTEXT_H
 #define PIGEON_HTTP_CONTEXT_H
 
-#include "http_msg.h"
-#include "settings.h"
-#include "cache.h"
+#include <http_msg.h>
 
 namespace pigeon {
 
@@ -15,8 +13,6 @@ namespace pigeon {
 
         http_request* request;
         http_response* response;
-        settings* Settings;
-        cache* Cache;
 
         http_context(){
             request = new http_request;
