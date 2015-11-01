@@ -7,132 +7,442 @@
 #include <iostream>
 #include <sstream>
 #include <assert.h>
-#include "http_handler.h"
-#include "cache.h"
 #include <http_parser.h>
-#include "server.h"
-#include "http_context.h"
-#include <uv_http.h>
+#include <string.h>
+#include <http_util.h>
+#include <logger.h>
+#include <server.h>
 
-#define VARNAME TEXT("UV_THREADPOOL_SIZE")
-#define BUFSIZE 4096
-#define BUFFER_SIZE 255
+
+#define container_of(ptr, type, member) \
+	((type *)((char *)(ptr)-offsetof(type, member)))
 
 #define MAX_WRITE_HANDLES 1000
 
-
- 
- 
 namespace pigeon {
 
+    uv_loop_t* uv_loop;
+    uv_tcp_t uv_tcp;
+    http_parser_settings parser_settings;
 
-	server::server() { }
+    typedef struct {
+        uv_tcp_t handle;
+        uv_shutdown_t shutdown_req;
+    } conn_rec_t;
+
+    typedef struct {
+
+        uv_tcp_t handle;
+        http_parser parser;
+        uv_write_t write_req;
+        char* client_adress;
+        void* data;
+        http_context* context;
+
+    } iconnection_t;
+
+    typedef struct {
+
+        uv_work_t request;
+        iconnection_t* iConn;
+        bool error;
+        char* result;
+        size_t length;
+
+    } msg_baton_t;
+
+
+    class server::server_impl {
+
+    private:
+
+        void _init(){
+            settings::load_setting();
+            HttpHandler = new http_handler;
+            uv_loop = uv_default_loop();
+        }
+
+        void _tcp(){
+
+            int r = uv_tcp_init(uv_loop, &uv_tcp);
+
+            if (r != 0){
+                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+            }
+
+            r = uv_tcp_keepalive(&uv_tcp, 1, 60);
+            if (r != 0){
+                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+            }
+
+        }
+
+        void _bind(){
+
+            string _address = settings::address;
+            int _port = settings::port;
+
+            struct sockaddr_in address;
+            int r = uv_ip4_addr(_address.c_str(), _port, &address);
+            if (r != 0){
+                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+            }
+
+            r = uv_tcp_bind(&uv_tcp, (const struct sockaddr*)&address, 0);
+            if (r != 0){
+                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+            }
+
+        }
+
+        void _listen(){
+
+            uv_tcp.data = this;
+
+            int r = uv_listen((uv_stream_t*)&uv_tcp, MAX_WRITE_HANDLES,
+                              [](uv_stream_t *socket, int status) {
+                                  server_impl* srvImpl = static_cast<server_impl*>(socket->data);
+                                  srvImpl->on_connect(socket, status);
+                              });
+
+            if (r != 0){
+                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+            }
+
+            logger::get()->write(LogType::Information, Severity::Medium, "Server Started...");
+
+            uv_run(uv_loop, UV_RUN_DEFAULT);
+
+        }
+
+        void _parser() {
+
+            parser_settings.on_url = [](http_parser* parser, const char* at, size_t len) -> int {
+
+                iconnection_t* iConn = (iconnection_t*)parser->data;
+                if (at && iConn->context->request) {
+                    char *data = (char *)malloc(sizeof(char) * len + 1);
+                    strncpy(data, at, len);
+                    data[len] = '\0';
+                    iConn->context->request->url += data;
+                    free(data);
+                }
+                return 0;
+
+            };
+
+            parser_settings.on_header_field = [](http_parser* parser, const char* at, size_t len) -> int {
+
+                iconnection_t* iConn = (iconnection_t*)parser->data;
+                if (at && iConn->context->request) {
+                    string s;
+                    char *data = (char *)malloc(sizeof(char) * len + 1);
+                    strncpy(data, at, len);
+                    data[len] = '\0';
+                    s += data;
+                    free(data);
+
+                    iConn->context->request->set_header_field(s);
+                }
+                return 0;
+
+            };
+
+            parser_settings.on_header_value = [](http_parser* parser, const char* at, size_t len) -> int {
+
+                iconnection_t* iConn = (iconnection_t*)parser->data;
+                if (at && iConn->context->request) {
+                    string s;
+                    char *data = (char *)malloc(sizeof(char) * len + 1);
+                    strncpy(data, at, len);
+                    data[len] = '\0';
+                    s += data;
+                    free(data);
+                    iConn->context->request->set_header_value(s);
+                }
+                return 0;
+
+            };
+
+            parser_settings.on_headers_complete = [](http_parser* parser) -> int {
+
+                iconnection_t* iConn = (iconnection_t*)parser->data;
+                iConn->context->request->method = parser->method;
+                iConn->context->request->http_major_version = parser->http_major;
+                iConn->context->request->http_minor_version = parser->http_minor;
+                return 0;
+
+            };
+
+            parser_settings.on_body = [](http_parser* parser, const char* at, size_t len) -> int {
+
+                iconnection_t* iConn = (iconnection_t*)parser->data;
+                if (at && iConn->context->request) {
+
+                    char *data = (char *)malloc(sizeof(char) * len + 1);
+                    strncpy(data, at, len);
+                    data[len] = '\0';
+                    iConn->context->request->content += data;
+                    free(data);
+
+                }
+                return 0;
+
+            };
+
+            parser_settings.on_message_complete = [](http_parser* parser) -> int {
+
+                iconnection_t* iConn = (iconnection_t*)parser->data;
+                msg_baton_t *closure = new msg_baton_t();
+                closure->request.data = closure;
+                closure->iConn = iConn;
+                closure->error = false;
+
+                iConn->context->request->is_api = is_api(iConn->context->request->url);
+                parse_query_string(*iConn->context->request);
+
+                server_impl* srvImpl = static_cast<server_impl*>(iConn->data);
+
+                srvImpl->process(iConn->context);
+
+                closure->result = (char*)iConn->context->response->message.c_str();
+                closure->length = iConn->context->response->message.size();
+
+                uv_buf_t resbuf;
+                resbuf.base = closure->result;
+                resbuf.len = (unsigned long)closure->length;
+
+                iConn->write_req.data = closure;
+
+                int r = uv_write(&iConn->write_req,
+                                 (uv_stream_t*)&iConn->handle,
+                                 &resbuf,
+                                 1,
+                                 [](uv_write_t *req, int status) {
+                                     msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
+                                     server_impl* srvImpl = static_cast<server_impl*>(closure->iConn->data);
+                                     srvImpl->on_send_complete(req, status);
+                                 });
+
+                if (r != 0){
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                }
+
+
+                return 0;
+
+            };
+        }
+
+    public:
+
+        http_handler* HttpHandler;
+        unordered_map<string, http_handler_base*> ApiHandlers;
+        unordered_map<string, http_filter_base*> HttpFilters;
+
+        void on_close(uv_handle_t *handle) {
+
+            try {
+
+                iconnection_t* iConn = (iconnection_t*)handle->data;
+                delete iConn->context;
+                free(iConn);
+
+            }
+            catch (std::exception ex) {
+
+            }
+        }
+
+        void on_send_complete(uv_write_t *req, int status) {
+
+            try {
+
+                if (status != 0){
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
+                }
+
+                if (!uv_is_closing((uv_handle_t*)req->handle))
+                {
+                    msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
+                    delete closure;
+                    uv_close((uv_handle_t*)req->handle, [](uv_handle_t *handle){
+                        server_impl* srvImpl = static_cast<server_impl*>(handle->data);
+                        srvImpl->on_close((uv_handle_t *)&handle);
+                    });
+                }
+
+            }
+            catch (std::exception& ex){
+                throw std::runtime_error(ex.what());
+            }
+
+        }
+
+        void on_read(uv_stream_t* tcp, ssize_t nread, const uv_buf_t* buf) {
+            try {
+
+                ssize_t parsed;
+                iconnection_t *iConn = (iconnection_t *)tcp->data;
+
+                if (nread >= 0) {
+                    parsed = (ssize_t)http_parser_execute(&iConn->parser, &parser_settings, buf->base, nread);
+                    if (parsed < nread) {
+                        logger::get()->write(LogType::Error, Severity::Critical, "parse failed");
+                        uv_close((uv_handle_t *)&iConn->handle, [](uv_handle_t *handle){
+                            server_impl* srvImpl = static_cast<server_impl*>(handle->data);
+                            srvImpl->on_close((uv_handle_t *)&handle);
+                        });
+                    }
+                }
+                else {
+                    if (nread != UV_EOF) {
+                        logger::get()->write(LogType::Error, Severity::Critical, "read failed");
+                    }
+                    uv_close((uv_handle_t *)&iConn->handle, [](uv_handle_t *handle){
+                        server_impl* srvImpl = static_cast<server_impl*>(handle->data);
+                        srvImpl->on_close((uv_handle_t *)&handle);
+                    });
+                }
+                free(buf->base);
+            }
+            catch (std::exception& ex){
+
+                throw std::runtime_error(ex.what());
+
+            }
+        }
+
+        void on_connect(uv_stream_t* server_handle, int status) {
+            try {
+
+                assert((uv_tcp_t*)server_handle == &uv_tcp);
+
+                iconnection_t* iConn = (iconnection_t*)malloc(sizeof(iconnection_t));
+
+                iConn->context = new http_context;
+
+                iConn->data = server_handle->data;
+
+
+                uv_tcp_init(uv_loop, &iConn->handle);
+                http_parser_init(&iConn->parser, HTTP_REQUEST);
+
+                iConn->parser.data = iConn;
+                iConn->handle.data = iConn;
+
+                int r = uv_accept(server_handle, (uv_stream_t*)&iConn->handle);
+                if (r != 0){
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                }
+
+                struct sockaddr_in name;
+                int namelen = sizeof(name);
+                r = uv_tcp_getpeername(&iConn->handle, (struct sockaddr*) &name, &namelen);
+                if (r != 0){
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                }
+
+                char addr[16];
+                char buf[32];
+                uv_inet_ntop(AF_INET, &name.sin_addr, addr, sizeof(addr));
+#ifdef _WIN32
+                _snprintf(buf, sizeof(buf), "%s:%d", addr, ntohs(name.sin_port));
+#else
+                snprintf(buf, sizeof(buf), "%s:%d", addr, ntohs(name.sin_port));
+#endif
+                iConn->client_adress = buf;
+
+                if (r != 0){
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                }
+
+                uv_read_start((uv_stream_t*)&iConn->handle, [](uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
+                    *buf = uv_buf_init((char *) malloc(suggested_size), suggested_size);
+                }, [](uv_stream_t *socket, ssize_t nread, const uv_buf_t *buf) {
+                    server_impl* srvImpl = static_cast<server_impl*>(socket->data);
+                    srvImpl->on_read(socket, nread, buf);
+                });
+
+
+            }
+            catch (std::exception& ex){
+                throw std::runtime_error(ex.what());
+            }
+        }
+
+        void start() {
+
+#ifndef _WIN32
+            signal(SIGPIPE, SIG_IGN);
+#endif
+
+            _init();
+            _parser();
+            _tcp();
+            _bind();
+            _listen();
+
+        }
+
+        void add_handler(string &handler_name, http_handler_base *handler) {
+            ApiHandlers.emplace(std::pair<string, http_handler_base*>(handler_name, handler));
+        }
+
+        void add_filter(string &filter_name, http_filter_base *filter) {
+            HttpFilters.emplace(std::pair<string, http_filter_base*>(filter_name, filter));
+        }
+
+        void process(http_context *context) {
+
+            if(context->request->is_api){
+
+                auto handler = ApiHandlers[context->request->url];
+
+                if (!handler)
+                {
+                    prepare(HttpStatus::NotFound, context);
+                    return;
+                }
+                handler->process(context);
+                prepare(HttpStatus::OK, context);
+                {
+                    context->response->message += get_header_field(HttpHeader::Content_Length);
+                    context->response->message += std::to_string(context->response->content.size());
+                    context->response->message += "\r\n";
+                }
+                finish(HttpStatus::OK, context);
+
+            } else {
+                HttpHandler->process(context);
+            }
+        }
+
+
+    };
+
+
+	server::server() {
+     _Impl = new server_impl;
+    }
 
 	server::~server() { }
 
-	void server::_init(){
-
-		http::_Settings = new settings;
-		http::_Cache = new cache;
-		http::_Settings->load_setting();
-
-		//initialise loop, so that we can add filie watchers when loading them into the cache
-		http::uv_loop = uv_default_loop();
-		http::_Cache->load(http::_Settings->get_resource_location());
-
-	}
-
-	void server::_tcp(){
-
-		int r = uv_tcp_init(http::uv_loop, &http::uv_tcp);
-
-		if (r != 0){
-			logger::get(http::_Settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
-		}
-
-		r = uv_tcp_keepalive(&http::uv_tcp, 1, 60);
-		if (r != 0){
-			logger::get(http::_Settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
-		}
-
-	}
-
-	void server::_bind(){
-
-		string _address = http::_Settings->get_address();
-		int _port = http::_Settings->get_port();
-
-		struct sockaddr_in address;
-		int r = uv_ip4_addr(_address.c_str(), _port, &address);
-		if (r != 0){
-			logger::get(http::_Settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
-		}
-
-		r = uv_tcp_bind(&http::uv_tcp, (const struct sockaddr*)&address, 0);
-		if (r != 0){
-			logger::get(http::_Settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
-		}
-
-	}
-
-	void server::_listen(){
-
-		int r = uv_listen((uv_stream_t*)&http::uv_tcp, MAX_WRITE_HANDLES, http::server::on_connect);
-
-		if (r != 0){
-			logger::get(http::_Settings)->write(LogType::Error, Severity::Critical, uv_err_name(r));
-		}
-
-		logger::get(http::_Settings)->write(LogType::Information, Severity::Medium, "Server Started...");
-
-		uv_run(http::uv_loop, UV_RUN_DEFAULT);
-
-	}
-
 	void server::start() {
- 
-#ifndef _WIN32
-		signal(SIGPIPE, SIG_IGN);
-#endif
-
-		_init();
-		_pool_size();
-		_parser();
-		_tcp();
-		_bind();
-		_listen();
-
+        _Impl->start();
 	}
 
-	void server::stop() {
+    void server::add_handler(string &handler_name, http_handler_base *handler) {
+        _Impl->add_handler(handler_name, handler);
+    }
 
-		uv_stop(http::uv_loop);
-
-	}
-
-	void server::_pool_size() {
-
-#ifdef _WIN32
-		string num_of_threads = std::to_string(http::_Settings->get_num_worker_threads());
-		SetEnvironmentVariable(VARNAME, (LPTSTR)num_of_threads.c_str());
-#else
-		stringstream ss;
-		ss << http::_Settings->get_num_worker_threads();
-		setenv("UV_THREADPOOL_SIZE", ss.str().c_str(), 1);
-#endif
+    void server::add_filter(string &filter_name, http_filter_base *filter) {
+        _Impl->add_filter(filter_name, filter);
+    }
 
 
-	}
- 
-	void server::_parser() {
 
-		http::parser_settings.on_url = http::parser::on_url;
-		http::parser_settings.on_header_field = http::parser::on_header_field;
-		http::parser_settings.on_header_value = http::parser::on_header_value;
-		http::parser_settings.on_headers_complete = http::parser::on_headers_complete;
-		http::parser_settings.on_body = http::parser::on_body;
-		http::parser_settings.on_message_complete = http::parser::on_message_complete;
 
-	}
+
 
 }

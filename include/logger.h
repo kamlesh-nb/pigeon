@@ -23,7 +23,7 @@ namespace pigeon {
         static std::mutex _mtx;
         static std::shared_ptr<logger> instance;
         ofstream lf;
-        logger(settings*);
+        logger();
 
     public:
 
@@ -33,7 +33,7 @@ namespace pigeon {
         void write(http_util::LogType, http_util::Severity, string);
         void write(http_util::LogType, string);
         void close();
-        static std::shared_ptr<logger>& get(settings*);
+        static std::shared_ptr<logger>& get();
 
 
     };

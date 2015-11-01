@@ -8,6 +8,7 @@
 #include <vector>
 #include <key_value_pair.h>
 #include <map>
+#include <unordered_map>
 
 using namespace std;
 
@@ -15,76 +16,27 @@ using namespace std;
 namespace pigeon {
 
     class settings {
-    private:
-
-
-
-
-        string service_name;
-        string address;
-        int port;
-        bool use_ssl;
-        string ssl_cert_file;
-        string ssl_key_file;
-        int num_worker_threads;
-        string document_root;
-        string resource_location;
-        string file_upload_location;
-        string default_page;
-        string log_location;
-        string db_conn_string;
-        string api_route;
-        bool enable_cors;
-        vector<key_value_pair> appsettings;
-        vector<key_value_pair> corsheaders;
 
     public:
 
-        friend class logger;
+        static string service_name;
+        static string address;
+        static int port;
+        static bool use_ssl;
+        static string ssl_cert_file;
+        static string ssl_key_file;
+        static string document_root;
+        static string resource_location;
+        static string file_upload_location;
+        static string default_page;
+        static string log_location;
+        static string db_conn_string;
+        static string api_route;
+        static bool enable_cors;
+        static unordered_map<string, string> app_settings;
+        static unordered_map<string, string> cors_headers;
 
-        auto get_address() -> string&;
-
-        auto get_port() -> int;
-
-        auto get_api_route() -> string&;
-
-        auto get_db_conn_str() -> string&;
-
-        auto get_default_page() -> string&;
-
-        auto get_document_root() -> string&;
-
-        auto get_log_location() -> string&;
-
-        auto get_num_worker_threads() -> int;
-
-        auto get_resource_location() -> string&;
-
-        auto get_file_upload_location() -> string&;
-
-        auto get_service_name() -> string&;
-
-        auto get_ssl_cert_file() -> string&;
-
-        auto get_ssl_key_file() -> string&;
-
-        auto get_use_ssl() -> bool;
-
-        auto set_app_setting_key(string& _key) -> void;
-
-        auto set_app_setting_value(string& _value) -> void;
-
-        auto get_app_setting(key_value_pair& kvp) -> void;
-
-        auto set_corsheaders_key(string& _key) -> void;
-
-        auto set_corsheaders_value(string& _value) -> void;
-
-        auto get_corsheaders(key_value_pair& kvp) -> void;
-
-        auto get_enable_cors() -> bool;
-
-        auto load_setting() -> void;
+        static auto load_setting() -> void;
 
 
     };

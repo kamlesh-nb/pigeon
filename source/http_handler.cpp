@@ -4,12 +4,21 @@
 
 #include <sstream>
 #include <logger.h>
-#include <http_context.h>
 #include <http_handler.h>
+#include <iostream>
 
 using namespace pigeon;
-#include <iostream>
 using namespace std;
+
+
+http_handler::http_handler() {
+
+    m_cache = new cache;
+    m_cache->load(settings::resource_location);
+    resource_location = settings::resource_location;
+    default_page = settings::default_page;
+
+}
 
 http_handler::~http_handler() {
 
@@ -19,9 +28,7 @@ void http_handler::get(http_context *context) {
 
     try {
 
-        settings * appSettings = context->Settings;
-        cache * resourceCache = context->Cache;
-        resource_location = appSettings->get_resource_location();
+
 
         std::string request_path;
         if (!url_decode(context->request->url, request_path))
@@ -38,13 +45,13 @@ void http_handler::get(http_context *context) {
 
         if (request_path[request_path.size() - 1] == '/')
         {
-            request_path += appSettings->get_default_page();
+            request_path += default_page;
         }
 
         std::string full_path = resource_location + request_path;
 
         file_info fi(full_path);
-        resourceCache->get_item(full_path, fi);
+        m_cache->get_item(full_path, fi);
 
         if (fi.file_size == 0){
             prepare(HttpStatus::NotFound, context);
@@ -101,7 +108,7 @@ void http_handler::get(http_context *context) {
     }
     catch (std::exception& ex){
 
-        logger::get(context->Settings)->write(LogType::Error, Severity::Critical, ex.what());
+        logger::get()->write(LogType::Error, Severity::Critical, ex.what());
 
     }
 

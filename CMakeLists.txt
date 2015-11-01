@@ -16,7 +16,7 @@ set(SOURCE_FILES main.cpp
         include/file_info.h
         include/key_value_pair.h
         include/http_handler_base.h
-        include/uv_http.h
+        include/http_filter_base.h
         source/logger.cpp include/logger.h
         source/http_util.cpp include/http_util.h
         source/http_msg.cpp include/http_msg.h
@@ -25,14 +25,12 @@ set(SOURCE_FILES main.cpp
         source/md5.cpp include/md5.h
         source/server.cpp include/server.h
         include/http_context.h include/http_context.h
-        source/app.cpp include/app.h
         source/http_handler.cpp include/http_handler.h
         source/cache.cpp include/cache.h
-        source/settings.cpp include/settings.h
-        source/rest_handlers.cpp include/rest_handlers.h include/http_filter_base.h)
+        source/settings.cpp include/settings.h)
 
-#add_library(pigeon ${SOURCE_FILES})
-add_executable(pigeon ${SOURCE_FILES})
+add_library(pigeon ${SOURCE_FILES})
+#add_executable(pigeon ${SOURCE_FILES})
 
 target_link_libraries (pigeon ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (pigeon ${LIBZ})

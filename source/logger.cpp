@@ -6,9 +6,9 @@
 
 using namespace pigeon;
 
-logger::logger(settings* p_settings) {
+logger::logger() {
     if (!lf.is_open()) {
-        lf.open(p_settings->get_log_location() , ios::app);
+        lf.open(settings::log_location, ios::app);
     }
 }
 
@@ -44,7 +44,7 @@ std::shared_ptr<logger> logger::instance = nullptr;
 
 std::mutex logger::_mtx;
 
-std::shared_ptr<logger>&logger::get(settings* p_settings)
+std::shared_ptr<logger>&logger::get()
 {
     static std::shared_ptr<logger> tmp = instance;
 
@@ -53,7 +53,7 @@ std::shared_ptr<logger>&logger::get(settings* p_settings)
         std::lock_guard<std::mutex> lock(_mtx);
         if (!tmp)
         {
-            instance.reset(new logger(p_settings));
+            instance.reset(new logger);
             tmp = instance;
         }
     }

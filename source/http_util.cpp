@@ -3,8 +3,6 @@
 #include <string.h>
 #include <chrono>
 #include <sstream>
-#include <http_handler.h>
-#include <rest_handlers.h>
 #include <iterator>
 
 using namespace pigeon;
@@ -239,7 +237,7 @@ namespace http_util {
         return "unknown msg";
     }
 
-    string get_mime_type(string& extension) {
+    string get_mime_type(string &extension) {
 
         for (mapping *m = mappings; m->extension; ++m) {
             if (m->extension == extension) {
@@ -272,12 +270,12 @@ namespace http_util {
         return "unknown severity type";
     }
 
-    bool is_api(string& Uri){
+    bool is_api(string &Uri) {
         std::size_t pos = Uri.find("/api/");
         return pos != string::npos;
     }
 
-    void parse_query_string(http_request& req){
+    void parse_query_string(http_request &req) {
 
         string query_uri(req.url);
         std::size_t _parStart = req.url.find('?');
@@ -291,8 +289,8 @@ namespace http_util {
         if (_parStart != string::npos) {
             replace(query_uri.begin(), query_uri.end(), '&', ' ');
             std::istringstream issParams(query_uri.c_str());
-            vector<string> vparams{ istream_iterator<string>{issParams},
-                                    istream_iterator<string>{} };
+            vector<string> vparams{istream_iterator<string>{issParams},
+                                   istream_iterator<string>{}};
             size_t end;
             for (auto &par : vparams) {
                 end = par.find("=", 0);
@@ -304,39 +302,31 @@ namespace http_util {
         }
     }
 
-    bool url_decode(const string& in, string& out) {
+    bool url_decode(const string &in, string &out) {
 
         out.clear();
         out.reserve(in.size());
-        for (std::size_t i = 0; i < in.size(); ++i)
-        {
-            if (in[i] == '%')
-            {
-                if (i + 3 <= in.size())
-                {
+        for (std::size_t i = 0; i < in.size(); ++i) {
+            if (in[i] == '%') {
+                if (i + 3 <= in.size()) {
                     int value = 0;
                     std::istringstream is(in.substr(i + 1, 2));
-                    if (is >> std::hex >> value)
-                    {
+                    if (is >> std::hex >> value) {
                         out += static_cast<char>(value);
                         i += 2;
                     }
-                    else
-                    {
+                    else {
                         return false;
                     }
                 }
-                else
-                {
+                else {
                     return false;
                 }
             }
-            else if (in[i] == '+')
-            {
+            else if (in[i] == '+') {
                 out += ' ';
             }
-            else
-            {
+            else {
                 out += in[i];
             }
         }
@@ -356,7 +346,7 @@ namespace http_util {
         if (status != HttpStatus::OK && status != HttpStatus::NotModified) {
             context->response->message += "\r\n";
             context->response->message += err_msg1;
-            context->response->message += std::to_string((int)status);
+            context->response->message += std::to_string((int) status);
             context->response->message += err_msg3;
             context->response->message += http_util::get_status_msg(status);
             context->response->message += err_msg5;
@@ -369,34 +359,8 @@ namespace http_util {
 
     }
 
-    void process(http_context *context) {
-
-        if(context->request->is_api){
-
-            shared_ptr<http_handler_base> handler = rest_handlers::get()->get_handler(context->request->url);
-            if (!handler)
-            {
-                prepare(HttpStatus::NotFound, context);
-                return;
-            }
-            handler->process(context);
-            prepare(HttpStatus::OK, context);
-            {
-                context->response->message += get_header_field(HttpHeader::Content_Length);
-                context->response->message += std::to_string(context->response->content.size());
-                context->response->message += "\r\n";
-            }
-            finish(HttpStatus::OK, context);
-
-        } else {
-
-            auto handler = std::make_shared<http_handler>();
-            handler->process(context);
-
-        }
-    }
-
-
 }
+
+
 
 
