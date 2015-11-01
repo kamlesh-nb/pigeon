@@ -5,10 +5,6 @@ FIND_LIBRARY(LIBUV NAMES uv paths /usr/lib)
 FIND_LIBRARY(LIBHP NAMES http_parser paths /usr/lib)
 FIND_LIBRARY(LIBZ NAMES z paths /usr/lib)
 
-FIND_PACKAGE(Boost COMPONENTS system filesystem thread REQUIRED)
-FIND_LIBRARY(LIBMONGOCLIENT NAMES mongoclient PATHS /usr/local/lib)
-
-
 include_directories("${pigeon_SOURCE_DIR}/include")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
