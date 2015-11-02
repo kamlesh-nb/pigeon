@@ -10,9 +10,9 @@ namespace pigeon {
 		std::string cached_headers;
 		std::string compresses_cached_headers;
 		std::string etag;
-		size_t file_size;
+		size_t file_size = 0;
 		size_t compressed_file_size;
-		char *last_write_time;
+		std::string last_write_time;
 		std::string content;
 		std::string compressed_content;
 

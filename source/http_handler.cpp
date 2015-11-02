@@ -34,12 +34,14 @@ void http_handler::get(http_context *context) {
         if (!url_decode(context->request->url, request_path))
         {
             prepare(HttpStatus::NotFound, context);
+            finish(HttpStatus::NotFound, context);
             return;
         }
 
         if (request_path.empty() || request_path[0] != '/' || request_path.find("..") != std::string::npos)
         {
             prepare(HttpStatus::NotFound, context);
+            finish(HttpStatus::NotFound, context);
             return;
         }
 
@@ -55,6 +57,7 @@ void http_handler::get(http_context *context) {
 
         if (fi.file_size == 0){
             prepare(HttpStatus::NotFound, context);
+            finish(HttpStatus::NotFound, context);
             return;
         }
 
@@ -67,16 +70,16 @@ void http_handler::get(http_context *context) {
         if (kvp_if_modified_since.value.size() > 0){
             if (kvp_if_modified_since.value == fi.last_write_time){
                 prepare(HttpStatus::NotModified, context);
-                return;
+                finish(HttpStatus::NotModified, context);
+            }
+            else {
+                prepare(HttpStatus::OK, context);
             }
         }
 
-        if (fi.file_size == 0){
-            prepare(HttpStatus::NotFound, context);
-            return;
-        }
 
-        prepare(HttpStatus::OK, context);
+
+
 
         ///check if http compression is accepted
         string key2("Accept-Encoding");
@@ -102,6 +105,7 @@ void http_handler::get(http_context *context) {
             context->response->message += fi.cached_headers;
             context->response->content += fi.content;
         }
+
 
         finish(HttpStatus::OK, context);
 

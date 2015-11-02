@@ -150,7 +150,7 @@ using namespace pigeon;
         const char *mime_type;
     } mappings[] =
             {
-                    {"html",  "text / html; charset=UTF-8"},
+                    {"html",  "text/html; charset=UTF-8"},
                     {"htm",   "text/html; charset=UTF-8"},
                     {"htmls", "text/html; charset=UTF-8"},
                     {"jpe",   "image/jpeg"},
@@ -170,7 +170,9 @@ using namespace pigeon;
             };
 
     string cached_date_response = " Date: ";
-    string api_cached_response = "\r\nConnection: close\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: application/json\r\n";
+    string err_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: text/html; charset=UTF-8\r\n";
+
+    string api_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: application/json\r\n";
 
     const char *err_msg1 = "<!DOCTYPE html><html><head lang='en'><meta charset='UTF-8'><title>Status</title></head><body><table><th>Status Code</th><th>Message</th><tr><td>";
     const char *err_msg3 = "</td><td>";
@@ -344,7 +346,7 @@ namespace http_util {
     void finish(HttpStatus status, http_context *context) {
 
         if (status != HttpStatus::OK && status != HttpStatus::NotModified) {
-            context->response->message += "\r\n";
+            context->response->message += err_cached_response;
             context->response->message += err_msg1;
             context->response->message += std::to_string((int) status);
             context->response->message += err_msg3;
