@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.0)
 project(pigeon)
 FIND_PACKAGE(Threads REQUIRED)
 FIND_LIBRARY(LIBUV NAMES uv paths /usr/lib)
