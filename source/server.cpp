@@ -3,6 +3,7 @@
 //
 
 #include <stdio.h>
+#include <malloc.h>
 #include <signal.h>
 #include <iostream>
 #include <sstream>
@@ -21,8 +22,7 @@
 
 namespace pigeon {
 
-    uv_loop_t* uv_loop;
-    uv_tcp_t uv_tcp;
+
     http_parser_settings parser_settings;
 
     typedef struct {
@@ -51,10 +51,15 @@ namespace pigeon {
 
     } msg_baton_t;
 
+	
 
     class server::server_impl {
 
     private:
+
+		uv_loop_t* uv_loop;
+		uv_tcp_t uv_tcp;
+	
 
         void _init(){
             settings::load_setting();
@@ -240,6 +245,16 @@ namespace pigeon {
         unordered_map<string, http_handler_base*> ApiHandlers;
         unordered_map<string, http_filter_base*> HttpFilters;
 
+		void on_shutdown(uv_shutdown_t* req, int status) {
+			if (!uv_is_closing((uv_handle_t*)req->handle)) {
+				uv_close((uv_handle_t*)req->handle, [](uv_handle_t *handle){
+					server_impl* srvImpl = static_cast<server_impl*>(handle->data);
+					srvImpl->on_close((uv_handle_t *)&handle);
+				});
+			}
+			free(req);
+		}
+
         void on_close(uv_handle_t *handle) {
 
             try {
@@ -262,16 +277,23 @@ namespace pigeon {
                     logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
                 }
 
-                if (!uv_is_closing((uv_handle_t*)req->handle))
-                {
-                    msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
-                    delete closure;
-                    uv_close((uv_handle_t*)req->handle, [](uv_handle_t *handle){
-                        server_impl* srvImpl = static_cast<server_impl*>(handle->data);
-                        srvImpl->on_close((uv_handle_t *)&handle);
-                    });
-                }
-
+				size_t q_size = ((uv_stream_t *)req)->write_queue_size;
+				
+				if (uv_is_writable((uv_stream_t *)req) && q_size > 0) {
+					uv_shutdown_t *shutdownReq = (uv_shutdown_t*)malloc(sizeof(uv_shutdown_t));
+					uv_shutdown(shutdownReq, (uv_stream_t *)req, [](uv_shutdown_t* handle, int status){
+						server_impl* srvImpl = static_cast<server_impl*>(handle->data);
+						srvImpl->on_shutdown((uv_shutdown_t*)&handle, status);
+					});
+				}
+				else {
+					msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
+					delete closure;
+					uv_close((uv_handle_t*)req->handle, [](uv_handle_t *handle){
+						server_impl* srvImpl = static_cast<server_impl*>(handle->data);
+						srvImpl->on_close((uv_handle_t *)&handle);
+					});
+				}
             }
             catch (std::exception& ex){
                 throw std::runtime_error(ex.what());
