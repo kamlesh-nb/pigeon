@@ -245,9 +245,9 @@ namespace pigeon {
         unordered_map<string, http_handler_base*> ApiHandlers;
         unordered_map<string, http_filter_base*> HttpFilters;
 
-		void on_shutdown(uv_shutdown_t* req, int status) {
-			if (!uv_is_closing((uv_handle_t*)req->handle)) {
-				uv_close((uv_handle_t*)req->handle, [](uv_handle_t *handle){
+		void on_shutdown(uv_handle_t* req, int status) {
+			if (!uv_is_closing((uv_handle_t*)req)) {
+				uv_close((uv_handle_t*)req, [](uv_handle_t *handle){
 					server_impl* srvImpl = static_cast<server_impl*>(handle->data);
 					srvImpl->on_close((uv_handle_t *)&handle);
 				});
@@ -283,7 +283,7 @@ namespace pigeon {
 					uv_shutdown_t *shutdownReq = (uv_shutdown_t*)malloc(sizeof(uv_shutdown_t));
 					uv_shutdown(shutdownReq, (uv_stream_t *)req, [](uv_shutdown_t* handle, int status){
 						server_impl* srvImpl = static_cast<server_impl*>(handle->data);
-						srvImpl->on_shutdown((uv_shutdown_t*)&handle, status);
+						srvImpl->on_shutdown((uv_handle_t*)handle, status);
 					});
 				}
 				else {
