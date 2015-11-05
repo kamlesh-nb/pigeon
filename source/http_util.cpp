@@ -169,7 +169,7 @@ using namespace pigeon;
                     {0,       0}
             };
 
-    string cached_date_response = " Date: ";
+    string cached_date_response = "\r\nDate: ";
     string err_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: text/html; charset=UTF-8\r\n";
 
     string api_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: application/json\r\n";

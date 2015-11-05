@@ -133,7 +133,7 @@ void cache::cache_item(string& file){
         fi.file_name = file;
 
         ///uncompressed headers
-        fi.cached_headers += "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\n";
+        fi.cached_headers += "\r\nCache-Control: public, max-age=0\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\n";
         fi.cached_headers += http_util::get_header_field(HttpHeader::Content_Type);
         fi.cached_headers += http_util::get_mime_type(extension);
         fi.cached_headers += "\r\n";
@@ -154,7 +154,7 @@ void cache::cache_item(string& file){
         compress_item(fi);
 
         ///compresses headers
-        fi.compresses_cached_headers += "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\n";
+        fi.compresses_cached_headers += "\r\nCache-Control: public, max-age=0\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\n";
         fi.compresses_cached_headers += http_util::get_header_field(HttpHeader::Content_Encoding);
 
         fi.compresses_cached_headers += http_util::get_header_field(HttpHeader::Content_Type);
