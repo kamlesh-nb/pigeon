@@ -8,6 +8,11 @@ namespace pigeon {
 
 	class http_handler_base {
 
+
+	protected:
+
+		void prepare_response(http_context*);
+
 	public:
 
 		virtual ~http_handler_base() {

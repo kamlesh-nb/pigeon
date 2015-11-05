@@ -71,14 +71,13 @@ void http_handler::get(http_context *context) {
             if (kvp_if_modified_since.value == fi.last_write_time){
                 prepare(HttpStatus::NotModified, context);
                 finish(HttpStatus::NotModified, context);
-            }
-            else {
-                prepare(HttpStatus::OK, context);
+				return;
             }
         }
 
+		
 
-
+		prepare(HttpStatus::OK, context);
 
 
         ///check if http compression is accepted

@@ -426,6 +426,7 @@ namespace pigeon {
                     prepare(HttpStatus::NotFound, context);
                     return;
                 }
+				
                 handler->process(context);
                 prepare(HttpStatus::OK, context);
                 {
