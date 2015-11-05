@@ -350,6 +350,8 @@ namespace pigeon {
                 if (r != 0){
                     logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
                 }
+                uv_tcp_nodelay((uv_tcp_t*)&server_handle, 1);
+                uv_tcp_keepalive((uv_tcp_t*)&server_handle, 1, 60);
 
                 struct sockaddr_in name;
                 int namelen = sizeof(name);
