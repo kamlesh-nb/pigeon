@@ -57,6 +57,13 @@ auto http_request::set_parameter(key_value_pair& kvp) -> void {
     parameters.push_back(std::move(kvp));
 }
 
+
+std::vector<asio::const_buffer> http_response::to_buffers() {
+    std::vector<asio::const_buffer> buffers;
+    buffers.push_back(asio::buffer(message));
+    return buffers;
+}
+
 http_response::~http_response() {
 
 }

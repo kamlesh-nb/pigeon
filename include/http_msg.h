@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <key_value_pair.h>
+#include <asio/buffer.hpp>
 
 
 using namespace std;
@@ -44,6 +45,9 @@ namespace  pigeon {
 
         unsigned int status;
         string message;
+
+        std::vector<asio::const_buffer> to_buffers();
+
 
     };
 

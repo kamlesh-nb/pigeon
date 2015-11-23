@@ -51,8 +51,6 @@ namespace pigeon {
 
     } msg_baton_t;
 
-	
-
     class server::server_impl {
 
     private:
@@ -438,7 +436,6 @@ namespace pigeon {
 
     };
 
-
 	server::server() {
         _Impl = new server_impl;
     }
@@ -456,5 +453,6 @@ namespace pigeon {
     void server::add_filter(string &filter_name, http_filter_base *filter) {
         _Impl->add_filter(filter_name, filter);
     }
+
 
 }
