@@ -17,7 +17,7 @@ namespace pigeon {
     namespace  tcp {
 
         class connection : public std::enable_shared_from_this<connection>
-        {
+        {  
         public:
             /// Construct a connection with the given io_context.
             explicit connection(asio::io_context& io_context);
