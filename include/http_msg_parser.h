@@ -14,7 +14,7 @@ namespace pigeon {
         class http_msg_parser {
 
         private:
-            http_parser m_http_parser;
+            http_parser* parser;
             http_parser_settings parser_settings;
 
         public:

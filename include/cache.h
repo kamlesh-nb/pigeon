@@ -5,7 +5,6 @@
 #ifndef PIGEON_CACHE_H
 #define PIGEON_CACHE_H
 
-#include <uv.h>
 #include "file_info.h"
 #include <vector>
 #include <string>
@@ -20,13 +19,15 @@ namespace pigeon {
         char *_buffer;
         vector<file_info> cache_data;
 
-        uv_rwlock_t cache_lock;
 
         void compress_item(file_info& fi);
 
         void cache_item(string& file);
 
-        void load_files(string filepath, uv_fs_t* req);
+        void load_files(string filepath);
+
+        void path_correction(string&);
+        
 
     public:
 

@@ -2,14 +2,14 @@
 // Created by kamlesh on 23/10/15.
 //
 
-#include <uv.h>
 #include "settings.h"
-
+#include <boost/filesystem.hpp>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/document.h>
 #include <fstream>
 #include <iostream>
 
+namespace bfs = boost::filesystem;
 using namespace rapidjson;
 using namespace pigeon;
 
@@ -35,10 +35,8 @@ auto settings::load_setting() -> void {
 
     try {
 
-        char path[1024];
-        size_t sz = 1024;
-        uv_cwd(path, &sz);
-        string current_path(path);
+        
+        string current_path = bfs::current_path().string();
         current_path.append("/service.json");
 
         std::ifstream is(current_path.c_str(), std::ios::in | std::ios::binary);
