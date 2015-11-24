@@ -39,7 +39,7 @@ namespace pigeon {
             /// The work that keeps the io_contexts running.
             vector<work_ptr> work_;
 
-            /// The next io_context to use for a connection.
+            /// The next io_context to use for a http_connection.
             size_t next_io_context_;
         };
 

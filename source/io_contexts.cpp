@@ -3,7 +3,7 @@
 //
 
 #include "io_contexts.h"
-#include <thread>
+#include <boost/bind.hpp>
 
 using  namespace pigeon::tcp;
 using namespace std;
@@ -28,17 +28,17 @@ io_contexts::io_contexts(std::size_t pool_size)
 
 void io_contexts::run()
 {
-    std::vector<std::thread> workers;
+    std::vector<shared_ptr<asio::thread> >  workers;
     for (int i = 0; i < io_contexts_.size(); i++) {
-        workers.push_back(std::thread((thread &&) [&](){
-                    io_contexts_[i]->run();
-                }));
+
+        shared_ptr<asio::thread> thread(new asio::thread(
+                boost::bind(&asio::io_context::run, io_contexts_[i])));
+
+        workers.push_back(thread);
     }
 
-    std::for_each(workers.begin(), workers.end(), [](std::thread &t)
-    {
-        t.join();
-    });
+    for (std::size_t i = 0; i < workers.size(); ++i)
+        workers[i]->join();
 
 }
 

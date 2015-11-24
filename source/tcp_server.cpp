@@ -10,7 +10,7 @@ server::server(std::size_t io_context_pool_size)
         : io_contexts_(io_context_pool_size),
           signals_(io_contexts_.get_io_context()),
           acceptor_(io_contexts_.get_io_context()),
-          new_connection_()
+          new_http_context_()
 
 {
 
@@ -47,9 +47,9 @@ void server::run()
 
 void server::start_accept()
 {
-    new_connection_.reset(new connection(
+    new_http_connection_.reset(new http_connection(
             io_contexts_.get_io_context()));
-    acceptor_.async_accept(new_connection_->socket(),
+    acceptor_.async_accept(new_http_connection_->socket(),
                            [this](std::error_code ec){
                                if (!acceptor_.is_open())
                                {
@@ -58,10 +58,10 @@ void server::start_accept()
 
                                if (!ec)
                                {
-
+                                   handle_accept(ec);
                                }
 
-                               handle_accept(ec);
+
                            });
 
 
@@ -72,7 +72,7 @@ void server::handle_accept(const asio::error_code& e)
 {
     if (!e)
     {
-        new_connection_->start();
+        new_http_connection_->do_read();
     }
 
     start_accept();

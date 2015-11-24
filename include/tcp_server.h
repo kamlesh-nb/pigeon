@@ -10,7 +10,7 @@
 #include <vector>
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
-#include "connection.h"
+#include "http_connection.h"
 #include "io_contexts.h"
 
 
@@ -46,8 +46,8 @@ namespace pigeon {
             /// Acceptor used to listen for incoming connections.
             asio::ip::tcp::acceptor acceptor_;
 
-            /// The next connection to be accepted.
-            connection_ptr new_connection_;
+            /// The next http_connection to be accepted.
+            http_connnection_ptr new_http_connection_;
 
         };
 

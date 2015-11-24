@@ -4,14 +4,20 @@
 
 #include <string.h>
 #include <malloc.h>
+#include <sstream>
+
+#include <string>
+#include <iterator>
 #include "http_msg.h"
 #include "http_msg_parser.h"
+#include "http_util.h"
 
+using namespace std;
 using namespace pigeon;
 using namespace pigeon::tcp;
 
 http_msg_parser::http_msg_parser() {
-
+    init();
 }
 
 http_msg_parser::~http_msg_parser() {
@@ -99,14 +105,51 @@ void http_msg_parser::init() {
 
     parser_settings.on_message_complete = [](http_parser* parser) -> int {
 
+        http_request* req = (http_request*)parser->data;
 
-     
+
+
 
         return 0;
 
     };
 }
 
-void http_msg_parser::parse_request() {
+bool http_msg_parser::is_api(const string &Uri) {
+    std::size_t pos = Uri.find("/api/");
+    return pos != string::npos;
+}
+
+void http_msg_parser::parse_query_string(http_request &req) {
+    string query_uri(req.url);
+    std::size_t _parStart = req.url.find('?');
+
+    if (_parStart != string::npos) {
+
+        req.url = query_uri.substr(0, _parStart);
+        query_uri = query_uri.substr(_parStart + 1, query_uri.size());
+    }
+
+    if (_parStart != string::npos) {
+        replace(query_uri.begin(), query_uri.end(), '&', ' ');
+        std::istringstream issParams(query_uri.c_str());
+        vector<string> vparams{istream_iterator<string>{issParams},
+                               istream_iterator<string>{}};
+        size_t end;
+        for (auto &par : vparams) {
+            end = par.find("=", 0);
+            key_value_pair kvp;
+            kvp.key = par.substr(0, end);
+            kvp.value = par.substr(end + 1, par.size() - 1);
+            req.set_parameter(kvp);
+        }
+    }
+}
+
+void http_msg_parser::parse_request(char* data, asio::ip::tcp::socket client, size_t nread) {
+
+    size_t parsed;
+    parser->data = new http_request;
+    parsed = (size_t)http_parser_execute(parser, &parser_settings, data, nread);
 
 }

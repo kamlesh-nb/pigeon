@@ -1,8 +1,9 @@
 #ifndef PIGEON_HTTP_HANDLER_BASE_H
 #define PIGEON_HTTP_HANDLER_BASE_H
 
-#include <http_context.h>
+#include "http_connection.h"
 #include <http_parser.h>
+using namespace pigeon::tcp;
 
 namespace pigeon {
 
@@ -11,7 +12,7 @@ namespace pigeon {
 
 	protected:
 
-		void prepare_response(http_context*);
+		void prepare_response(http_connection *);
 
 	public:
 
@@ -19,15 +20,15 @@ namespace pigeon {
 
 		}
 
-		virtual void get(http_context*) = 0;
+		virtual void get(http_connection *) = 0;
 
-		virtual void put(http_context*) = 0;
+		virtual void put(http_connection *) = 0;
 
-		virtual void post(http_context*) = 0;
+		virtual void post(http_connection *) = 0;
 
-		virtual void del(http_context*) = 0;
+		virtual void del(http_connection *) = 0;
 
-		virtual void process(http_context* context){
+		virtual void process(http_connection * context){
 
             switch (context->request->method)
             {

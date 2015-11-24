@@ -2,13 +2,13 @@
 #define HTTP_UTIL_H
 
 #include <string>
-#include "http_context.h"
+#include "http_connection.h"
 #include "http_handler_base.h"
 
 
 using namespace std;
 using namespace pigeon;
-
+using namespace pigeon::tcp;
 
 namespace http_util {
 
@@ -86,9 +86,9 @@ namespace http_util {
     bool is_api(string& Uri);
     void parse_query_string(http_request & req);
     bool url_decode(const string &in, string &out);
-    void prepare(HttpStatus status, http_context *context);
-    void finish(HttpStatus status, http_context *context);
-    void process(http_context*);
+    void prepare(HttpStatus status, http_connection *context);
+    void finish(HttpStatus status, http_connection *context);
+    void process(http_connection *);
 
 }
 

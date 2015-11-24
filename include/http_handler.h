@@ -5,7 +5,7 @@
 #ifndef PIGEON_HTTP_HANDLER_H
 #define PIGEON_HTTP_HANDLER_H
 
-#include <http_context.h>
+#include "http_connection.h"
 #include <http_handler_base.h>
 #include <cache.h>
 
@@ -23,14 +23,14 @@ namespace pigeon {
 
         http_handler();
         virtual ~http_handler();
-        void get(http_context*) override;
-        void post(http_context*) override;
-        void put(http_context*) override;
-        void del(http_context*) override;
+        void get(http_connection *) override;
+        void post(http_connection *) override;
+        void put(http_connection *) override;
+        void del(http_connection *) override;
 
-        void process(http_context*) override;
+        void process(http_connection *) override;
 
-        void options(http_context*);
+        void options(http_connection *);
 
     };
 

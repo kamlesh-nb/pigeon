@@ -8,6 +8,7 @@
 #include <iostream>
 
 using namespace pigeon;
+using namespace pigeon::tcp;
 using namespace std;
 
 
@@ -24,7 +25,7 @@ http_handler::~http_handler() {
 
 }
 
-void http_handler::get(http_context *context) {
+void http_handler::get(http_connection *context) {
 
     try {
 
@@ -117,23 +118,23 @@ void http_handler::get(http_context *context) {
 
 }
 
-void http_handler::post(http_context *context) {
+void http_handler::post(http_connection *context) {
 	cout << context->request->url << endl;
 }
 
-void http_handler::put(http_context *context) {
+void http_handler::put(http_connection *context) {
 
 }
 
-void http_handler::del(http_context *context)  {
+void http_handler::del(http_connection *context)  {
 
 }
 
-void http_handler::options(http_context *context) {
+void http_handler::options(http_connection *context) {
 
 }
 
-void http_handler::process(http_context *context) {
+void http_handler::process(http_connection *context) {
 
     switch (context->request->method)
     {
