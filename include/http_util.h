@@ -86,9 +86,9 @@ namespace http_util {
     bool is_api(string& Uri);
     void parse_query_string(http_request & req);
     bool url_decode(const string &in, string &out);
-    void prepare(HttpStatus status, http_connection *context);
-    void finish(HttpStatus status, http_connection *context);
-    void process(http_connection *);
+    void prepare(HttpStatus status, http_context *context);
+    void finish(HttpStatus status, http_context *context);
+    void process(http_context *);
 
 }
 

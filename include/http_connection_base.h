@@ -20,12 +20,13 @@ namespace pigeon {
         private:
 
             asio::ip::tcp::socket client;
-            http_parser* parser;
+
             http_parser_settings parser_settings;
             void init_parser();
 
         protected:
 
+            http_parser* parser;
             shared_ptr<http_context> context;
 
             std::array<char, 65536> buffer;

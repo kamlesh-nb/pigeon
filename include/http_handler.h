@@ -23,14 +23,14 @@ namespace pigeon {
 
         http_handler();
         virtual ~http_handler();
-        void get(http_connection *) override;
-        void post(http_connection *) override;
-        void put(http_connection *) override;
-        void del(http_connection *) override;
+        void get(http_context *) override;
+        void post(http_context *) override;
+        void put(http_context *) override;
+        void del(http_context *) override;
 
-        void process(http_connection *) override;
+        void process(http_context *) override;
 
-        void options(http_connection *);
+        void options(http_context *);
 
     };
 

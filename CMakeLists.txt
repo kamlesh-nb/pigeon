@@ -11,6 +11,7 @@ include_directories("${pigeon_SOURCE_DIR}/include")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 set(SOURCE_FILES main.cpp
+        include/http_context.h
         include/file_info.h
         include/key_value_pair.h
         include/http_handler_base.h
@@ -29,7 +30,8 @@ set(SOURCE_FILES main.cpp
         source/io_contexts.cpp include/io_contexts.h
         source/http_connection.cpp include/http_connection.h
         source/http_msg_parser.cpp include/http_msg_parser.h
-        source/http_connection_base.cpp include/http_connection_base.h include/http_context.h)
+        source/http_connection_base.cpp include/http_connection_base.h
+        FSIGermanFAST.pdf)
 
 #add_library(pigeon ${SOURCE_FILES})
 add_executable(pigeon ${SOURCE_FILES})

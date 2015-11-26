@@ -10,7 +10,7 @@ using namespace pigeon::tcp;
 
 
 http_connection_base::http_connection_base(asio::io_context &io_context) : client(io_context){
-
+    context = make_shared<http_context>();
 }
 
 asio::ip::tcp::socket&http_connection_base::socket() {
@@ -26,12 +26,12 @@ void http_connection_base::init_parser() {
 
     parser_settings.on_url = [](http_parser* parser, const char* at, size_t len) -> int {
 
-        http_context* context = (http_context*)parser->data;
-        if (at && context->request) {
+        http_connection_base* con = static_cast<http_connection_base*>(parser->data);
+        if (at && con->context->request) {
             char *data = (char *)malloc(sizeof(char) * len + 1);
             strncpy(data, at, len);
             data[len] = '\0';
-            context->request->url += data;
+            con->context->request->url += data;
             free(data);
         }
         return 0;
@@ -40,8 +40,8 @@ void http_connection_base::init_parser() {
 
     parser_settings.on_header_field = [](http_parser* parser, const char* at, size_t len) -> int {
 
-        http_context* context = (http_context*)parser->data;
-        if (at && context->request) {
+        http_connection_base* con = static_cast<http_connection_base*>(parser->data);
+        if (at && con->context->request) {
             string s;
             char *data = (char *)malloc(sizeof(char) * len + 1);
             strncpy(data, at, len);
@@ -49,7 +49,7 @@ void http_connection_base::init_parser() {
             s += data;
             free(data);
 
-            context->request->set_header_field(s);
+            con->context->request->set_header_field(s);
         }
         return 0;
 
@@ -57,15 +57,15 @@ void http_connection_base::init_parser() {
 
     parser_settings.on_header_value = [](http_parser* parser, const char* at, size_t len) -> int {
 
-        http_context* context = (http_context*)parser->data;
-        if (at && context->request) {
+        http_connection_base* con = static_cast<http_connection_base*>(parser->data);
+        if (at && con->context->request) {
             string s;
             char *data = (char *)malloc(sizeof(char) * len + 1);
             strncpy(data, at, len);
             data[len] = '\0';
             s += data;
             free(data);
-            context->request->set_header_value(s);
+            con->context->request->set_header_value(s);
         }
         return 0;
 
@@ -73,23 +73,23 @@ void http_connection_base::init_parser() {
 
     parser_settings.on_headers_complete = [](http_parser* parser) -> int {
 
-        http_context* context = (http_context*)parser->data;
-        context->request->method = parser->method;
-        context->request->http_major_version = parser->http_major;
-        context->request->http_minor_version = parser->http_minor;
+        http_connection_base* con = static_cast<http_connection_base*>(parser->data);
+        con->context->request->method = parser->method;
+        con->context->request->http_major_version = parser->http_major;
+        con->context->request->http_minor_version = parser->http_minor;
         return 0;
 
     };
 
     parser_settings.on_body = [](http_parser* parser, const char* at, size_t len) -> int {
 
-        http_context* context = (http_context*)parser->data;
-        if (at && context->request) {
+        http_connection_base* con = static_cast<http_connection_base*>(parser->data);
+        if (at && con->context->request) {
 
             char *data = (char *)malloc(sizeof(char) * len + 1);
             strncpy(data, at, len);
             data[len] = '\0';
-            context->request->content += data;
+            con->context->request->content += data;
             free(data);
 
         }
@@ -99,10 +99,8 @@ void http_connection_base::init_parser() {
 
     parser_settings.on_message_complete = [](http_parser* parser) -> int {
 
-        http_context* context = (http_context*)parser->data;
-
-
-
+        http_connection_base* con = static_cast<http_connection_base*>(parser->data);
+        con->do_write();
 
         return 0;
 
@@ -111,7 +109,7 @@ void http_connection_base::init_parser() {
 
 void http_connection_base::parse_request(size_t nread) {
     size_t parsed;
-    parser->data = (void*)*context;
+
     parsed = (size_t)http_parser_execute(parser, &parser_settings, buffer.data(), nread);
 }
 

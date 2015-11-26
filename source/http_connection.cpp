@@ -26,7 +26,8 @@ void http_connection::do_read()
                             {
                                 if (!ec)
                                 {
-                                    parse_request();
+                                    parser->data = (void*)this;
+                                    parse_request(bytes_transferred);
                                 }
                                 else if (ec != asio::error::operation_aborted)
                                 {

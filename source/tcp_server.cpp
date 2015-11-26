@@ -10,7 +10,7 @@ server::server(std::size_t io_context_pool_size)
         : io_contexts_(io_context_pool_size),
           signals_(io_contexts_.get_io_context()),
           acceptor_(io_contexts_.get_io_context()),
-          new_http_context_()
+          new_http_connection_()
 
 {
 

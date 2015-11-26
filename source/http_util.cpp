@@ -336,14 +336,14 @@ namespace http_util {
 
     }
 
-    void prepare(HttpStatus status, http_connection *context) {
+    void prepare(HttpStatus status, http_context *context) {
 
         context->response->message += get_status_phrase(status);
         context->response->message += get_cached_response(context->request->is_api);
 
     }
 
-    void finish(HttpStatus status, http_connection *context) {
+    void finish(HttpStatus status, http_context *context) {
 
         if (status != HttpStatus::OK && status != HttpStatus::NotModified) {
             context->response->message += err_cached_response;
