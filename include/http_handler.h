@@ -14,8 +14,8 @@ namespace pigeon {
     class http_handler : public http_handler_base {
 
     private:
-        cache* m_cache;
-        string default_page;
+        
+		string default_page;
         string resource_location;
         string cached_response;
 

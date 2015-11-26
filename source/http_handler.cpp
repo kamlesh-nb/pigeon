@@ -14,8 +14,7 @@ using namespace std;
 
 http_handler::http_handler() {
 
-    m_cache = new cache;
-    m_cache->load(settings::resource_location);
+    
     resource_location = settings::resource_location;
     default_page = settings::default_page;
 
@@ -51,7 +50,7 @@ void http_handler::get(http_request* request) {
         std::string full_path = resource_location + request_path;
 
         file_info fi(full_path);
-        m_cache->get_item(full_path, fi);
+        cache::get()->get_item(full_path, fi);
 
         if (fi.file_size == 0){
 			request->create_response("Not Found!", HttpStatus::NotFound); return;
