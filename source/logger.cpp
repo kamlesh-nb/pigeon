@@ -20,16 +20,16 @@ logger::~logger() {
 
 }
 
-void logger::write(http_util::LogType type, http_util::Severity severity, string message) {
+void logger::write(LogType type, Severity severity, string message) {
 
     lf << get_log_type(type) << ": " << get_severity(severity) << ": " << now() << " : " << message << endl;
     lf.flush();
 
 }
 
-void logger::write(http_util::LogType type, string message) {
+void logger::write(LogType type, string message) {
 
-    lf << http_util::get_log_type(type) << ": " << http_util::now() << " : " << message << endl;
+    lf << get_log_type(type) << ": " << now() << " : " << message << endl;
     lf.flush();
 
 }

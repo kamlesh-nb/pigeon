@@ -1,18 +1,14 @@
 #ifndef PIGEON_HTTP_HANDLER_BASE_H
 #define PIGEON_HTTP_HANDLER_BASE_H
 
-#include "http_context.h"
+#include "http_msg.h"
 #include <http_parser.h>
-using namespace pigeon::tcp;
 
 namespace pigeon {
 
 	class http_handler_base {
 
 
-	protected:
-
-		void prepare_response(http_context *);
 
 	public:
 
@@ -20,32 +16,32 @@ namespace pigeon {
 
 		}
 
-		virtual void get(http_context *) = 0;
+		virtual void get(http_request*) = 0;
 
-		virtual void put(http_context *) = 0;
+		virtual void put(http_request*) = 0;
 
-		virtual void post(http_context *) = 0;
+		virtual void post(http_request*) = 0;
 
-		virtual void del(http_context *) = 0;
+		virtual void del(http_request*) = 0;
 
-		virtual void process(http_context * context){
+		virtual void process(http_request* request){
 
-            switch (context->request->method)
+            switch (request->method)
             {
                 case http_method::HTTP_GET:
-                    get(context);
+					get(request);
                     break;
 
                 case http_method::HTTP_POST:
-                    post(context);
+					post(request);
                     break;
 
                 case http_method::HTTP_PUT:
-                    put(context);
+					put(request);
                     break;
 
                 case http_method::HTTP_DELETE:
-                    del(context);
+					del(request);
                     break;
             }
 

@@ -53,6 +53,45 @@ auto http_request::get_parameter(key_value_pair& kvp) -> void {
 
 }
 
+auto http_request::get_response()-> shared_ptr<http_response> {
+	return response;
+}
+
+auto http_request::create_response(const char* msg, HttpStatus status) -> void {
+
+	response = make_shared<http_response>();
+
+	response->message += get_status_phrase(status);
+	response->message += get_cached_response(is_api);
+	response->message += get_header_field(HttpHeader::Content_Length);
+	response->message += std::to_string(string(msg).size());
+	response->message += "\r\n";
+	response->message += get_err_msg(status);
+ 
+
+}
+
+auto http_request::create_response(string& cached_headers, string& message, HttpStatus status) -> void {
+	
+	response = make_shared<http_response>();
+
+	response->message += get_status_phrase(status);
+	response->message += get_cached_response(is_api);
+	response->message += get_header_field(HttpHeader::Content_Length);
+	response->message += std::to_string(message.size());
+	response->message += "\r\n";
+	response->content += message;
+	response->status = (unsigned int)status;
+	
+	response->get_non_default_headers(response->message);
+	response->message += "\r\n";
+	response->message += cached_headers;
+	response->message += response->content;
+
+ 
+
+}
+
 auto http_request::set_parameter(key_value_pair& kvp) -> void {
     parameters.push_back(std::move(kvp));
 }

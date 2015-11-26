@@ -15,7 +15,8 @@ using namespace pigeon;
 
 string settings::service_name;
 string settings::address;
-int settings::port;
+string settings::port;
+int settings::worker_threads;
 bool settings::use_ssl;
 string settings::ssl_cert_file;
 string settings::ssl_key_file;
@@ -47,7 +48,8 @@ auto settings::load_setting() -> void {
 
         service_name = doc["service_name"].GetString();
         address = doc["address"].GetString();
-        port = doc["port"].GetInt();
+		port = doc["port"].GetString();
+		worker_threads = doc["worker_threads"].GetInt();
         use_ssl = doc["use_ssl"].GetBool();
         ssl_cert_file = doc["ssl_cert_file"].GetString();
         ssl_key_file = doc["ssl_key_file"].GetString();

@@ -18,13 +18,27 @@ namespace pigeon {
 
     namespace  tcp {
 
-        class http_connection : public std::enable_shared_from_this<http_connection>, public http_connection_base
+        class http_connection : public std::enable_shared_from_this<http_connection>
         {
 
-        public:
+		private:
 
+			asio::ip::tcp::socket client;
+			http_parser_settings parser_settings;
+			http_parser* parser;
+			shared_ptr<http_request> request;
+			shared_ptr<http_response> response;
+			std::array<char, 65536> buffer;
+			
+			void do_write();
+			void init_parser();
+			void parse_request(size_t);
+			void process_request();
+
+		public:
+        
             explicit http_connection(asio::io_context& io_context);
-
+			asio::ip::tcp::socket& socket();
             void do_read();
 
 

@@ -25,25 +25,22 @@ http_handler::~http_handler() {
 
 }
 
-void http_handler::get(http_context *context) {
+void http_handler::get(http_request* request) {
 
     try {
 
 
-
+		std::string message;
         std::string request_path;
-        if (!url_decode(context->request->url, request_path))
+        
+		if (!url_decode(request->url, request_path))
         {
-            prepare(HttpStatus::NotFound, context);
-            finish(HttpStatus::NotFound, context);
-            return;
+			request->create_response("Not Found!", HttpStatus::NotFound); return;
         }
 
         if (request_path.empty() || request_path[0] != '/' || request_path.find("..") != std::string::npos)
         {
-            prepare(HttpStatus::NotFound, context);
-            finish(HttpStatus::NotFound, context);
-            return;
+			request->create_response("Not Found!", HttpStatus::NotFound); return;
         }
 
         if (request_path[request_path.size() - 1] == '/')
@@ -57,35 +54,26 @@ void http_handler::get(http_context *context) {
         m_cache->get_item(full_path, fi);
 
         if (fi.file_size == 0){
-            prepare(HttpStatus::NotFound, context);
-            finish(HttpStatus::NotFound, context);
-            return;
+			request->create_response("Not Found!", HttpStatus::NotFound); return;
         }
 
         ///check if the file is modified, if not send status 304
         string key = "If-Modified-Since";
         key_value_pair kvp_if_modified_since;
         kvp_if_modified_since.key = key;
-        context->request->get_header(kvp_if_modified_since);
+        request->get_header(kvp_if_modified_since);
 
         if (kvp_if_modified_since.value.size() > 0){
             if (kvp_if_modified_since.value == fi.last_write_time){
-                prepare(HttpStatus::NotModified, context);
-                finish(HttpStatus::NotModified, context);
-				return;
+				request->create_response("Not Modified!", HttpStatus::NotModified); return;
             }
         }
-
-		
-
-		prepare(HttpStatus::OK, context);
-
 
         ///check if http compression is accepted
         string key2("Accept-Encoding");
         key_value_pair kvp_accept_enc;
         kvp_accept_enc.key = key2;
-        context->request->get_header(kvp_accept_enc);
+        request->get_header(kvp_accept_enc);
 
         std::size_t pos;
 
@@ -98,64 +86,60 @@ void http_handler::get(http_context *context) {
         }
 
         if (pos != string::npos){
-            context->response->message += fi.compresses_cached_headers;
-            context->response->content += fi.compressed_content;
+			request->create_response(fi.compresses_cached_headers, fi.compressed_content, HttpStatus::OK);
         }
         else {
-            context->response->message += fi.cached_headers;
-            context->response->content += fi.content;
+			request->create_response(fi.cached_headers, fi.content, HttpStatus::OK);
         }
-
-
-        finish(HttpStatus::OK, context);
 
     }
     catch (std::exception& ex){
-
         logger::get()->write(LogType::Error, Severity::Critical, ex.what());
-
+		request->create_response(ex.what(), HttpStatus::OK);
     }
 
 }
 
-void http_handler::post(http_context *context) {
-	cout << context->request->url << endl;
+void http_handler::post(http_request* request) {
+	request->create_response("Not Implemented!", HttpStatus::NotImplemented);
 }
 
-void http_handler::put(http_context *context) {
+void http_handler::put(http_request* request) {
+	request->create_response("Not Implemented!", HttpStatus::NotImplemented);
+}
+
+void http_handler::del(http_request* request)  {
+	request->create_response("Not Implemented!", HttpStatus::NotImplemented);
+}
+
+void http_handler::options(http_request* request) {
+
+	request->create_response("Not Implemented!", HttpStatus::NotImplemented);
 
 }
 
-void http_handler::del(http_context *context)  {
+void http_handler::process(http_request* request) {
 
-}
-
-void http_handler::options(http_context *context) {
-
-}
-
-void http_handler::process(http_context *context) {
-
-    switch (context->request->method)
+    switch (request->method)
     {
         case http_method::HTTP_GET:
-            get(context);
+			get(request);
             break;
 
         case http_method::HTTP_POST:
-            post(context);
+			post(request);
             break;
 
         case http_method::HTTP_PUT:
-            put(context);
+			put(request);
             break;
 
         case http_method::HTTP_DELETE:
-            del(context);
+			del(request);
             break;
 
         case http_method::HTTP_OPTIONS:
-            options(context);
+			options(request);
             break;
     }
 }

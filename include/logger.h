@@ -13,7 +13,7 @@
 #include "http_util.h"
 
 using namespace std;
-using namespace http_util;
+
 
 namespace pigeon {
 
@@ -30,8 +30,8 @@ namespace pigeon {
 
         logger(const logger &lgr);
         ~logger();
-        void write(http_util::LogType, http_util::Severity, string);
-        void write(http_util::LogType, string);
+        void write(LogType, Severity, string);
+        void write(LogType, string);
         void close();
         static std::shared_ptr<logger>& get();
 

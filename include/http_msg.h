@@ -3,12 +3,14 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include <algorithm>
 #include <key_value_pair.h>
 #include <asio/buffer.hpp>
-
+#include "http_util.h"
 
 using namespace std;
+
 
 namespace  pigeon {
 
@@ -56,6 +58,7 @@ namespace  pigeon {
     private:
 
         vector<key_value_pair> parameters;
+		shared_ptr<http_response> response;
 
     public:
 
@@ -68,6 +71,12 @@ namespace  pigeon {
         auto get_parameter(key_value_pair &) -> void;
 
         auto set_parameter(key_value_pair &) -> void;
+
+		auto create_response(const char*, HttpStatus status)-> void;
+
+		auto create_response(string&, string&, HttpStatus status)-> void;
+
+		auto get_response()-> shared_ptr<http_response>;
 
     };
 

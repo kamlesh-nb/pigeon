@@ -169,18 +169,18 @@ using namespace pigeon;
                     {0,       0}
             };
 
-    string cached_date_response = "\r\nDate: ";
-    string err_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: text/html; charset=UTF-8\r\n";
 
-    string api_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: application/json\r\n";
+	string cached_date_response = "\r\nDate: ";
+	string err_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: text/html; charset=UTF-8\r\n";
+	string api_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: application/json\r\n";
 
-    const char *err_msg1 = "<!DOCTYPE html><html><head lang='en'><meta charset='UTF-8'><title>Status</title></head><body><table><th>Status Code</th><th>Message</th><tr><td>";
-    const char *err_msg3 = "</td><td>";
-    const char *err_msg5 = "</td></tr></table></body></html>";
+	const char *err_msg1 = "<!DOCTYPE html><html><head lang='en'><meta charset='UTF-8'><title>Status</title></head><body><table><th>Status Code</th><th>Message</th><tr><td>";
+	const char *err_msg3 = "</td><td>";
+	const char *err_msg5 = "</td></tr></table></body></html>";
 
-namespace http_util {
+ 
 
-    char *now() {
+    char* pigeon::now() {
 
         time_t now = time(0);
         char *dt;
@@ -192,7 +192,7 @@ namespace http_util {
         return dt;
     }
 
-    string get_cached_response(bool is_api) {
+	string pigeon::get_cached_response(bool is_api) {
 
         string cached_response;
 
@@ -206,7 +206,7 @@ namespace http_util {
 
     }
 
-    string get_header_field(HttpHeader hdr) {
+	string pigeon::get_header_field(HttpHeader hdr) {
 
         for (header *m = headers; m->header_id; ++m) {
             if (m->header_id == static_cast<int>(hdr)) {
@@ -217,7 +217,7 @@ namespace http_util {
         return "unknown header";
     }
 
-    string get_status_phrase(HttpStatus status) {
+	string pigeon::get_status_phrase(HttpStatus status) {
 
         for (statusphrase *m = statusphrases; m->status_code; ++m) {
             if (m->status_code == static_cast<int>(status)) {
@@ -228,7 +228,7 @@ namespace http_util {
         return "unknown phrase";
     }
 
-    string get_status_msg(HttpStatus status) {
+	string pigeon::get_status_msg(HttpStatus status) {
 
         for (statusmsg *m = statusmsgs; m->status_code; ++m) {
             if (m->status_code == static_cast<int>(status)) {
@@ -239,7 +239,22 @@ namespace http_util {
         return "unknown msg";
     }
 
-    string get_mime_type(string &extension) {
+	string pigeon::get_err_msg(HttpStatus status){
+
+		string message;
+
+		message += err_cached_response;
+		message += err_msg1;
+		message += std::to_string((int)status);
+		message += err_msg3;
+		message += get_status_msg(status);
+		message += err_msg5;
+
+		return message;
+
+	}
+
+	string pigeon::get_mime_type(string &extension) {
 
         for (mapping *m = mappings; m->extension; ++m) {
             if (m->extension == extension) {
@@ -251,7 +266,7 @@ namespace http_util {
 
     }
 
-    string get_log_type(LogType type) {
+	string pigeon::get_log_type(LogType type) {
 
         for (logtype *m = logtypes; m->log_id; ++m) {
             if (m->log_id == static_cast<int>(type)) {
@@ -262,7 +277,7 @@ namespace http_util {
         return "unknown log type";
     }
 
-    string get_severity(Severity severe) {
+	string pigeon::get_severity(Severity severe) {
         for (severity *m = severities; m->severity_id; ++m) {
             if (m->severity_id == static_cast<int>(severe)) {
                 return m->severity_type;
@@ -272,7 +287,7 @@ namespace http_util {
         return "unknown severity type";
     }
 
-    bool is_api(string &Uri) {
+    /*bool is_api(string &Uri) {
         std::size_t pos = Uri.find("/api/");
         return pos != string::npos;
     }
@@ -302,9 +317,9 @@ namespace http_util {
                 req.set_parameter(kvp);
             }
         }
-    }
+    }*/
 
-    bool url_decode(const string &in, string &out) {
+	bool pigeon::url_decode(const string &in, string &out) {
 
         out.clear();
         out.reserve(in.size());
@@ -336,33 +351,7 @@ namespace http_util {
 
     }
 
-    void prepare(HttpStatus status, http_context *context) {
-
-        context->response->message += get_status_phrase(status);
-        context->response->message += get_cached_response(context->request->is_api);
-
-    }
-
-    void finish(HttpStatus status, http_context *context) {
-
-        if (status != HttpStatus::OK && status != HttpStatus::NotModified) {
-            context->response->message += err_cached_response;
-            context->response->message += err_msg1;
-            context->response->message += std::to_string((int) status);
-            context->response->message += err_msg3;
-            context->response->message += http_util::get_status_msg(status);
-            context->response->message += err_msg5;
-        }
-        else {
-            context->response->get_non_default_headers(context->response->message);
-            context->response->message += "\r\n";
-            context->response->message += context->response->content;
-        }
-
-    }
-
-}
-
+ 
 
 
 

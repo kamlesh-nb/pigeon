@@ -3,6 +3,10 @@
 //
 
 #include "tcp_server.h"
+#include "settings.h"
+#include <iostream>
+
+using namespace std;
 
 using namespace pigeon::tcp;
 
@@ -19,25 +23,31 @@ server::server(std::size_t io_context_pool_size)
 #if defined(SIGQUIT)
     signals_.add(SIGQUIT);
 #endif // defined(SIGQUIT)
-    signals_.async_wait(
-            [this](std::error_code /*ec*/, int /*signo*/)
-            {
-                acceptor_.close();
-                handle_stop();
-
-            });
-
-    string address = "127.0.0.1";
-    string port = "8080";
+    
+	do_await();
 
     asio::ip::tcp::resolver resolver(acceptor_.get_executor().context());
-    asio::ip::tcp::endpoint endpoint = *resolver.resolve(address, port).begin();
+	asio::ip::tcp::endpoint endpoint = *resolver.resolve(settings::address, settings::port).begin();
     acceptor_.open(endpoint.protocol());
     acceptor_.set_option(asio::ip::tcp::acceptor::reuse_address(true));
-    acceptor_.bind(endpoint);
+	acceptor_.bind(endpoint);
     acceptor_.listen();
 
-    start_accept();
+    start();
+
+}
+
+
+void server::do_await(){
+
+	signals_.async_wait(
+		[this](std::error_code /*ec*/, int /*signo*/)
+	{
+		acceptor_.close();
+		stop();
+
+	});
+
 }
 
 void server::run()
@@ -45,7 +55,7 @@ void server::run()
     io_contexts_.run();
 }
 
-void server::start_accept()
+void server::start()
 {
     new_http_connection_.reset(new http_connection(
             io_contexts_.get_io_context()));
@@ -58,27 +68,23 @@ void server::start_accept()
 
                                if (!ec)
                                {
-                                   handle_accept(ec);
+								   do_accept(ec);
                                }
-
-
                            });
-
-
 
 }
 
-void server::handle_accept(const asio::error_code& e)
+void server::do_accept(const asio::error_code& e)
 {
     if (!e)
     {
         new_http_connection_->do_read();
     }
 
-    start_accept();
+    start();
 }
 
-void server::handle_stop()
+void server::stop()
 {
     io_contexts_.stop();
 }
