@@ -13,11 +13,8 @@ using namespace std;
 
 
 http_handler::http_handler() {
-
-    
     resource_location = settings::resource_location;
     default_page = settings::default_page;
-
 }
 
 http_handler::~http_handler() {

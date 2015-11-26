@@ -30,16 +30,18 @@ namespace pigeon {
 			shared_ptr<http_response> response;
 			std::array<char, 65536> buffer;
 			
-			void do_write();
+			
 			void init_parser();
 			void parse_request(size_t);
-			void process_request();
+			
 
 		public:
         
             explicit http_connection(asio::io_context& io_context);
 			asio::ip::tcp::socket& socket();
             void do_read();
+			void process_request();
+			void do_write();
 
 
         };

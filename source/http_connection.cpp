@@ -3,8 +3,12 @@
 //
 
 #include "http_connection.h"
+#include <http_filters.h>
+#include <http_handlers.h>
+#include <http_handler_base.h>
+#include <http_filter_base.h>
+
 #include <vector>
-#include <http_msg_parser.h>
 
 using namespace pigeon::tcp;
 
@@ -102,6 +106,7 @@ void http_connection::init_parser() {
 
 		http_connection* con = static_cast<http_connection*>(parser->data);
 
+		con->process_request();
 		con->do_write();
 
 		return 0;
@@ -118,13 +123,21 @@ void http_connection::parse_request(size_t nread) {
 
 void http_connection::process_request() {
 	
+	if (request->is_api){
+		auto handler = http_handlers::instance()->get(request->url);
+	}
+	else {
+		auto handler = http_handlers::instance()->get();
+		handler->process(request.get());
+	}
+
 
 	 
 }
 
 void http_connection::do_write() {
 
-	asio::async_write(client, asio::buffer(response->message),
+	asio::async_write(client, asio::buffer(request->get_response()->message),
 		[this](std::error_code ec, std::size_t /*length*/)
 	{
 		if (!ec)
