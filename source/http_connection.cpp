@@ -2,6 +2,7 @@
 // Created by kamlesh on 23/11/15.
 //
 
+#include <iostream>
 #include "http_connection.h"
 #include <http_filters.h>
 #include <http_handlers.h>
@@ -10,6 +11,7 @@
 
 #include <vector>
 
+using namespace std;
 using namespace pigeon::tcp;
 
 http_connection::http_connection(asio::io_context& io_context)
@@ -129,6 +131,8 @@ void http_connection::process_request() {
 	else {
 		auto handler = http_handlers::instance()->get();
 		handler->process(request.get());
+		response = request->get_response();
+		
 	}
 
 
@@ -137,13 +141,20 @@ void http_connection::process_request() {
 
 void http_connection::do_write() {
 
-	asio::async_write(client, asio::buffer(request->get_response()->message),
-		[this](std::error_code ec, std::size_t /*length*/)
+ 
+
+	auto self(shared_from_this());
+	asio::async_write(client, response->to_buffers(),
+		[this, self](std::error_code ec, std::size_t)
 	{
 		if (!ec)
 		{
-			client.close();
+			asio::error_code ignored_ec;
+			client.shutdown(asio::ip::tcp::socket::shutdown_both,
+				ignored_ec);
 		}
+
+		 
 	});
 
 }

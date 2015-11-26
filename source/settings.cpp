@@ -39,6 +39,7 @@ auto settings::load_setting() -> void {
         
         string current_path = bfs::current_path().string();
         current_path.append("/service.json");
+		cout << current_path << endl;
 
         std::ifstream is(current_path.c_str(), std::ios::in | std::ios::binary);
         std::string content((std::istreambuf_iterator<char>(is)), (std::istreambuf_iterator<char>()));

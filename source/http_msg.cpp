@@ -1,9 +1,16 @@
 #include "http_msg.h"
+#include <iostream>
 
+using namespace std;
 using namespace pigeon;
 
 http_msg::~http_msg() {
 
+}
+
+auto http_msg::has_headers() -> bool{
+	if (headers.size() > 0){ return true; }
+	else { return false; }
 }
 
 auto http_msg::set_header_field(string& _key) -> void{
@@ -75,17 +82,24 @@ auto http_request::create_response(string& cached_headers, string& message, Http
 	
 	response = make_shared<http_response>();
 
-	response->message += get_status_phrase(status);
-	response->message += get_cached_response(is_api);
-	response->message += get_header_field(HttpHeader::Content_Length);
-	response->message += std::to_string(message.size());
-	response->message += "\r\n";
 	response->content += message;
 	response->status = (unsigned int)status;
+
+	response->message += get_status_phrase(status);
+	response->message += get_cached_response(is_api);
 	
+	if (is_api){
+		response->message += get_header_field(HttpHeader::Content_Length);
+		response->message += std::to_string(message.size());
+		response->message += "\r\n";
+	}
+
+	response->message += cached_headers;
 	response->get_non_default_headers(response->message);
 	response->message += "\r\n";
-	response->message += cached_headers;
+
+	cout << response->message << endl;
+
 	response->message += response->content;
 
  
@@ -102,6 +116,8 @@ std::vector<asio::const_buffer> http_response::to_buffers() {
     buffers.push_back(asio::buffer(message));
     return buffers;
 }
+
+
 
 http_response::~http_response() {
 

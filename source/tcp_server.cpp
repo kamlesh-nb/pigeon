@@ -6,6 +6,8 @@
 #include "settings.h"
 #include "cache.h"
 #include <iostream>
+#include <http_handler.h>
+#include <http_handlers.h>
 
 using namespace std;
 
@@ -56,6 +58,7 @@ void server::run()
 	
 	settings::load_setting();
 	cache::get()->load(settings::resource_location);
+	http_handlers::instance()->add("resource", new http_handler);
     io_contexts_.run();
 
 }

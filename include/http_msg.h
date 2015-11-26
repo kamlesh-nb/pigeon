@@ -27,6 +27,8 @@ namespace  pigeon {
         int http_minor_version;
         string content;
 
+		auto has_headers() -> bool;
+
         virtual auto set_header_field(string &) -> void;
 
         virtual auto set_header_value(string &) -> void;
@@ -47,7 +49,7 @@ namespace  pigeon {
 
         unsigned int status;
         string message;
-
+		 
         std::vector<asio::const_buffer> to_buffers();
 
 
