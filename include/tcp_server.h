@@ -8,11 +8,15 @@
 #include <asio.hpp>
 #include <string>
 #include <vector>
+#include <unordered_map>
+
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
+
 #include "http_connection.h"
 #include "io_contexts.h"
-
+#include "http_handler_base.h"
+#include "http_filter_base.h"
 
 namespace pigeon {
 
@@ -20,13 +24,18 @@ namespace pigeon {
 
         class server {
         public:
-            explicit server(std::size_t);
+            explicit server(std::string, std::string, std::size_t);
+
             void run();
 
         private:
-            void start();
+
+			 
+
+			 
+            void do_accept();
 			void do_await();
-            void do_accept(const asio::error_code& e);
+            void on_accept(const asio::error_code& e);
             void stop();
             
 			io_contexts io_contexts_;

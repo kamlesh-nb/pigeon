@@ -4,13 +4,14 @@
 
 #include "tcp_server.h"
 #include "settings.h"
+#include "cache.h"
 #include <iostream>
 
 using namespace std;
 
 using namespace pigeon::tcp;
 
-server::server(std::size_t io_context_pool_size)
+server::server(std::string address, std::string port, std::size_t io_context_pool_size)
         : io_contexts_(io_context_pool_size),
           signals_(io_contexts_.get_io_context()),
           acceptor_(io_contexts_.get_io_context()),
@@ -27,13 +28,13 @@ server::server(std::size_t io_context_pool_size)
 	do_await();
 
     asio::ip::tcp::resolver resolver(acceptor_.get_executor().context());
-	asio::ip::tcp::endpoint endpoint = *resolver.resolve(settings::address, settings::port).begin();
+	asio::ip::tcp::endpoint endpoint = *resolver.resolve(address, port).begin();
     acceptor_.open(endpoint.protocol());
     acceptor_.set_option(asio::ip::tcp::acceptor::reuse_address(true));
 	acceptor_.bind(endpoint);
     acceptor_.listen();
 
-    start();
+	do_accept();
 
 }
 
@@ -52,10 +53,14 @@ void server::do_await(){
 
 void server::run()
 {
+	
+	settings::load_setting();
+	cache::get()->load(settings::resource_location);
     io_contexts_.run();
+
 }
 
-void server::start()
+void server::do_accept()
 {
     new_http_connection_.reset(new http_connection(
             io_contexts_.get_io_context()));
@@ -68,20 +73,20 @@ void server::start()
 
                                if (!ec)
                                {
-								   do_accept(ec);
+								   on_accept(ec);
                                }
                            });
 
 }
 
-void server::do_accept(const asio::error_code& e)
+void server::on_accept(const asio::error_code& e)
 {
     if (!e)
     {
         new_http_connection_->do_read();
     }
 
-    start();
+	do_accept();
 }
 
 void server::stop()
