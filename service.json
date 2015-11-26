@@ -1,7 +1,7 @@
 {
   "service_name": "test-service",
   "address": "127.0.0.1",
-  "port":  8000,
+  "port":  "8000",
   "worker_threads": 4,
   "use_ssl": false,
   "ssl_cert_file": "/home/kamlesh/Documents/re-app/pigen.pem",

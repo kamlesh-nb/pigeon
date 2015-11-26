@@ -98,7 +98,6 @@ auto http_request::create_response(string& cached_headers, string& message, Http
 	response->get_non_default_headers(response->message);
 	response->message += "\r\n";
 
-	cout << response->message << endl;
 
 	response->message += response->content;
 

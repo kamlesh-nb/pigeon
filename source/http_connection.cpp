@@ -18,6 +18,8 @@ http_connection::http_connection(asio::io_context& io_context)
 : client(io_context){
 	init_parser();
 	request = make_shared<http_request>();
+
+
 }
 
 asio::ip::tcp::socket&http_connection::socket() {
