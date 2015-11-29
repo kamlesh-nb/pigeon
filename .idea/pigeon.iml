@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="CPP_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/cache.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/file_info.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/http_connection.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/http_connection_base.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/http_filter_base.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/http_filters.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/http_handler_base.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/http_handlers.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/http_msg.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/http_msg_parser.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/http_util.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/io_contexts.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/key_value_pair.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/logger.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/md5.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/resource_handler.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/settings.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/stop_watch.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/tcp_server.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/main.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/cache.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/http_connection.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/http_connection_base.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/http_filters.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/http_handlers.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/http_msg.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/http_msg_parser.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/http_util.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/io_contexts.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/logger.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/md5.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/resource_handler.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/settings.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/stop_watch.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/tcp_server.cpp" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/bin" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library">
+      <library name="Header Search Paths">
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/include" />
+          <root url="file:///usr/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.9/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.9/include/cilk" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.9/include/sanitizer" />
+          <root url="file:///usr/local/include" />
+        </CLASSES>
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/include" />
+          <root url="file:///usr/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.9/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.9/include/cilk" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.9/include/sanitizer" />
+          <root url="file:///usr/local/include" />
+        </SOURCES>
+        <excluded>
+          <root url="file://$MODULE_DIR$/include/http_filters.h" />
+          <root url="file://$MODULE_DIR$/include/http_util.h" />
+          <root url="file://$MODULE_DIR$/include/key_value_pair.h" />
+          <root url="file://$MODULE_DIR$/include/tcp_server.h" />
+          <root url="file://$MODULE_DIR$/include/settings.h" />
+          <root url="file://$MODULE_DIR$/include/http_msg_parser.h" />
+          <root url="file://$MODULE_DIR$/include/http_filter_base.h" />
+          <root url="file://$MODULE_DIR$/include/http_handlers.h" />
+          <root url="file://$MODULE_DIR$/include/http_handler_base.h" />
+          <root url="file://$MODULE_DIR$/include/resource_handler.h" />
+          <root url="file://$MODULE_DIR$/include/http_connection_base.h" />
+          <root url="file://$MODULE_DIR$/include/cache.h" />
+          <root url="file://$MODULE_DIR$/include/io_contexts.h" />
+          <root url="file://$MODULE_DIR$/include/http_connection.h" />
+          <root url="file://$MODULE_DIR$/include/file_info.h" />
+          <root url="file://$MODULE_DIR$/include/http_msg.h" />
+          <root url="file://$MODULE_DIR$/include/logger.h" />
+          <root url="file://$MODULE_DIR$/include/stop_watch.h" />
+          <root url="file://$MODULE_DIR$/include/md5.h" />
+        </excluded>
+      </library>
+    </orderEntry>
+  </component>
+</module>

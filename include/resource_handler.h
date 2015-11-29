@@ -11,7 +11,7 @@
 
 namespace pigeon {
 
-    class http_handler : public http_handler_base {
+    class resource_handler : public http_handler_base {
 
     private:
         
@@ -21,8 +21,8 @@ namespace pigeon {
 
     public:
 
-        http_handler();
-        virtual ~http_handler();
+        resource_handler();
+        virtual ~resource_handler();
 		void get(http_request *) override;
 		void post(http_request *) override;
 		void put(http_request *) override;

@@ -8,7 +8,7 @@ using namespace pigeon;
 
 int main(){
 
-    tcp::server s(3);
+    tcp::server s("127.0.0.1", "8080", 1);
 
     s.run();
 

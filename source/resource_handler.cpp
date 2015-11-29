@@ -4,7 +4,7 @@
 
 #include <sstream>
 #include <logger.h>
-#include <http_handler.h>
+#include "resource_handler.h"
 #include <iostream>
 
 using namespace pigeon;
@@ -12,16 +12,16 @@ using namespace pigeon::tcp;
 using namespace std;
 
 
-http_handler::http_handler() {
+resource_handler::resource_handler() {
     resource_location = settings::resource_location;
     default_page = settings::default_page;
 }
 
-http_handler::~http_handler() {
+resource_handler::~resource_handler() {
 
 }
 
-void http_handler::get(http_request* request) {
+void resource_handler::get(http_request* request) {
 
     try {
 
@@ -96,25 +96,25 @@ void http_handler::get(http_request* request) {
 
 }
 
-void http_handler::post(http_request* request) {
+void resource_handler::post(http_request* request) {
 	request->create_response("Not Implemented!", HttpStatus::NotImplemented);
 }
 
-void http_handler::put(http_request* request) {
+void resource_handler::put(http_request* request) {
 	request->create_response("Not Implemented!", HttpStatus::NotImplemented);
 }
 
-void http_handler::del(http_request* request)  {
+void resource_handler::del(http_request* request)  {
 	request->create_response("Not Implemented!", HttpStatus::NotImplemented);
 }
 
-void http_handler::options(http_request* request) {
+void resource_handler::options(http_request* request) {
 
 	request->create_response("Not Implemented!", HttpStatus::NotImplemented);
 
 }
 
-void http_handler::process(http_request* request) {
+void resource_handler::process(http_request* request) {
 
     switch (request->method)
     {
