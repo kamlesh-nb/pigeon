@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iterator>
 
+
 using namespace pigeon;
 
     struct logtype {
@@ -150,22 +151,22 @@ using namespace pigeon;
         const char *mime_type;
     } mappings[] =
             {
-                    {".html",  "text/html; charset=UTF-8"},
-                    {".htm",   "text/html; charset=UTF-8"},
-                    {".htmls", "text/html; charset=UTF-8"},
-                    {".jpe",   "image/jpeg"},
-                    {".jpeg",  "image/jpeg"},
-                    {".jpg",   "image/jpeg"},
-                    {".js",    "application/javascript; charset=UTF-8"},
-                    {".jsonp", "application/javascript; charset=UTF-8"},
-                    {".json",  "application/json; charset=UTF-8"},
-                    {".map",   "application/json; charset=UTF-8"},
-                    {".gif",   "image/gif"},
-                    {".css",   "text/css; charset=UTF-8"},
-                    {".gz",    "application/x-gzip"},
-                    {".gzip",  "multipart/x-gzip"},
-                    {".ico",   "image/x-icon"},
-                    {".png",   "image/png"},
+                    {"html",  "text/html; charset=UTF-8"},
+                    {"htm",   "text/html; charset=UTF-8"},
+                    {"htmls", "text/html; charset=UTF-8"},
+                    {"jpe",   "image/jpeg"},
+                    {"jpeg",  "image/jpeg"},
+                    {"jpg",   "image/jpeg"},
+                    {"js",    "application/javascript; charset=UTF-8"},
+                    {"jsonp", "application/javascript; charset=UTF-8"},
+                    {"json",  "application/json; charset=UTF-8"},
+                    {"map",   "application/json; charset=UTF-8"},
+                    {"gif",   "image/gif"},
+                    {"css",   "text/css; charset=UTF-8"},
+                    {"gz",    "application/x-gzip"},
+                    {"gzip",  "multipart/x-gzip"},
+                    {"ico",   "image/x-icon"},
+                    {"png",   "image/png"},
                     {0,       0}
             };
 
@@ -287,12 +288,12 @@ using namespace pigeon;
         return "unknown severity type";
     }
 
-    /*bool is_api(string &Uri) {
+    bool pigeon::is_api(string &Uri) {
         std::size_t pos = Uri.find("/api/");
         return pos != string::npos;
     }
 
-    void parse_query_string(http_request &req) {
+    void pigeon::parse_query_string(http_request &req) {
 
         string query_uri(req.url);
         std::size_t _parStart = req.url.find('?');
@@ -317,7 +318,7 @@ using namespace pigeon;
                 req.set_parameter(kvp);
             }
         }
-    }*/
+    }
 
 	bool pigeon::url_decode(const string &in, string &out) {
 

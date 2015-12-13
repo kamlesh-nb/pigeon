@@ -21,7 +21,7 @@ namespace pigeon {
 
         static string service_name;
         static string address;
-        static string port;
+        static int port;
 		static int worker_threads;
         static bool use_ssl;
         static string ssl_cert_file;

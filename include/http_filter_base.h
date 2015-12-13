@@ -5,8 +5,7 @@
 #ifndef PIGEON_HTTP_FILTER_BASE_H
 #define PIGEON_HTTP_FILTER_BASE_H
 
-#include "http_connection.h"
-using namespace pigeon::tcp;
+#include "http_context.h"
 
 namespace pigeon {
 
@@ -18,7 +17,7 @@ namespace pigeon {
 
 		virtual void init() = 0;
 
-        virtual void execute(http_connection *) = 0;
+        virtual void execute(http_context *) = 0;
 
 		virtual void clean() = 0;
 

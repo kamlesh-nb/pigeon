@@ -8,7 +8,6 @@
 #include <iostream>
 
 using namespace pigeon;
-using namespace pigeon::tcp;
 using namespace std;
 
 
@@ -21,22 +20,20 @@ resource_handler::~resource_handler() {
 
 }
 
-void resource_handler::get(http_request* request) {
+void resource_handler::get(http_context* context) {
 
     try {
 
-
-		std::string message;
         std::string request_path;
         
-		if (!url_decode(request->url, request_path))
+		if (!url_decode(context->request->url, request_path))
         {
-			request->create_response("Not Found!", HttpStatus::NotFound); return;
+            context->request->create_response("Not Found!", *context->response, HttpStatus::NotFound); return;
         }
 
         if (request_path.empty() || request_path[0] != '/' || request_path.find("..") != std::string::npos)
         {
-			request->create_response("Not Found!", HttpStatus::NotFound); return;
+            context->request->create_response("Not Found!", *context->response, HttpStatus::NotFound); return;
         }
 
         if (request_path[request_path.size() - 1] == '/')
@@ -50,18 +47,18 @@ void resource_handler::get(http_request* request) {
         cache::get()->get_item(full_path, fi);
 
         if (fi.file_size == 0){
-			request->create_response("Not Found!", HttpStatus::NotFound); return;
+            context->request->create_response("Not Found!", *context->response, HttpStatus::NotFound); return;
         }
 
         ///check if the file is modified, if not send status 304
         string key = "If-Modified-Since";
         key_value_pair kvp_if_modified_since;
         kvp_if_modified_since.key = key;
-        request->get_header(kvp_if_modified_since);
+        context->request->get_header(kvp_if_modified_since);
 
         if (kvp_if_modified_since.value.size() > 0){
             if (kvp_if_modified_since.value == fi.last_write_time){
-				request->create_response("Not Modified!", HttpStatus::NotModified); return;
+                context->request->create_response("Not Modified!", *context->response, HttpStatus::NotModified); return;
             }
         }
 
@@ -69,7 +66,7 @@ void resource_handler::get(http_request* request) {
         string key2("Accept-Encoding");
         key_value_pair kvp_accept_enc;
         kvp_accept_enc.key = key2;
-        request->get_header(kvp_accept_enc);
+        context->request->get_header(kvp_accept_enc);
 
         std::size_t pos;
 
@@ -82,60 +79,61 @@ void resource_handler::get(http_request* request) {
         }
 
         if (pos != string::npos){
-			request->create_response(fi.compresses_cached_headers, fi.compressed_content, HttpStatus::OK);
+            context->request->create_response(fi.compresses_cached_headers, fi.compressed_content, *context->response, HttpStatus::OK);
         }
         else {
-			request->create_response(fi.cached_headers, fi.content, HttpStatus::OK);
+            context->request->create_response(fi.cached_headers, fi.content, *context->response, HttpStatus::OK);
         }
 
     }
     catch (std::exception& ex){
         logger::get()->write(LogType::Error, Severity::Critical, ex.what());
-		request->create_response(ex.what(), HttpStatus::OK);
+        context->request->create_response(ex.what(), *context->response, HttpStatus::OK);
     }
 
 }
 
-void resource_handler::post(http_request* request) {
-	request->create_response("Not Implemented!", HttpStatus::NotImplemented);
+void resource_handler::post(http_context* context) {
+    context->request->create_response("Not Implemented!", *context->response, HttpStatus::NotImplemented);
 }
 
-void resource_handler::put(http_request* request) {
-	request->create_response("Not Implemented!", HttpStatus::NotImplemented);
+void resource_handler::put(http_context* context) {
+    context->request->create_response("Not Implemented!", *context->response, HttpStatus::NotImplemented);
 }
 
-void resource_handler::del(http_request* request)  {
-	request->create_response("Not Implemented!", HttpStatus::NotImplemented);
+void resource_handler::del(http_context* context)  {
+    context->request->create_response("Not Implemented!", *context->response, HttpStatus::NotImplemented);
 }
 
-void resource_handler::options(http_request* request) {
+void resource_handler::options(http_context* context) {
 
-	request->create_response("Not Implemented!", HttpStatus::NotImplemented);
+    context->request->create_response("Not Implemented!", *context->response, HttpStatus::NotImplemented);
 
 }
 
-void resource_handler::process(http_request* request) {
+void resource_handler::process(http_context* context) {
 
-    switch (request->method)
+    switch (context->request->method)
     {
         case http_method::HTTP_GET:
-			get(request);
+			get(context);
             break;
 
         case http_method::HTTP_POST:
-			post(request);
+			post(context);
             break;
 
         case http_method::HTTP_PUT:
-			put(request);
+			put(context);
             break;
 
         case http_method::HTTP_DELETE:
-			del(request);
+			del(context);
             break;
 
         case http_method::HTTP_OPTIONS:
-			options(request);
+			options(context);
             break;
     }
 }
+

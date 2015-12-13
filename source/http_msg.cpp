@@ -1,4 +1,5 @@
 #include "http_msg.h"
+#include <http_util.h>
 #include <iostream>
 
 using namespace std;
@@ -60,46 +61,41 @@ auto http_request::get_parameter(key_value_pair& kvp) -> void {
 
 }
 
-auto http_request::get_response()-> shared_ptr<http_response> {
-	return response;
-}
+auto http_request::create_response(const char* msg, http_response& response, HttpStatus status) -> void {
 
-auto http_request::create_response(const char* msg, HttpStatus status) -> void {
 
-	response = make_shared<http_response>();
-
-	response->message += get_status_phrase(status);
-	response->message += get_cached_response(is_api);
-	response->message += get_header_field(HttpHeader::Content_Length);
-	response->message += std::to_string(string(msg).size());
-	response->message += "\r\n";
-	response->message += get_err_msg(status);
+	response.message += get_status_phrase(status);
+	response.message += get_cached_response(is_api);
+	response.message += get_header_field(HttpHeader::Content_Length);
+	response.message += std::to_string(string(msg).size());
+	response.message += "\r\n";
+	response.message += get_err_msg(status);
  
 
 }
 
-auto http_request::create_response(string& cached_headers, string& message, HttpStatus status) -> void {
+auto http_request::create_response(string& cached_headers, string& message, http_response& response, HttpStatus status) -> void {
 	
-	response = make_shared<http_response>();
+	response.content += message;
+	response.status = (unsigned int)status;
 
-	response->content += message;
-	response->status = (unsigned int)status;
-
-	response->message += get_status_phrase(status);
-	response->message += get_cached_response(is_api);
+	response.message += get_status_phrase(status);
+	response.message += get_cached_response(is_api);
 	
 	if (is_api){
-		response->message += get_header_field(HttpHeader::Content_Length);
-		response->message += std::to_string(message.size());
-		response->message += "\r\n";
-	}
 
-	response->message += cached_headers;
-	response->get_non_default_headers(response->message);
-	response->message += "\r\n";
+		response.message += get_header_field(HttpHeader::Content_Length);
+		response.message += std::to_string(message.size());
+		response.message += "\r\n";
+
+    }
+
+	response.message += cached_headers;
+	response.get_non_default_headers(response.message);
+	response.message += "\r\n";
 
 
-	response->message += response->content;
+	response.message += response.content;
 
  
 
@@ -108,15 +104,6 @@ auto http_request::create_response(string& cached_headers, string& message, Http
 auto http_request::set_parameter(key_value_pair& kvp) -> void {
     parameters.push_back(std::move(kvp));
 }
-
-
-std::vector<asio::const_buffer> http_response::to_buffers() {
-    std::vector<asio::const_buffer> buffers;
-    buffers.push_back(asio::buffer(message));
-    return buffers;
-}
-
-
 
 http_response::~http_response() {
 

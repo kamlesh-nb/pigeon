@@ -6,13 +6,13 @@
 #include <memory>
 #include <algorithm>
 #include <key_value_pair.h>
-#include <asio/buffer.hpp>
-#include "http_util.h"
+
 
 using namespace std;
 
 
 namespace  pigeon {
+
 
     class http_msg {
 
@@ -49,8 +49,6 @@ namespace  pigeon {
 
         unsigned int status;
         string message;
-		 
-        std::vector<asio::const_buffer> to_buffers();
 
 
     };
@@ -74,11 +72,10 @@ namespace  pigeon {
 
         auto set_parameter(key_value_pair &) -> void;
 
-		auto create_response(const char*, HttpStatus status)-> void;
+		auto create_response(const char*, http_response&,HttpStatus status) -> void;
 
-		auto create_response(string&, string&, HttpStatus status)-> void;
+		auto create_response(string&, string&, http_response&, HttpStatus status) -> void;
 
-		auto get_response()-> shared_ptr<http_response>;
 
     };
 

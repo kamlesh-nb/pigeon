@@ -5,37 +5,46 @@
 #include <fstream>
 #include <string.h>
 #include <md5.h>
-
-#include <sstream>
-#include <boost/filesystem.hpp>
+#include "http_util.h"
 #include <zlib.h>
 #include <stdexcept>
 #include <sstream>
 #include <algorithm>
 #include <logger.h>
 
-#include "http_util.h"
 #include "cache.h"
 
 using namespace pigeon;
-namespace bfs = boost::filesystem;
- 
+
+std::mutex cache::_mtx;
+std::shared_ptr<cache> cache::temp = nullptr;
+
+void refresh(uv_fs_event_t *handle, const char *filename, int events, int status) {
+
+    char path[2048];
+    size_t size = 2048;
+
+    uv_fs_event_getpath(handle, path, &size);
+    path[size] = '\0';
+
+
+    if (events & UV_CHANGE){
+
+        string file(path);
+
+        cache * rc = static_cast<cache *>(handle->data);
+        rc->reload_item(file);
+        uv_fs_event_stop(handle);
+
+    }
+
+}
 
 cache::cache(){
-    
+    int r = uv_rwlock_init(&cache_lock);
 }
 
 cache::~cache(){}
-
-void cache::path_correction(string& resource_path){
-
-    for (auto& c : resource_path){
-        if (c == '\\'){
-            c = '/';
-        }
-
-    }
-}
 
 void cache::compress_item(file_info& fi){
 
@@ -81,7 +90,8 @@ void cache::compress_item(file_info& fi){
 }
 
 void cache::cache_item(string& file){
-    
+    struct stat file_stat;
+    stat(file.c_str(), &file_stat);
 
     file_info fi(file);
 
@@ -90,25 +100,37 @@ void cache::cache_item(string& file){
     if (is)
     {
 
-
         std::string content((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
-        bfs::path path(file);
-        time_t lwt_t = bfs::last_write_time(path);
-        char* lwt = ctime(&lwt_t);
-        lwt[strlen(lwt) - 1] = '\0';
 
-        fi.file_size = bfs::file_size(path);
-        fi.last_write_time = lwt;
- 
+        time_t  lwt_t;
+        char* lwt;
+		uv_fs_t req;
+		int r = uv_fs_stat(uv_default_loop(), &req, file.c_str(), NULL);
+
+
+        lwt_t = (time_t)req.statbuf.st_mtim.tv_sec;
+
+        lwt = ctime(&lwt_t);
+
+        lwt[strlen(lwt) - 1] = '\0'; 
+
+
+        fi.file_size = content.size();
+		fi.last_write_time = lwt;
+
         string md5_src = file;
         md5_src += lwt;
         fi.etag = md5(md5_src); 
 
-         
-        string extn(path.extension().string());
+        std::size_t last_slash_pos = file.find_last_of("/");
+        std::size_t last_dot_pos = file.find_last_of(".");
+        std::string extension;
+        if (last_dot_pos != std::string::npos && last_dot_pos > last_slash_pos)
+        {
+            extension = file.substr(last_dot_pos + 1);
+        }
 
-        fi.content = content;
-        fi.file_name = file;
+
 
         fi.content = content;
         fi.file_name = file;
@@ -116,7 +138,7 @@ void cache::cache_item(string& file){
         ///uncompressed headers
         fi.cached_headers += "\r\nCache-Control: public, max-age=0\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\n";
         fi.cached_headers += get_header_field(HttpHeader::Content_Type);
-        fi.cached_headers += get_mime_type(extn);
+        fi.cached_headers += get_mime_type(extension);
         fi.cached_headers += "\r\n";
 
         fi.cached_headers += get_header_field(HttpHeader::Content_Length);
@@ -139,7 +161,7 @@ void cache::cache_item(string& file){
         fi.compresses_cached_headers += get_header_field(HttpHeader::Content_Encoding);
 
         fi.compresses_cached_headers += get_header_field(HttpHeader::Content_Type);
-        fi.compresses_cached_headers += get_mime_type(extn);
+        fi.compresses_cached_headers += get_mime_type(extension);
         fi.compresses_cached_headers += "\r\n";
 
         fi.compresses_cached_headers += get_header_field(HttpHeader::Content_Length);
@@ -162,76 +184,118 @@ void cache::cache_item(string& file){
     }
 }
 
-void cache::load_files(string filepath) {
+void cache::load_files(string filepath, uv_fs_t* req) {
 
-    bfs::path path(filepath);
+    uv_dirent_t dent;
 
-    bfs::recursive_directory_iterator itr(path);
-    while (itr != bfs::recursive_directory_iterator())
-    {
-        if (!is_directory(itr->path()))    {
-            string s = itr->path().string();
-            path_correction(s);
-            cache_item(s);
+    int r = uv_fs_scandir(uv_default_loop(), req, filepath.c_str(), 0, NULL);
+
+    while (!uv_fs_scandir_next(req, &dent)) {
+
+        string path;
+
+        switch (dent.type) {
+
+            case UV_DIRENT_FILE:
+
+                path.clear();
+                path.append(req->path);
+                path.append("/");
+                path.append(dent.name);
+
+                uv_rwlock_wrlock(&cache_lock);
+                cache_item(path);
+                uv_rwlock_wrunlock(&cache_lock);
+
+
+                uv_fs_event_t* fs_event;
+                fs_event = (uv_fs_event_t*)malloc(sizeof(uv_fs_event_t));
+                fs_event->data = this;
+                uv_fs_event_init(uv_default_loop(), fs_event);
+                uv_fs_event_start(fs_event, refresh, path.c_str(), 0);
+
+                break;
+
+            case UV_DIRENT_DIR:
+
+                path.clear();
+                path.append(req->path);
+                path.append("/");
+                path.append(dent.name);
+
+                uv_fs_t* fsreq = (uv_fs_t*)malloc(sizeof(uv_fs_t));
+                load_files(path, fsreq);
+
+                break;
+
         }
-        ++itr;
     }
+
+    uv_fs_req_cleanup(req);
 }
 
 void cache::load(string path){
-    
-    load_files(path);
+
+    uv_fs_t* fsreq = (uv_fs_t*)malloc(sizeof(uv_fs_t));
+    load_files(path,fsreq);
 
 }
 
 void cache::reload_item(string &file) {
 
     auto cacheItem = std::find(cache_data.begin(),
-        cache_data.end(),
-        file_info(file));
+                               cache_data.end(),
+                               file_info(file));
 
     if (cacheItem != cache_data.end()){
+
+        uv_rwlock_wrlock(&cache_lock);
         cache_data.erase(cacheItem);
+        uv_rwlock_wrunlock(&cache_lock);
+
     }
 
+    uv_rwlock_wrlock(&cache_lock);
     cache_item(file);
+    uv_rwlock_wrunlock(&cache_lock);
+
+    uv_fs_event_t* fs_event;
+    fs_event = (uv_fs_event_t*)malloc(sizeof(uv_fs_event_t));
+    fs_event->data = this;
+    uv_fs_event_init(uv_default_loop(), fs_event);
+    uv_fs_event_start(fs_event, refresh, file.c_str(), 0);
 
 }
 
 void cache::get_item(string &file, file_info& fi) {
 
-    path_correction(fi.file_name);
-
     for (auto& data : cache_data){
+
         if (data.file_name == fi.file_name){
-			std::lock_guard<std::mutex> lock(_get_item_mtx);
+
+            uv_rwlock_rdlock(&cache_lock);
             fi = data;
+            uv_rwlock_rdunlock(&cache_lock);
+            break;
+        }
+
+    }
+}
+
+std::shared_ptr<cache>& cache::get()
+{
+    static std::shared_ptr<cache> tmp = temp;
+
+    if (!tmp)
+    {
+        std::lock_guard<std::mutex> lock(_mtx);
+        if (!tmp)
+        {
+            temp.reset(new cache);
+            tmp = temp;
         }
     }
-   
+
+    return tmp;
 }
-
-
-std::shared_ptr<cache> cache::instance = nullptr;
-
-std::mutex cache::_mtx;
-
-std::shared_ptr<cache>&cache::get()
-{
-	static std::shared_ptr<cache> tmp = instance;
-
-	if (!tmp)
-	{
-		std::lock_guard<std::mutex> lock(_mtx);
-		if (!tmp)
-		{
-			instance.reset(new cache);
-			tmp = instance;
-		}
-	}
-
-	return tmp;
-}
-
-
 

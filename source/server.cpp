@@ -13,6 +13,8 @@
 #include <http_util.h>
 #include <logger.h>
 #include <server.h>
+#include <http_context.h>
+#include <http_handlers.h>
 
 
 #define container_of(ptr, type, member) \
@@ -60,9 +62,14 @@ namespace pigeon {
 	
 
         void _init(){
+
             settings::load_setting();
-            HttpHandler = new http_handler;
+            cache::get()->load(settings::resource_location);
+
+            http_handlers::instance()->add("resource", new resource_handler());
+
             uv_loop = uv_default_loop();
+
         }
 
         void _tcp(){
@@ -239,10 +246,6 @@ namespace pigeon {
 
     public:
 
-        http_handler* HttpHandler;
-        unordered_map<string, http_handler_base*> ApiHandlers;
-        unordered_map<string, http_filter_base*> HttpFilters;
-
 		void on_shutdown(uv_handle_t* req, int status) {
 			if (!uv_is_closing((uv_handle_t*)req)) {
 				uv_close((uv_handle_t*)req, [](uv_handle_t *handle){
@@ -399,38 +402,16 @@ namespace pigeon {
 
         }
 
-        void add_handler(string &handler_name, http_handler_base *handler) {
-            ApiHandlers.emplace(std::pair<string, http_handler_base*>(handler_name, handler));
-        }
-
-        void add_filter(string &filter_name, http_filter_base *filter) {
-            HttpFilters.emplace(std::pair<string, http_filter_base*>(filter_name, filter));
-        }
-
         void process(http_context *context) {
 
             if(context->request->is_api){
-
-                auto handler = ApiHandlers[context->request->url];
-
-                if (!handler)
-                {
-                    prepare(HttpStatus::NotFound, context);
-                    return;
-                }
-				
+                auto handler = http_handlers::instance()->get(context->request->url);
                 handler->process(context);
-                prepare(HttpStatus::OK, context);
-                {
-                    context->response->message += get_header_field(HttpHeader::Content_Length);
-                    context->response->message += std::to_string(context->response->content.size());
-                    context->response->message += "\r\n";
-                }
-                finish(HttpStatus::OK, context);
-
             } else {
-                HttpHandler->process(context);
+                auto handler = http_handlers::instance()->get();
+                handler->process(context);
             }
+
         }
 
 
@@ -443,16 +424,11 @@ namespace pigeon {
 	server::~server() { }
 
 	void server::start() {
+
         _Impl->start();
 	}
 
-    void server::add_handler(string &handler_name, http_handler_base *handler) {
-        _Impl->add_handler(handler_name, handler);
-    }
 
-    void server::add_filter(string &filter_name, http_filter_base *filter) {
-        _Impl->add_filter(filter_name, filter);
-    }
 
 
 }
