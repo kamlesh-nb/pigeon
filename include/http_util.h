@@ -2,11 +2,13 @@
 #define HTTP_UTIL_H
 
 #include <string>
+#include <uv.h>
 #include "http_msg.h"
 
-
 using namespace std;
+
 namespace pigeon {
+
 
 
 

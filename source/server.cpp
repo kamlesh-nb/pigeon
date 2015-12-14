@@ -2,6 +2,7 @@
 // Created by kamlesh on 17/10/15.
 //
 
+#include <uv.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <signal.h>
@@ -15,6 +16,8 @@
 #include <server.h>
 #include <http_context.h>
 #include <http_handlers.h>
+#include <cache.h>
+#include <resource_handler.h>
 
 
 #define container_of(ptr, type, member) \

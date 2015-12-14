@@ -5,11 +5,6 @@
 #ifndef PIGEON_SERVER_H
 #define PIGEON_SERVER_H
 
-#include <uv.h>
-#include <http_filter_base.h>
-#include <http_handler_base.h>
-#include <resource_handler.h>
-#include <unordered_map>
 
 
 using namespace std;
@@ -22,15 +17,14 @@ namespace pigeon {
 
     private:
         class server_impl;
-        server_impl* _Impl;
+        server_impl*_Impl;
+
 
     public:
 
         server();
         ~server();
         void start();
-        void add_handler(string&, http_handler_base*);
-        void add_filter(string&, http_filter_base*);
 
     };
 
