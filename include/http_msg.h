@@ -72,7 +72,7 @@ namespace  pigeon {
 
         auto set_parameter(key_value_pair &) -> void;
 
-		auto create_response(const char*, http_response&,HttpStatus status) -> void;
+		auto create_response(const char*, http_response&, HttpStatus status) -> void;
 
 		auto create_response(string&, string&, http_response&, HttpStatus status) -> void;
 

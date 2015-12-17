@@ -93,11 +93,7 @@ auto http_request::create_response(string& cached_headers, string& message, http
 	response.message += cached_headers;
 	response.get_non_default_headers(response.message);
 	response.message += "\r\n";
-
-
 	response.message += response.content;
-
- 
 
 }
 
