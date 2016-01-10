@@ -11,14 +11,14 @@ using namespace std;
 
 namespace pigeon {
 
-
-
     class server {
 
     private:
-        class server_impl;
-        server_impl*_Impl;
 
+        class tcp;
+        class ipc;
+        tcp* _tcpImpl;
+        ipc* _ipcImpl;
 
     public:
 
@@ -27,7 +27,6 @@ namespace pigeon {
         void start();
 
     };
-
 
 
 }

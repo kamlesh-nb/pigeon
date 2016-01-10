@@ -10,7 +10,7 @@
 #include <sstream>
 #include <assert.h>
 #include <http_parser.h>
-#include <string.h>
+#include <string>
 #include <http_util.h>
 #include <logger.h>
 #include <server.h>
@@ -56,7 +56,41 @@ namespace pigeon {
 
     } msg_baton_t;
 
-    class server::server_impl {
+    union stream_handle {
+        uv_pipe_t pipe;
+        uv_tcp_t tcp;
+    };
+
+    typedef unsigned char handle_storage_t[sizeof(union stream_handle)];
+
+    struct ipc_server_ctx {
+        handle_storage_t server_handle;
+        unsigned int num_connects;
+        uv_pipe_t ipc_pipe;
+    };
+
+    struct ipc_peer_ctx {
+        handle_storage_t peer_handle;
+        uv_write_t write_req;
+    };
+
+    struct ipc_client_ctx {
+        uv_connect_t connect_req;
+        uv_stream_t* server_handle;
+        uv_pipe_t ipc_pipe;
+        char scratch[16];
+    };
+
+    struct server_ctx {
+        uv_loop_t* loop;
+        handle_storage_t server_handle;
+        unsigned int num_connects;
+        uv_async_t async_handle;
+        uv_thread_t thread_id;
+        uv_sem_t semaphore;
+    };
+
+    class server::tcp {
 
     private:
 
@@ -114,8 +148,8 @@ namespace pigeon {
 
             int r = uv_listen((uv_stream_t*)&uv_tcp, MAX_WRITE_HANDLES,
                               [](uv_stream_t *socket, int status) {
-                                  server_impl* srvImpl = static_cast<server_impl*>(socket->data);
-                                  srvImpl->on_connect(socket, status);
+                                  server::tcp* tcpImpl = static_cast<server::tcp*>(socket->data);
+                                  tcpImpl->on_connect(socket, status);
                               });
 
             if (r != 0){
@@ -214,7 +248,7 @@ namespace pigeon {
                 iConn->context->request->is_api = is_api(iConn->context->request->url);
                 parse_query_string(*iConn->context->request);
 
-                server_impl* srvImpl = static_cast<server_impl*>(iConn->data);
+                server::tcp* srvImpl = static_cast<server::tcp*>(iConn->data);
 
                 srvImpl->process(iConn->context);
 
@@ -233,8 +267,8 @@ namespace pigeon {
                                  1,
                                  [](uv_write_t *req, int status) {
                                      msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
-                                     server_impl* srvImpl = static_cast<server_impl*>(closure->iConn->data);
-                                     srvImpl->on_send_complete(req, status);
+                                     server::tcp* tcpImpl = static_cast<server::tcp*>(closure->iConn->data);
+                                     tcpImpl->on_send_complete(req, status);
                                  });
 
                 if (r != 0){
@@ -252,8 +286,8 @@ namespace pigeon {
 		void on_shutdown(uv_handle_t* req, int status) {
 			if (!uv_is_closing((uv_handle_t*)req)) {
 				uv_close((uv_handle_t*)req, [](uv_handle_t *handle){
-					server_impl* srvImpl = static_cast<server_impl*>(handle->data);
-					srvImpl->on_close((uv_handle_t *)&handle);
+                    server::tcp* tcpImpl = static_cast<server::tcp*>(handle->data);
+                    tcpImpl->on_close((uv_handle_t *)&handle);
 				});
 			}
 			free(req);
@@ -286,8 +320,8 @@ namespace pigeon {
 					msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
 					delete closure;
 					uv_close((uv_handle_t*)req->handle, [](uv_handle_t *handle){
-						server_impl* srvImpl = static_cast<server_impl*>(handle->data);
-						srvImpl->on_close((uv_handle_t *)&handle);
+						tcp* tcpImpl = static_cast<server::tcp*>(handle->data);
+                        tcpImpl->on_close((uv_handle_t *)&handle);
 					});
 				}
 				 
@@ -309,8 +343,8 @@ namespace pigeon {
                     if (parsed < nread) {
                         logger::get()->write(LogType::Error, Severity::Critical, "parse failed");
                         uv_close((uv_handle_t *)&iConn->handle, [](uv_handle_t *handle){
-                            server_impl* srvImpl = static_cast<server_impl*>(handle->data);
-                            srvImpl->on_close((uv_handle_t *)&handle);
+                            server::tcp* tcpImpl = static_cast<server::tcp*>(handle->data);
+                            tcpImpl->on_close((uv_handle_t*)&handle);
                         });
                     }
                 }
@@ -319,8 +353,8 @@ namespace pigeon {
                         logger::get()->write(LogType::Error, Severity::Critical, "read failed");
                     }
                     uv_close((uv_handle_t *)&iConn->handle, [](uv_handle_t *handle){
-                        server_impl* srvImpl = static_cast<server_impl*>(handle->data);
-                        srvImpl->on_close((uv_handle_t *)&handle);
+                        server::tcp* tcpImpl = static_cast<server::tcp*>(handle->data);
+                        tcpImpl->on_close((uv_handle_t*)&handle);
                     });
                 }
                 free(buf->base);
@@ -380,8 +414,8 @@ namespace pigeon {
                 uv_read_start((uv_stream_t*)&iConn->handle, [](uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
                     *buf = uv_buf_init((char *) malloc(suggested_size), suggested_size);
                 }, [](uv_stream_t *socket, ssize_t nread, const uv_buf_t *buf) {
-                    server_impl* srvImpl = static_cast<server_impl*>(socket->data);
-                    srvImpl->on_read(socket, nread, buf);
+                    tcp* tcpImpl = static_cast<tcp*>(socket->data);
+                    tcpImpl->on_read(socket, nread, buf);
                 });
 
 
@@ -420,15 +454,107 @@ namespace pigeon {
 
     };
 
+    class server::ipc {
+
+    private:
+
+    public:
+
+        void on_connection(uv_stream_t* ipc_pipe, int status){
+            int r;
+            struct ipc_server_ctx* sc;
+            struct ipc_peer_ctx* pc;
+            uv_loop_t* loop;
+            uv_buf_t buf;
+
+            loop = ipc_pipe->loop;
+            buf = uv_buf_init("PING", 4);
+            sc = container_of(ipc_pipe, struct ipc_server_ctx, ipc_pipe);
+            pc = (struct ipc_peer_ctx*)calloc(1, sizeof(pc));
+
+
+            if (ipc_pipe->type == UV_TCP)
+                r = uv_tcp_init(loop, (uv_tcp_t*) &pc->peer_handle);
+            else if (ipc_pipe->type == UV_NAMED_PIPE)
+                r = uv_pipe_init(loop, (uv_pipe_t*) &pc->peer_handle, 1);
+
+            r = uv_accept(ipc_pipe, (uv_stream_t*) &pc->peer_handle);
+            r = uv_write2(&pc->write_req, (uv_stream_t*) &pc->peer_handle, &buf, 1, (uv_stream_t*) &sc->server_handle,
+                          [](uv_write_t* req, int status){
+
+            });
+
+            if (--sc->num_connects == 0)
+                uv_close((uv_handle_t*) ipc_pipe, NULL);
+        }
+
+        void on_write(uv_write_t* req, int status){
+            struct ipc_peer_ctx* ctx;
+            ctx = container_of(req, struct ipc_peer_ctx, write_req);
+            uv_close((uv_handle_t*) &ctx->peer_handle, [](uv_handle_t* handle){
+
+            });
+        }
+
+        void on_close(uv_handle_t* handle){
+            struct ipc_peer_ctx* ctx;
+            ctx = container_of(handle, struct ipc_peer_ctx, peer_handle);
+            free(ctx);
+        }
+
+        void on_connect(uv_connect_t* req, int status){
+            int r;
+            struct ipc_client_ctx* ctx;
+            ctx = container_of(req, struct ipc_client_ctx, connect_req);
+            r = uv_read_start((uv_stream_t*) &ctx->ipc_pipe,
+                    [](uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf){
+
+                    }, [](uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf){
+
+                    });
+        }
+
+        void on_read(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf){
+            int r;
+            struct ipc_client_ctx* ctx;
+            uv_loop_t* loop;
+            uv_handle_type type;
+            uv_pipe_t* ipc_pipe;
+
+            ipc_pipe = (uv_pipe_t*) handle;
+            ctx = container_of(ipc_pipe, struct ipc_client_ctx, ipc_pipe);
+            loop = ipc_pipe->loop;
+
+            r = uv_pipe_pending_count(ipc_pipe);
+            type = uv_pipe_pending_type(ipc_pipe);
+
+            if (type == UV_TCP)
+                r = uv_tcp_init(loop, (uv_tcp_t*) ctx->server_handle);
+            else if (type == UV_NAMED_PIPE)
+                r = uv_pipe_init(loop, (uv_pipe_t*) ctx->server_handle, 0);
+
+            r = uv_accept(handle, ctx->server_handle);
+            uv_close((uv_handle_t*) &ctx->ipc_pipe, NULL);
+        }
+
+        void on_alloc(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf){
+            struct ipc_client_ctx* ctx;
+            ctx = container_of(handle, struct ipc_client_ctx, ipc_pipe);
+            buf->base = ctx->scratch;
+            buf->len = sizeof(ctx->scratch);
+        }
+
+    };
+
 	server::server() {
-        _Impl = new server_impl;
+        _tcpImpl = new tcp;
     }
 
 	server::~server() { }
 
 	void server::start() {
 
-        _Impl->start();
+        _tcpImpl->start();
 	}
 
 
