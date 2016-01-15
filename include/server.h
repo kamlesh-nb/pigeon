@@ -21,7 +21,7 @@ namespace pigeon {
         ipc* _ipcImpl;
 
     public:
-
+		string IPC_PIPE_NAME;
         server();
         ~server();
         void start();

@@ -425,6 +425,18 @@ namespace pigeon {
             }
         }
 
+		void get_listen_handle(uv_loop_t* loop, uv_stream_t* server_handle) {
+			int r;
+			struct ipc_client_ctx ctx;
+			ctx.server_handle = server_handle;
+			ctx.server_handle->data = (void*)"server handle";
+
+			r = uv_pipe_init(loop, &ctx.ipc_pipe, 1);
+			uv_pipe_connect(&ctx.connect_req, &ctx.ipc_pipe, IPC_PIPE_NAME.c_str(), ipc_connect_cb);
+			r = uv_run(loop, UV_RUN_DEFAULT);
+
+		}
+
         void start() {
 
 #ifndef _WIN32
@@ -544,16 +556,48 @@ namespace pigeon {
             buf->len = sizeof(ctx->scratch);
         }
 
+		void send_listen_handles(uv_handle_type type, unsigned int num_servers, struct server_ctx* servers) {
+			int r;
+			struct ipc_server_ctx ctx;
+			uv_loop_t* loop;
+			unsigned int i;
+
+			loop = uv_default_loop();
+			ctx.num_connects = num_servers;
+
+			if (type == UV_TCP) {
+				r = uv_tcp_init(loop, (uv_tcp_t*)&ctx.server_handle);
+				r = uv_tcp_bind((uv_tcp_t*)&ctx.server_handle, (const struct sockaddr*) &listen_addr, 0);
+			}
+
+			r = uv_pipe_init(loop, &ctx.ipc_pipe, 1);
+			r = uv_pipe_bind(&ctx.ipc_pipe, IPC_PIPE_NAME.c_str());
+			r = uv_listen((uv_stream_t*)&ctx.ipc_pipe, 128, [](uv_stream_t* ipc_pipe, int status) {
+			
+			});
+
+			for (i = 0; i < num_servers; i++)
+				uv_sem_post(&servers[i].semaphore);
+
+			r = uv_run(loop, UV_RUN_DEFAULT);
+			uv_close((uv_handle_t*)&ctx.server_handle, NULL);
+			r = uv_run(loop, UV_RUN_DEFAULT);
+
+			for (i = 0; i < num_servers; i++)
+				uv_sem_wait(&servers[i].semaphore);
+
+		}
+
     };
 
 	server::server() {
         _tcpImpl = new tcp;
+		_ipcImpl = new ipc;
     }
 
 	server::~server() { }
 
 	void server::start() {
-
         _tcpImpl->start();
 	}
 

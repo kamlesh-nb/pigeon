@@ -318,6 +318,7 @@ using namespace pigeon;
                 req.set_parameter(kvp);
             }
         }
+
     }
 
 	bool pigeon::url_decode(const string &in, string &out) {
@@ -340,7 +341,7 @@ using namespace pigeon;
                 else {
                     return false;
                 }
-            }
+            }    
             else if (in[i] == '+') {
                 out += ' ';
             }
