@@ -14,6 +14,7 @@ using namespace rapidjson;
 using namespace pigeon;
 
 string settings::service_name;
+int settings::worker_threads;
 string settings::address;
 int settings::port;
 bool settings::use_ssl;
@@ -39,6 +40,7 @@ auto settings::load_setting() -> void {
         size_t sz = 1024;
         uv_cwd(path, &sz);
         string current_path(path);
+
         current_path.append("/service.json");
 
         std::ifstream is(current_path.c_str(), std::ios::in | std::ios::binary);
@@ -48,6 +50,7 @@ auto settings::load_setting() -> void {
         doc.Parse(content.c_str());
 
         service_name = doc["service_name"].GetString();
+        worker_threads = doc["worker_threads"].GetInt();
         address = doc["address"].GetString();
         port = doc["port"].GetInt();
         use_ssl = doc["use_ssl"].GetBool();

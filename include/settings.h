@@ -20,9 +20,9 @@ namespace pigeon {
     public:
 
         static string service_name;
+        static int worker_threads;
         static string address;
         static int port;
-		static int worker_threads;
         static bool use_ssl;
         static string ssl_cert_file;
         static string ssl_key_file;

@@ -25,7 +25,7 @@ set(SOURCE_FILES main.cpp
         source/settings.cpp include/settings.h
         source/server.cpp include/server.h
         source/http_filters.cpp include/http_filters.h
-        source/http_handlers.cpp include/http_handlers.h )
+        source/http_handlers.cpp include/http_handlers.h)
 
 #add_library(pigeon ${SOURCE_FILES})
 add_executable(pigeon ${SOURCE_FILES})
