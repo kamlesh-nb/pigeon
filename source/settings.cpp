@@ -17,6 +17,7 @@ string settings::service_name;
 int settings::worker_threads;
 string settings::address;
 int settings::port;
+string settings::filters;
 bool settings::use_ssl;
 string settings::ssl_cert_file;
 string settings::ssl_key_file;
@@ -53,6 +54,7 @@ auto settings::load_setting() -> void {
         worker_threads = doc["worker_threads"].GetInt();
         address = doc["address"].GetString();
         port = doc["port"].GetInt();
+        filters = doc["filters"].GetString();
         use_ssl = doc["use_ssl"].GetBool();
         ssl_cert_file = doc["ssl_cert_file"].GetString();
         ssl_key_file = doc["ssl_key_file"].GetString();

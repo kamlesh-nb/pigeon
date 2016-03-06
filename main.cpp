@@ -8,9 +8,7 @@ using namespace pigeon;
 int main(){
 
     server s;
-
     s.start();
-
     return 0;
 
 }

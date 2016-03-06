@@ -19,6 +19,8 @@
 #include <cache.h>
 #include <resource_handler.h>
 #include <unistd.h>
+#include <vector>
+#include <http_filters.h>
 
 
 #define container_of(ptr, type, member) \
@@ -63,6 +65,7 @@ namespace pigeon {
 
 		uv_loop_t* uv_loop;
 		uv_tcp_t uv_tcp;
+        vector<string> filters;
 
         void _init(){
 
@@ -242,6 +245,7 @@ namespace pigeon {
 		}
 
         void on_process(uv_work_t* req){
+
             msg_baton_t* closure =  static_cast<msg_baton_t*>(req->data);
             iconnection_t* iConn = closure->iConn;
 
@@ -255,9 +259,11 @@ namespace pigeon {
 
             closure->result = (char*)iConn->context->response->message.c_str();
             closure->length = iConn->context->response->message.size();
+
         }
 
         void on_process_complete(uv_work_t* req){
+
             msg_baton_t* closure =  static_cast<msg_baton_t*>(req->data);
             iconnection_t* iConn = closure->iConn;
 
@@ -426,6 +432,7 @@ namespace pigeon {
 
 
             _init();
+
 #ifdef _WIN32
             string num_of_threads = std::to_string(settings::worker_threads);
 		    SetEnvironmentVariable(VARNAME, (LPTSTR)num_of_threads.c_str());
@@ -434,6 +441,17 @@ namespace pigeon {
             ss << settings::worker_threads;
             setenv("UV_THREADPOOL_SIZE", ss.str().c_str(), 1);
 #endif
+            //load filter tokens
+            int i = 0;
+            stringstream ss_filters(settings::filters);
+            while (ss_filters.good() && i < 4){
+                string filt;
+                ss_filters >> filt;
+                filters.push_back(filt);
+                ++i;
+            }
+            //done
+
 
             _parser();
             _tcp();
@@ -443,6 +461,11 @@ namespace pigeon {
         }
 
         void process(http_context *context) {
+
+            for(auto& flt:filters){
+               auto filter = http_filters::instance()->get(flt);
+                filter->execute(context);
+            }
 
             if(context->request->is_api){
                 auto handler = http_handlers::instance()->get(context->request->url);
