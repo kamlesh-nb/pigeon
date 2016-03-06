@@ -27,8 +27,8 @@ set(SOURCE_FILES main.cpp
         source/http_filters.cpp include/http_filters.h
         source/http_handlers.cpp include/http_handlers.h)
 
-#add_library(pigeon ${SOURCE_FILES})
-add_executable(pigeon ${SOURCE_FILES})
+add_library(pigeon ${SOURCE_FILES})
+#add_executable(pigeon ${SOURCE_FILES})
 
 target_link_libraries (pigeon ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (pigeon ${LIBUV})
