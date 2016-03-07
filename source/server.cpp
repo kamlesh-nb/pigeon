@@ -18,7 +18,6 @@
 #include <http_handlers.h>
 #include <cache.h>
 #include <resource_handler.h>
-#include <unistd.h>
 #include <vector>
 #include <http_filters.h>
 
@@ -27,6 +26,7 @@
 	((type *)((char *)(ptr)-offsetof(type, member)))
 
 #define MAX_WRITE_HANDLES 1000
+#define VARNAME "UV_THREADPOOL_SIZE"
 
 namespace pigeon {
 
@@ -435,7 +435,7 @@ namespace pigeon {
 
 #ifdef _WIN32
             string num_of_threads = std::to_string(settings::worker_threads);
-		    SetEnvironmentVariable(VARNAME, (LPTSTR)num_of_threads.c_str());
+		    SetEnvironmentVariable(L"UV_THREADPOOL_SIZE", (LPTSTR)num_of_threads.c_str());
 #else
             stringstream ss;
             ss << settings::worker_threads;
@@ -463,10 +463,12 @@ namespace pigeon {
         void process(http_context *context) {
 
             for(auto& flt:filters){
-               auto filter = http_filters::instance()->get(flt);
-                filter->init();
-                filter->execute(context);
-                filter->clean();
+				if (flt.length() > 0) {
+					auto filter = http_filters::instance()->get(flt);
+					filter->init();
+					filter->execute(context);
+					filter->clean();
+				}
             }
 
             if(context->request->is_api){
