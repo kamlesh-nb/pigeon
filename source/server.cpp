@@ -463,10 +463,15 @@ namespace pigeon {
         void process(http_context *context) {
 
             for(auto& flt:filters){
-               auto filter = http_filters::instance()->get(flt);
-                filter->init();
-                filter->execute(context);
-                filter->clean();
+
+                if(flt.length() > 0){
+                    auto filter = http_filters::instance()->get(flt);
+                    filter->init();
+                    filter->execute(context);
+                    filter->clean();
+
+                }
+
             }
 
             if(context->request->is_api){
