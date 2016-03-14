@@ -43,7 +43,7 @@ namespace pigeon {
         uv_tcp_t handle;
         http_parser parser;
         uv_write_t write_req;
-        char* client_adress;
+        char* client_address;
         void* data;
         http_context* context;
 
@@ -402,7 +402,7 @@ namespace pigeon {
 #else
                 snprintf(buf, sizeof(buf), "%s:%d", addr, ntohs(name.sin_port));
 #endif
-                iConn->client_adress = buf;
+                iConn->client_address = buf;
 
                 if (r != 0){
                     logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
@@ -488,10 +488,9 @@ namespace pigeon {
         _Impl = new server_impl;
     }
 
-	server::~server() { }
+	server::~server() { delete _Impl; }
 
 	void server::start() {
-
         _Impl->start();
 	}
 
