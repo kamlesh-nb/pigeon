@@ -88,7 +88,7 @@ void resource_handler::get(http_context* context) {
     }
     catch (std::exception& ex){
         logger::get()->write(LogType::Error, Severity::Critical, ex.what());
-        context->request->create_response(ex.what(), *context->response, HttpStatus::OK);
+        context->request->create_response(ex.what(), *context->response, HttpStatus::InternalTcpServerError);
     }
 
 }
