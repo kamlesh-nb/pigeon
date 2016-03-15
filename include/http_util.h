@@ -21,7 +21,7 @@ namespace pigeon {
 	string get_mime_type(string &extension);
 	string get_log_type(LogType type);
 	string get_severity(Severity severe);
-    bool is_api(string &Uri);
+    bool is_api(string &Uri, string&);
     void parse_query_string(http_request &req);
     bool url_decode(const string &in, string &out);
 

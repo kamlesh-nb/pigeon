@@ -250,7 +250,7 @@ namespace pigeon {
             iconnection_t* iConn = closure->iConn;
 
 
-            iConn->context->request->is_api = is_api(iConn->context->request->url);
+            iConn->context->request->is_api = is_api(iConn->context->request->url, settings::api_route);
             parse_query_string(*iConn->context->request);
 
             server_impl* srvImpl = static_cast<server_impl*>(iConn->data);
