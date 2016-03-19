@@ -288,8 +288,8 @@ using namespace pigeon;
         return "unknown severity type";
     }
 
-    bool pigeon::is_api(string &Uri) {
-        std::size_t pos = Uri.find("/api/");
+    bool pigeon::is_api(string &Uri, string& apiroute) {
+        std::size_t pos = Uri.find(apiroute);
         return pos != string::npos;
     }
 
