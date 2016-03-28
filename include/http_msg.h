@@ -6,6 +6,7 @@
 #include <memory>
 #include <algorithm>
 #include <key_value_pair.h>
+#include <map>
 
 
 using namespace std;
@@ -39,6 +40,13 @@ namespace  pigeon {
 
     };
 
+    struct form {
+        string boundary;
+        map<string, string> headers;
+        map<string, string> parameters;
+        string filedata;
+    };
+
     class http_response : public http_msg {
 
 
@@ -67,12 +75,15 @@ namespace  pigeon {
         string url;
         unsigned int method;
         bool is_api{false};
+        form form_data;
 
         auto get_parameter(key_value_pair &) -> void;
 
         auto set_parameter(key_value_pair &) -> void;
 
 		auto create_response(const char*, http_response&, HttpStatus status) -> void;
+
+        auto create_response(string&, http_response&, HttpStatus status) -> void;
 
 		auto create_response(string&, string&, http_response&, HttpStatus status) -> void;
 

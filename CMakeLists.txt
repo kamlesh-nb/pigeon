@@ -6,7 +6,7 @@ FIND_LIBRARY(LIBZ NAMES z paths /usr/lib)
 FIND_LIBRARY(LIBUV NAMES uv paths /usr/local/lib)
 
 include_directories("${pigeon_SOURCE_DIR}/include")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmultichar -std=c++14")
 
 set(SOURCE_FILES main.cpp
         include/http_context.h
@@ -17,18 +17,18 @@ set(SOURCE_FILES main.cpp
         source/logger.cpp include/logger.h
         source/http_util.cpp include/http_util.h
         source/http_msg.cpp include/http_msg.h
+        source/http_handlers.cpp include/http_handlers.h
+        source/http_filters.cpp include/http_filters.h
         source/resource_handler.cpp include/resource_handler.h
         source/stop_watch.cpp include/stop_watch.h
         source/md5.cpp include/md5.h
         source/resource_handler.cpp include/resource_handler.h
         source/cache.cpp include/cache.h
         source/settings.cpp include/settings.h
-        source/server.cpp include/server.h
-        source/http_filters.cpp include/http_filters.h
-        source/http_handlers.cpp include/http_handlers.h)
+        source/server.cpp include/server.h source/multi_part_parser.cpp include/multi_part_parser.h)
 
-add_library(pigeon ${SOURCE_FILES})
-#add_executable(pigeon ${SOURCE_FILES})
+#add_library(pigeon ${SOURCE_FILES})
+add_executable(pigeon ${SOURCE_FILES})
 
 target_link_libraries (pigeon ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries (pigeon ${LIBUV})

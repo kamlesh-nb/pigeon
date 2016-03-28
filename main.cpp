@@ -3,12 +3,14 @@
 //
 #include <server.h>
 
+
 using namespace pigeon;
 
 int main(){
 
     server s;
-    s.start();
+
+  s.start();
     return 0;
 
 }

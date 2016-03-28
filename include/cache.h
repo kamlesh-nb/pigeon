@@ -22,7 +22,7 @@ namespace pigeon {
         static std::shared_ptr<cache> temp;
 
         string _path;
-        char *_buffer;
+         
         vector<file_info> cache_data;
 
         uv_rwlock_t cache_lock;

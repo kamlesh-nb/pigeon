@@ -25,7 +25,7 @@ namespace pigeon {
 		http_handlers(const http_handlers &handlers);
 
 		void add(std::string, http_handler_base*);
-		http_handler_base* get(std::string&);
+		http_handler_base* get(std::string);
 		http_handler_base* get();
 
 		static std::shared_ptr<http_handlers>& instance();

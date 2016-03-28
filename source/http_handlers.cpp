@@ -23,7 +23,7 @@ void http_handlers::add(string handler_name, http_handler_base* handler){
 	handlers.emplace(std::pair<string, http_handler_base*>(handler_name, handler));
 }
 
-http_handler_base* http_handlers::get(string& handler_name){
+http_handler_base* http_handlers::get(string handler_name){
 	return handlers[handler_name];
 }
 
@@ -32,7 +32,7 @@ http_handler_base* http_handlers::get(){
 	return handlers["resource"];
 }
 
-std::shared_ptr<http_handlers>&http_handlers::instance()
+std::shared_ptr<http_handlers>& http_handlers::instance()
 {
 	static std::shared_ptr<http_handlers> tmp = temp;
 

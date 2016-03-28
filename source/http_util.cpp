@@ -175,7 +175,7 @@ using namespace pigeon;
 	string err_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: text/html; charset=UTF-8\r\n";
 	string api_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: application/json\r\n";
 
-	const char *err_msg1 = "<!DOCTYPE html><html><head lang='en'><meta charset='UTF-8'><title>Status</title></head><body><table><th>Status Code</th><th>Message</th><tr><td>";
+	const char *err_msg1 = "<!DOCTYPE html><html><head lang='en'><meta charset='UTF-8'><title>Status</title></head><body><table style='border=1'><th>Status Code</th><th>Message</th><tr><td>";
 	const char *err_msg3 = "</td><td>";
 	const char *err_msg5 = "</td></tr></table></body></html>";
 
@@ -243,15 +243,24 @@ using namespace pigeon;
 	string pigeon::get_err_msg(HttpStatus status){
 
 		string message;
+        string headers;
 
-		message += err_cached_response;
-		message += err_msg1;
-		message += std::to_string((int)status);
-		message += err_msg3;
-		message += get_status_msg(status);
-		message += err_msg5;
+        message += err_msg1;
+        message += std::to_string((int)status);
+        message += err_msg3;
+        message += get_status_msg(status);
+        message += err_msg5;
 
-		return message;
+        headers += err_cached_response;
+
+        headers += get_header_field(HttpHeader::Content_Length);
+        ulong length =  message.size();
+        headers += std::to_string(length);
+        headers += "\r\n\r\n";
+
+        headers += message;
+
+		return headers;
 
 	}
 

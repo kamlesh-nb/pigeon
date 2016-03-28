@@ -15,13 +15,13 @@
 #include <logger.h>
 #include <server.h>
 #include <http_context.h>
-#include <http_handlers.h>
 #include <cache.h>
 #include <resource_handler.h>
 #include <unistd.h>
 #include <vector>
+#include <map>
+#include <http_handlers.h>
 #include <http_filters.h>
-
 
 #define container_of(ptr, type, member) \
 	((type *)((char *)(ptr)-offsetof(type, member)))
@@ -68,10 +68,15 @@ namespace pigeon {
 		uv_tcp_t uv_tcp;
         vector<string> filters;
 
+      //  map<string, http_handler_base*> HttpHandlers;
+       // map<string, http_filter_base*> HttpFilters;
+
         void _init(){
 
             settings::load_setting();
             cache::get()->load(settings::resource_location);
+
+            //HttpHandlers.emplace(std::pair<string, http_handler_base*>("resource", new resource_handler()));
 
             http_handlers::instance()->add("resource", new resource_handler());
 
@@ -197,9 +202,12 @@ namespace pigeon {
                 if (at && iConn->context->request) {
 
                     char *data = (char *)malloc(sizeof(char) * len + 1);
+
+
                     strncpy(data, at, len);
                     data[len] = '\0';
                     iConn->context->request->content += data;
+
                     free(data);
 
                 }
@@ -227,6 +235,10 @@ namespace pigeon {
                                                server_impl* srvImpl = static_cast<server_impl*>(bton->iConn->data);
                                                srvImpl->on_process_complete(req);
                                            });
+
+                if (status != 0){
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
+                }
 
                 return 0;
 
@@ -271,6 +283,8 @@ namespace pigeon {
             uv_buf_t resbuf;
             resbuf.base = closure->result;
             resbuf.len = (unsigned long)closure->length;
+
+
 
             iConn->write_req.data = closure;
 
@@ -334,7 +348,7 @@ namespace pigeon {
 
                 ssize_t parsed;
                 iconnection_t *iConn = (iconnection_t *)tcp->data;
-
+                std::cout << buf->base << std::endl;
                 if (nread >= 0) {
 
                     parsed = (ssize_t)http_parser_execute(&iConn->parser, &parser_settings, buf->base, nread);
@@ -429,9 +443,6 @@ namespace pigeon {
 #ifndef _WIN32
             signal(SIGPIPE, SIG_IGN);
 #endif
-
-
-
             _init();
 
 #ifdef _WIN32
@@ -439,7 +450,7 @@ namespace pigeon {
 		    SetEnvironmentVariable(L"UV_THREADPOOL_SIZE", (LPTSTR)num_of_threads.c_str());
 #else
             stringstream ss;
-            ss << settings::worker_threads;
+            ss << std::to_string(settings::worker_threads);
             setenv("UV_THREADPOOL_SIZE", ss.str().c_str(), 1);
 #endif
             //load filter tokens
@@ -464,17 +475,21 @@ namespace pigeon {
         void process(http_context *context) {
 
             for(auto& flt:filters){
-               auto filter = http_filters::instance()->get(flt);
-                filter->init();
-                filter->execute(context);
-                filter->clean();
+ 
+                if(flt.size() > 0){
+                    auto filter = http_filters::instance()->get(flt); //HttpFilters[flt];
+                    filter->init();
+                    filter->execute(context);
+                    filter->clean();
+                }
+ 
             }
 
             if(context->request->is_api){
-                auto handler = http_handlers::instance()->get(context->request->url);
+                auto handler = http_handlers::instance()->get(context->request->url);    //HttpHandlers[context->request->url];
                 handler->process(context);
             } else {
-                auto handler = http_handlers::instance()->get();
+                auto handler = http_handlers::instance()->get("resource"); //HttpHandlers["resource"];
                 handler->process(context);
             }
 
@@ -487,12 +502,13 @@ namespace pigeon {
         _Impl = new server_impl;
     }
 
-	server::~server() { }
+	server::~server() { delete _Impl; }
 
 	void server::start() {
 
         _Impl->start();
 	}
+
 
 
 

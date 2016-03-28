@@ -6,6 +6,12 @@
 #include <logger.h>
 #include "resource_handler.h"
 #include <iostream>
+#include <iterator>
+#include <sstream>
+#include <string>
+#include <regex>
+#include <multi_part_parser.h>
+#include <fstream>
 
 using namespace pigeon;
 using namespace std;
@@ -94,6 +100,46 @@ void resource_handler::get(http_context* context) {
 }
 
 void resource_handler::post(http_context* context) {
+
+    //"multipart/form-data; boundary=----WebKitFormBoundaryOJ0iKrrnEKPOxjBy"
+
+    string key1("Content-Type");
+    key_value_pair kvp_content_type;
+    kvp_content_type.key = key1;
+    context->request->get_header(kvp_content_type);
+
+
+    if(kvp_content_type.value.size() > 0){
+        replace(kvp_content_type.value.begin(), kvp_content_type.value.end(), ';', ' ');
+        std::istringstream issParams(kvp_content_type.value.c_str());
+        vector<string> vparams{istream_iterator<string>{issParams},
+                               istream_iterator<string>{}};
+
+        if(vparams[0] == "multipart/form-data") {
+
+            //std::cout << context->request->content.size() << std::endl;
+
+            multi_part_parser mpp;
+            mpp.execute_parser(context);
+
+            ofstream uploaded_file;
+            string file_path = settings::file_upload_location;
+            file_path += "/";
+            file_path += context->request->form_data.parameters["filename"];
+            uploaded_file.open(file_path.c_str(), ios::app);
+            uploaded_file << context->request->form_data.filedata << endl;
+            uploaded_file.flush();
+            uploaded_file.close();
+
+        }
+    }
+
+
+
+
+
+    //"multipart/form-data; boundary=----WebKitFormBoundaryOJ0iKrrnEKPOxjBy"
+
     context->request->create_response("Not Implemented!", *context->response, HttpStatus::NotImplemented);
 }
 

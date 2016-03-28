@@ -29,19 +29,19 @@ namespace pigeon {
             switch (context->request->method)
             {
                 case http_method::HTTP_GET:
-					get(context);
+			get(context);
                     break;
 
                 case http_method::HTTP_POST:
-					post(context);
+			post(context);
                     break;
 
                 case http_method::HTTP_PUT:
-					put(context);
+			put(context);
                     break;
 
                 case http_method::HTTP_DELETE:
-					del(context);
+			del(context);
                     break;
             }
 

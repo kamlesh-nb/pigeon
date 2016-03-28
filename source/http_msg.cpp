@@ -63,16 +63,33 @@ auto http_request::get_parameter(key_value_pair& kvp) -> void {
 
 auto http_request::create_response(const char* msg, http_response& response, HttpStatus status) -> void {
 
-
-	response.message += get_status_phrase(status);
-	response.message += get_cached_response(is_api);
-	response.message += get_header_field(HttpHeader::Content_Length);
-	response.message += std::to_string(string(msg).size());
-	response.message += "\r\n";
-	response.message += get_err_msg(status);
- 
+    response.message += get_status_phrase(status);
+    response.message += get_err_msg(status);;
 
 }
+
+auto http_request::create_response(string& message, http_response& response, HttpStatus status) -> void {
+    
+    response.content += message;
+    response.status = (unsigned int)status;
+
+    response.message += get_status_phrase(status);
+    response.message += get_cached_response(is_api);
+    
+    if (is_api){
+
+        response.message += get_header_field(HttpHeader::Content_Length);
+        response.message += std::to_string(message.size());
+        response.message += "\r\n";
+
+    }
+    
+    response.get_non_default_headers(response.message);
+    response.message += "\r\n";
+    response.message += response.content;
+
+}
+
 
 auto http_request::create_response(string& cached_headers, string& message, http_response& response, HttpStatus status) -> void {
 	

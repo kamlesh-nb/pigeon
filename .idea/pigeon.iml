@@ -15,6 +15,7 @@
       <sourceFolder url="file://$MODULE_DIR$/include/file_info.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/http_handler_base.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/http_msg.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/include/multi_part_parser.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/http_filter_base.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/md5.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/key_value_pair.h" isTestSource="false" />
@@ -24,11 +25,12 @@
       <sourceFolder url="file://$MODULE_DIR$/source/logger.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/http_filters.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/cache.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/http_msg.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/server.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/http_util.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/resource_handler.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/settings.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/http_msg.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/multi_part_parser.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/md5.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/source/stop_watch.cpp" isTestSource="false" />
     </content>

@@ -42,6 +42,9 @@ void refresh(uv_fs_event_t *handle, const char *filename, int events, int status
 
 cache::cache(){
     int r = uv_rwlock_init(&cache_lock);
+    if (r != 0){
+        logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+    }
 }
 
 cache::~cache(){}
@@ -106,7 +109,9 @@ void cache::cache_item(string& file){
         char* lwt;
 		uv_fs_t req;
 		int r = uv_fs_stat(uv_default_loop(), &req, file.c_str(), NULL);
-
+        if (r != 0){
+            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        }
 
         lwt_t = (time_t)req.statbuf.st_mtim.tv_sec;
 
@@ -189,6 +194,9 @@ void cache::load_files(string filepath, uv_fs_t* req) {
     uv_dirent_t dent;
 
     int r = uv_fs_scandir(uv_default_loop(), req, filepath.c_str(), 0, NULL);
+    if (r != 0){
+        logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+    }
 
     while (!uv_fs_scandir_next(req, &dent)) {
 
@@ -196,6 +204,18 @@ void cache::load_files(string filepath, uv_fs_t* req) {
 
         switch (dent.type) {
 
+            case UV_DIRENT_UNKNOWN:
+                break;
+            case UV_DIRENT_LINK:
+                break;
+            case UV_DIRENT_FIFO:
+                break;
+            case UV_DIRENT_SOCKET:
+                break;
+            case UV_DIRENT_CHAR:
+                break;
+            case UV_DIRENT_BLOCK:
+                break;
             case UV_DIRENT_FILE:
 
                 path.clear();

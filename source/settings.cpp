@@ -60,6 +60,7 @@ auto settings::load_setting() -> void {
         ssl_key_file = doc["ssl_key_file"].GetString();
         document_root = doc["document_root"].GetString();
         resource_location = doc["resource_location"].GetString();
+        file_upload_location = doc["file_upload_location"].GetString();
         default_page = doc["default_page"].GetString();
         api_route = doc["api_route"].GetString();
         log_location = doc["log_location"].GetString();
