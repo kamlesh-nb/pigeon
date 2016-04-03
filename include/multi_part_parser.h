@@ -36,8 +36,8 @@ namespace pigeon {
         enum param_state
         {
             param_start,
-            param_separater,
-            ke_val_separater
+            param_name,
+            param_value
         } param_state_;
 
         string part_data;

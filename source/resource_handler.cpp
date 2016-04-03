@@ -95,14 +95,6 @@ void resource_handler::get(http_context* context) {
 
 void resource_handler::post(http_context* context) {
 
-    //"multipart/form-data; boundary=----WebKitFormBoundaryOJ0iKrrnEKPOxjBy"
-
-
-
-
-
-
-
 //            ofstream uploaded_file;
 //            string file_path = settings::file_upload_location;
 //            file_path += "/";
@@ -111,14 +103,6 @@ void resource_handler::post(http_context* context) {
 //            uploaded_file << context->request->form_data.filedata << endl;
 //            uploaded_file.flush();
 //            uploaded_file.close();
-
-
-
-
-
-
-
-    //"multipart/form-data; boundary=----WebKitFormBoundaryOJ0iKrrnEKPOxjBy"
 
     context->request->create_response("Not Implemented!", *context->response, HttpStatus::NotImplemented);
 }

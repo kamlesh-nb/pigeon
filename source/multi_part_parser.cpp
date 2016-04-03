@@ -113,10 +113,42 @@ form multi_part_parser::parse(string data, string &boundary) {
 
    if(cont_disp.size() > 0){
        param_state_ = param_start;
+       string key, val;
 
        for(auto& c:cont_disp){
 
+           switch (param_state_) {
+
+               case param_start:
+                    if(c == ';'){
+                        param_state_ = param_name;
+                    }
+                   break;
+               case param_name:
+                   if(c == '='){
+                       param_state_ = param_value;
+                   } else {
+                        if(c != ' '){
+                            key.push_back(c);
+                        }
+                   }
+                   break;
+               case param_value:
+                   if(c == ';'){
+                       param_state_ = param_name;
+                       form_data.parameters.emplace(std::pair<string, string>(key, val));
+                       key.clear(); val.clear();
+                   } else {
+                       if(c != '"'){
+                           val.push_back(c);
+                       }
+                   }
+                   break;
+
+           }
        }
+       form_data.parameters.emplace(std::pair<string, string>(key, val));
+       key.clear(); val.clear();
 
    }
 
