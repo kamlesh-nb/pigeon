@@ -16,7 +16,6 @@ namespace pigeon {
 
         vector<string> file_contents;
         string boundary;
-        void load_file_data(http_context*);
 
         enum state
         {
@@ -40,15 +39,11 @@ namespace pigeon {
             param_value
         } param_state_;
 
-        string part_data;
-        string::iterator begin;
-        string::iterator end;
 
     public:
 
         form parse(string, string& boundary);
         void parse_multipart(http_context*, string);
-
 
     };
 

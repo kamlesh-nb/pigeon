@@ -13,13 +13,6 @@
 
 using namespace pigeon;
 
-
-
-void multi_part_parser::load_file_data(http_context *) {
-
-}
-
-
 form multi_part_parser::parse(string data, string &boundary) {
     state_ = header_line_start;
     form form_data;
