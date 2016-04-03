@@ -57,27 +57,21 @@ void resource_handler::get(http_context* context) {
         }
 
         ///check if the file is modified, if not send status 304
-        string key = "If-Modified-Since";
-        key_value_pair kvp_if_modified_since;
-        kvp_if_modified_since.key = key;
-        context->request->get_header(kvp_if_modified_since);
+        string if_modified_since =  context->request->get_header("If-Modified-Since");
 
-        if (kvp_if_modified_since.value.size() > 0){
-            if (kvp_if_modified_since.value == fi.last_write_time){
+        if (if_modified_since.size() > 0){
+            if (if_modified_since == fi.last_write_time){
                 context->request->create_response("Not Modified!", *context->response, HttpStatus::NotModified); return;
             }
         }
 
         ///check if http compression is accepted
-        string key2("Accept-Encoding");
-        key_value_pair kvp_accept_enc;
-        kvp_accept_enc.key = key2;
-        context->request->get_header(kvp_accept_enc);
+        string accept_enc = context->request->get_header("Accept-Encoding");
 
         std::size_t pos;
 
-        if (kvp_accept_enc.value.size() > 0) {
-            pos = kvp_accept_enc.value.find("gzip");
+        if (accept_enc.size() > 0) {
+            pos = accept_enc.find("gzip");
         }
         else
         {
@@ -103,36 +97,22 @@ void resource_handler::post(http_context* context) {
 
     //"multipart/form-data; boundary=----WebKitFormBoundaryOJ0iKrrnEKPOxjBy"
 
-    string key1("Content-Type");
-    key_value_pair kvp_content_type;
-    kvp_content_type.key = key1;
-    context->request->get_header(kvp_content_type);
 
 
-    if(kvp_content_type.value.size() > 0){
-        replace(kvp_content_type.value.begin(), kvp_content_type.value.end(), ';', ' ');
-        std::istringstream issParams(kvp_content_type.value.c_str());
-        vector<string> vparams{istream_iterator<string>{issParams},
-                               istream_iterator<string>{}};
 
-        if(vparams[0] == "multipart/form-data") {
 
-            //std::cout << context->request->content.size() << std::endl;
 
-            multi_part_parser mpp;
-            mpp.execute_parser(context);
 
-            ofstream uploaded_file;
-            string file_path = settings::file_upload_location;
-            file_path += "/";
-            file_path += context->request->form_data.parameters["filename"];
-            uploaded_file.open(file_path.c_str(), ios::app);
-            uploaded_file << context->request->form_data.filedata << endl;
-            uploaded_file.flush();
-            uploaded_file.close();
+//            ofstream uploaded_file;
+//            string file_path = settings::file_upload_location;
+//            file_path += "/";
+//            file_path += context->request->form_data.parameters["filename"];
+//            uploaded_file.open(file_path.c_str(), ios::app);
+//            uploaded_file << context->request->form_data.filedata << endl;
+//            uploaded_file.flush();
+//            uploaded_file.close();
 
-        }
-    }
+
 
 
 

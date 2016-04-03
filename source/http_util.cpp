@@ -321,10 +321,9 @@ using namespace pigeon;
             size_t end;
             for (auto &par : vparams) {
                 end = par.find("=", 0);
-                key_value_pair kvp;
-                kvp.key = par.substr(0, end);
-                kvp.value = par.substr(end + 1, par.size() - 1);
-                req.set_parameter(kvp);
+                string key = par.substr(0, end);
+                string value = par.substr(end + 1, par.size() - 1);
+                req.set_parameter(key, value);
             }
         }
 

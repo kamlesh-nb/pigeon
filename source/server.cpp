@@ -22,6 +22,8 @@
 #include <map>
 #include <http_handlers.h>
 #include <http_filters.h>
+#include <multi_part_parser.h>
+#include <regex>
 
 #define container_of(ptr, type, member) \
 	((type *)((char *)(ptr)-offsetof(type, member)))
@@ -44,8 +46,9 @@ namespace pigeon {
         uv_tcp_t handle;
         http_parser parser;
         uv_write_t write_req;
-        char* client_adress;
+        char* client_address;
         void* data;
+        char* temp;
         http_context* context;
 
     } iconnection_t;
@@ -158,13 +161,16 @@ namespace pigeon {
                 iconnection_t* iConn = (iconnection_t*)parser->data;
                 if (at && iConn->context->request) {
                     string s;
-                    char *data = (char *)malloc(sizeof(char) * len + 1);
-                    strncpy(data, at, len);
-                    data[len] = '\0';
-                    s += data;
-                    free(data);
+                    iConn->temp = (char *)malloc(sizeof(char) * len + 1);
 
-                    iConn->context->request->set_header_field(s);
+                    strncpy(iConn->temp, at, len);
+                    iConn->temp[len] = '\0';
+
+//                    data[len] = '\0';
+//                    s += data;
+//                    free(data);
+//
+//                    iConn->context->request->set_header_field(s);
                 }
                 return 0;
 
@@ -174,13 +180,15 @@ namespace pigeon {
 
                 iconnection_t* iConn = (iconnection_t*)parser->data;
                 if (at && iConn->context->request) {
-                    string s;
+                    string key, value;
                     char *data = (char *)malloc(sizeof(char) * len + 1);
                     strncpy(data, at, len);
                     data[len] = '\0';
-                    s += data;
+                    value += data;
+                    key += iConn->temp;
                     free(data);
-                    iConn->context->request->set_header_value(s);
+                    free(iConn->temp);
+                    iConn->context->request->set_header(key, value);
                 }
                 return 0;
 
@@ -201,14 +209,9 @@ namespace pigeon {
                 iconnection_t* iConn = (iconnection_t*)parser->data;
                 if (at && iConn->context->request) {
 
-                    char *data = (char *)malloc(sizeof(char) * len + 1);
-
-
-                    strncpy(data, at, len);
-                    data[len] = '\0';
-                    iConn->context->request->content += data;
-
-                    free(data);
+                    for(int i=0; i < len; ++i){
+                        iConn->context->request->content.push_back(at[i]);
+                    }
 
                 }
                 return 0;
@@ -347,8 +350,8 @@ namespace pigeon {
             try {
 
                 ssize_t parsed;
+
                 iconnection_t *iConn = (iconnection_t *)tcp->data;
-                std::cout << buf->base << std::endl;
                 if (nread >= 0) {
 
                     parsed = (ssize_t)http_parser_execute(&iConn->parser, &parser_settings, buf->base, nread);
@@ -417,7 +420,7 @@ namespace pigeon {
 #else
                 snprintf(buf, sizeof(buf), "%s:%d", addr, ntohs(name.sin_port));
 #endif
-                iConn->client_adress = buf;
+                iConn->client_address = buf;
 
                 if (r != 0){
                     logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
@@ -483,6 +486,26 @@ namespace pigeon {
                     filter->clean();
                 }
  
+            }
+
+            //check if content type is multipar/form-data
+            string content_type = context->request->get_header("Content-Type");
+
+            if(content_type.size() > 0){
+
+                std::regex re(";|=|\\+s");
+                std::sregex_token_iterator p(content_type.begin(), content_type.end(), re, -1);
+                std::sregex_token_iterator end;
+                string val, boundary;
+                val += *p++;
+
+                if(val == "multipart/form-data"){
+                    *p++;
+                    boundary += *p++;
+                    multi_part_parser mpp;
+                    mpp.parse_multipart(context, boundary);
+                }
+
             }
 
             if(context->request->is_api){

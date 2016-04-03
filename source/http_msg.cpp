@@ -14,50 +14,34 @@ auto http_msg::has_headers() -> bool{
 	else { return false; }
 }
 
-auto http_msg::set_header_field(string& _key) -> void{
+auto http_msg::set_header(string& key, string& value) -> void{
 
-    key_value_pair kvp;
-    kvp.key = _key;
-    headers.push_back(kvp);
+    headers.emplace(std::pair<string, string>(key, value));
 
 }
 
-auto http_msg::set_header_value(string& _value) -> void{
 
-    if(headers.empty()) {
-        return;
-    }
-    headers.back().value = _value;
 
-}
+auto http_msg::get_header(string key) -> string {
 
-auto http_msg::get_header(key_value_pair& kvp) -> void {
+    return headers[key];
 
-    for(auto& hdr : headers){
-        if(hdr.key == kvp.key){
-            kvp = hdr;
-        }
-    }
 
 }
 
 auto http_msg::get_non_default_headers(string &msg) -> void {
 
-    for (auto& hdr : headers){
-        msg += hdr.key;
-        msg += hdr.value;
+
+    for (auto&  header : headers) {
+        msg += header.first;
+        msg += header.second;
         msg += "\r\n";
     }
-
 }
 
-auto http_request::get_parameter(key_value_pair& kvp) -> void {
+auto http_request::get_parameter(string& _key) -> string {
 
-    for(auto& prm : parameters){
-        if(prm.key == kvp.key){
-            kvp = prm;
-        }
-    }
+    return parameters[_key];
 
 }
 
@@ -114,8 +98,8 @@ auto http_request::create_response(string& cached_headers, string& message, http
 
 }
 
-auto http_request::set_parameter(key_value_pair& kvp) -> void {
-    parameters.push_back(std::move(kvp));
+auto http_request::set_parameter(string& key, string& value) -> void {
+    parameters.emplace(std::pair<string, string>(key, value));
 }
 
 http_response::~http_response() {

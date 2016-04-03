@@ -9,76 +9,43 @@
 #include <settings.h>
 #include <algorithm>
 #include <multi_part_parser.h>
+#include <regex>
 
 using namespace pigeon;
 
 
-bool multi_part_parser::is_char(int c) {
-    return c >= 0 && c <= 127;
+
+void multi_part_parser::load_file_data(http_context *) {
+
 }
 
-bool multi_part_parser::is_ctl(int c) {
-    return (c >= 0 && c <= 31) || (c == 127);
-}
 
-bool multi_part_parser::is_tspecial(int c) {
-    switch (c)
-    {
-        case '(': case ')': case '<': case '>': case '@':
-        case ',': case ';': case ':': case '\\': case '"':
-        case '/': case '[': case ']': case '?': case '=':
-        case '{': case '}': case ' ': case '\t':
-            return true;
-        default:
-            return false;
-    }
-}
-
-string multi_part_parser::parse_body(string::iterator start, string::iterator finish, string& boundary){
-    string body_with_boundary = string(begin, end);
-    long pos = body_with_boundary.find(boundary);
-    string body_without_boundary = body_with_boundary.substr(0, pos);
-    return body_without_boundary;
-}
-
-void multi_part_parser::execute_parser(http_context* context) {
-    state_ = boundary_start;
+form multi_part_parser::parse(string data, string &boundary) {
+    state_ = header_line_start;
     form form_data;
     string temp;
     string val;
-    part_data = context->request->content;
-    begin = part_data.begin();
-    end = part_data.end();
 
+    string::iterator begin = data.begin();
+    string::iterator end = data.end();
+
+
+    char c;
     while(begin != end) {
-        char c = *begin++;
-        switch (state_) {
-            case boundary_start:
-                if(c == '\r') {
-                    context->request->form_data.boundary = temp;
-                    temp.clear();
-                    state_ = expecting_newline_1;
-                } else {
-                    temp.push_back(c);
-                }
 
-                break;
-            case expecting_newline_1:
-                if (c == '\n')
-                {
-                    state_ = header_line_start;
-                }
-                break;
+        if(state_ != body_start){
+            c = *begin++;
+        }
+
+        switch (state_) {
+
             case header_line_start:
                 if (c == '\r')
                 {
                     state_ = expecting_newline_3;
-                } else if (!context->request->form_data.headers.empty() && (c == ' ' || c == '\t'))
+                } else if (!form_data.headers.empty() && (c == ' ' || c == '\t'))
                 {
                     state_ = header_lws;
-                }
-                else if (!is_char(c) || is_ctl(c) || is_tspecial(c))
-                {
                 }
                 else
                 {
@@ -91,10 +58,6 @@ void multi_part_parser::execute_parser(http_context* context) {
                 if (c == ':')
                 {
                     state_ = space_before_header_value;
-                }
-                else if (!is_char(c) || is_ctl(c) || is_tspecial(c))
-                {
-
                 }
                 else
                 {
@@ -111,13 +74,10 @@ void multi_part_parser::execute_parser(http_context* context) {
             case header_value:
                 if (c == '\r')
                 {
-                    context->request->form_data.headers.emplace(std::pair<string, string>(temp, val));
+                    form_data.headers.emplace(std::pair<string, string>(temp, val));
                     temp.clear();
                     val.clear();
                     state_ = expecting_newline_2;
-                }
-                else if (is_ctl(c))
-                {
                 }
                 else
                 {
@@ -138,37 +98,54 @@ void multi_part_parser::execute_parser(http_context* context) {
 
                 break;
             case body_start:
-                context->request->form_data.filedata =  parse_body(begin, end, context->request->form_data.boundary);
+                string body_with_boundary = string(begin, end);
+                long pos = body_with_boundary.find(boundary);
+                string body_without_boundary = body_with_boundary.substr(0, pos-2);
+                form_data.file_data = body_without_boundary;
+
                 begin = end;
                 break;
 
         }
     }
 
-    //parse parameters
+    string cont_disp = form_data.headers["Content-Disposition"];
 
-    string content_disp_val = context->request->form_data.headers["Content-Disposition"];
+   if(cont_disp.size() > 0){
+       param_state_ = param_start;
 
-    if(content_disp_val.size() > 0){
-        replace(content_disp_val.begin(), content_disp_val.end(), ';', ' ');
-        std::istringstream issParams(content_disp_val.c_str());
-        vector<string> vparams{istream_iterator<string>{issParams},
-                               istream_iterator<string>{}};
+       for(auto& c:cont_disp){
 
-        for(auto& val:vparams){
+       }
 
-            long end = val.find("=");
-            if(end != string::npos){
-                string name = val.substr(0, end);
-                string value = val.substr(end+2, val.size() -2 );
-                value.pop_back();
-                context->request->form_data.parameters.emplace(std::pair<string, string>(name, value));
-            }
+   }
 
+    return  form_data;
+}
+
+
+
+
+void multi_part_parser::parse_multipart(http_context* context, string _boundary) {
+
+    boundary = _boundary;
+
+    string parts = context->request->content;
+
+    unsigned long start_pos = parts.find(boundary);
+    while( start_pos != string::npos){
+        unsigned long end_pos = parts.find(boundary, start_pos + boundary.size());
+        if(end_pos != string::npos)
+        {
+            unsigned long start_from = start_pos + boundary.size() + 2;
+            string part = parts.substr(start_from, end_pos-2);
+            file_contents.push_back(part);
         }
+        start_pos = parts.find(boundary, end_pos);
+    }
 
-
-
+    for(auto& str: file_contents){
+      context->request->forms.push_back(parse(str, boundary));
     }
 
 }

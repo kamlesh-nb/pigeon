@@ -6,7 +6,7 @@
 #include <memory>
 #include <algorithm>
 #include <key_value_pair.h>
-#include <map>
+#include <unordered_map>
 
 
 using namespace std;
@@ -18,8 +18,9 @@ namespace  pigeon {
     class http_msg {
 
     private:
-        vector<key_value_pair> headers;
-
+        //vector<key_value_pair> headers;
+        unordered_map<string, string> headers;
+        string temp;
     public:
 
         virtual ~http_msg();
@@ -30,21 +31,18 @@ namespace  pigeon {
 
 		auto has_headers() -> bool;
 
-        virtual auto set_header_field(string &) -> void;
+        virtual auto set_header(string&, string&) -> void;
 
-        virtual auto set_header_value(string &) -> void;
-
-        virtual auto get_header(key_value_pair &) -> void;
+        virtual auto get_header(string) -> string;
 
         virtual auto get_non_default_headers(string &) -> void;
 
     };
 
     struct form {
-        string boundary;
-        map<string, string> headers;
-        map<string, string> parameters;
-        string filedata;
+        unordered_map<string, string> headers;
+        unordered_map<string, string> parameters;
+        string file_data;
     };
 
     class http_response : public http_msg {
@@ -65,7 +63,7 @@ namespace  pigeon {
 
     private:
 
-        vector<key_value_pair> parameters;
+        unordered_map<string, string> parameters;
 		shared_ptr<http_response> response;
 
     public:
@@ -75,11 +73,13 @@ namespace  pigeon {
         string url;
         unsigned int method;
         bool is_api{false};
-        form form_data;
+        vector<form> forms;
 
-        auto get_parameter(key_value_pair &) -> void;
+        char* data;
 
-        auto set_parameter(key_value_pair &) -> void;
+        auto get_parameter(string&) -> string;
+
+        auto set_parameter(string&, string&) -> void;
 
 		auto create_response(const char*, http_response&, HttpStatus status) -> void;
 

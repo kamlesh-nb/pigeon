@@ -13,9 +13,10 @@ namespace pigeon {
     class multi_part_parser {
 
     private:
-        bool is_char(int c);
-        bool is_ctl(int c);
-        bool is_tspecial(int c);
+
+        vector<string> file_contents;
+        string boundary;
+        void load_file_data(http_context*);
 
         enum state
         {
@@ -32,13 +33,21 @@ namespace pigeon {
             body_end
         } state_;
 
+        enum param_state
+        {
+            param_start,
+            param_separater,
+            ke_val_separater
+        } param_state_;
+
         string part_data;
         string::iterator begin;
         string::iterator end;
 
     public:
-        string parse_body(string::iterator start, string::iterator finish, string& boundary);
-        void execute_parser(http_context*);
+
+        form parse(string, string& boundary);
+        void parse_multipart(http_context*, string);
 
 
     };
