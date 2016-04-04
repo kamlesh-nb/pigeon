@@ -42,8 +42,8 @@ namespace pigeon {
 
     public:
 
-        form parse(string, string& boundary);
-        void parse_multipart(http_context*, string);
+        form parse_part(string, string& boundary);
+        void parse(http_context*, string);
 
     };
 

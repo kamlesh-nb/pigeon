@@ -254,7 +254,7 @@ using namespace pigeon;
         headers += err_cached_response;
 
         headers += get_header_field(HttpHeader::Content_Length);
-        ulong length =  message.size();
+        unsigned long length =  message.size();
         headers += std::to_string(length);
         headers += "\r\n\r\n";
 

@@ -194,7 +194,7 @@ void cache::load_files(string filepath, uv_fs_t* req) {
     uv_dirent_t dent;
 
     int r = uv_fs_scandir(uv_default_loop(), req, filepath.c_str(), 0, NULL);
-    if (r != 0){
+    if (r < 0){
         logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
     }
 

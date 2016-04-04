@@ -13,17 +13,16 @@
 
 using namespace pigeon;
 
-form multi_part_parser::parse(string data, string &boundary) {
+form multi_part_parser::parse_part(string data, string &boundary) {
     state_ = header_line_start;
     form form_data;
     string temp;
     string val;
+	char c;
 
     string::iterator begin = data.begin();
     string::iterator end = data.end();
-
-
-    char c;
+    
     while(begin != end) {
 
         if(state_ != body_start){
@@ -140,6 +139,7 @@ form multi_part_parser::parse(string data, string &boundary) {
 
            }
        }
+	   //adding last key value, since it cannot be captured in the loop
        form_data.parameters.emplace(std::pair<string, string>(key, val));
        key.clear(); val.clear();
 
@@ -151,7 +151,7 @@ form multi_part_parser::parse(string data, string &boundary) {
 
 
 
-void multi_part_parser::parse_multipart(http_context* context, string _boundary) {
+void multi_part_parser::parse(http_context* context, string _boundary) {
 
     boundary = _boundary;
 
@@ -172,6 +172,8 @@ void multi_part_parser::parse_multipart(http_context* context, string _boundary)
     for(auto& str: file_contents){
       context->request->forms.push_back(parse(str, boundary));
     }
+
+	boundary = _boundary;
 
 }
 

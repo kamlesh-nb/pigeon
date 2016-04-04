@@ -17,7 +17,6 @@
 #include <http_context.h>
 #include <cache.h>
 #include <resource_handler.h>
-#include <unistd.h>
 #include <vector>
 #include <map>
 #include <http_handlers.h>
@@ -71,15 +70,10 @@ namespace pigeon {
 		uv_tcp_t uv_tcp;
         vector<string> filters;
 
-      //  map<string, http_handler_base*> HttpHandlers;
-       // map<string, http_filter_base*> HttpFilters;
-
         void _init(){
 
             settings::load_setting();
             cache::get()->load(settings::resource_location);
-
-            //HttpHandlers.emplace(std::pair<string, http_handler_base*>("resource", new resource_handler()));
 
             http_handlers::instance()->add("resource", new resource_handler());
 
@@ -166,11 +160,6 @@ namespace pigeon {
                     strncpy(iConn->temp, at, len);
                     iConn->temp[len] = '\0';
 
-//                    data[len] = '\0';
-//                    s += data;
-//                    free(data);
-//
-//                    iConn->context->request->set_header_field(s);
                 }
                 return 0;
 
@@ -480,8 +469,7 @@ namespace pigeon {
             for(auto& flt:filters){
  
                 if(flt.size() > 0){
-                    auto filter = http_filters::instance()->get(flt); //HttpFilters[flt];
-                    filter->init();
+                    auto filter = http_filters::instance()->get(flt); 
                     filter->execute(context);
                     filter->clean();
                 }
@@ -503,16 +491,16 @@ namespace pigeon {
                     *p++;
                     boundary += *p++;
                     multi_part_parser mpp;
-                    mpp.parse_multipart(context, boundary);
+                    mpp.parse(context, boundary);
                 }
 
             }
 
             if(context->request->is_api){
-                auto handler = http_handlers::instance()->get(context->request->url);    //HttpHandlers[context->request->url];
+                auto handler = http_handlers::instance()->get(context->request->url);  
                 handler->process(context);
             } else {
-                auto handler = http_handlers::instance()->get("resource"); //HttpHandlers["resource"];
+                auto handler = http_handlers::instance()->get("resource"); 
                 handler->process(context);
             }
 
@@ -521,16 +509,11 @@ namespace pigeon {
 
     };
 
-	server::server() {
-        _Impl = new server_impl;
-    }
+	server::server() { _Impl = new server_impl; }
 
 	server::~server() { delete _Impl; }
 
-	void server::start() {
-
-        _Impl->start();
-	}
+	void server::start() { _Impl->start(); }
 
 
 
