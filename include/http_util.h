@@ -30,6 +30,8 @@ namespace pigeon {
 
     bool is_api(string &Uri, string &);
 
+    void parse_key_val(unordered_map<string, string>&, char key_val_separater, string);
+
     void parse_query_string(http_request &req);
 
     bool url_decode(const string &in, string &out);

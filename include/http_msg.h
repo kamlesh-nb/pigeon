@@ -18,7 +18,7 @@ namespace pigeon {
     class http_msg {
 
     private:
-        //vector<key_value_pair> headers;
+        unordered_map<string, string> cookies;
         unordered_map<string, string> headers;
         string temp;
     public:
@@ -34,6 +34,10 @@ namespace pigeon {
         virtual auto set_header(string &, string &) -> void;
 
         virtual auto get_header(string) -> string;
+
+        virtual auto set_cookie(string &, string &) -> void;
+
+        virtual auto get_cookie(string) -> string;
 
         virtual auto get_non_default_headers(string &) -> void;
 

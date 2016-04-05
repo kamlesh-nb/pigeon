@@ -301,6 +301,10 @@ bool pigeon::is_api(string &Uri, string &apiroute) {
     return pos != string::npos;
 }
 
+void ::pigeon::parse_key_val(unordered_map<string, string>& key_val_map, char key_val_separater, string source) {
+
+}
+
 void pigeon::parse_query_string(http_request &req) {
 
     string query_uri(req.url);
