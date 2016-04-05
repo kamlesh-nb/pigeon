@@ -3,9 +3,7 @@
 //
 
 #include <uv.h>
-#include <stdio.h>
 #include <malloc.h>
-#include <signal.h>
 #include <iostream>
 #include <sstream>
 #include <assert.h>
@@ -14,18 +12,15 @@
 #include <http_util.h>
 #include <logger.h>
 #include <server.h>
-#include <http_context.h>
 #include <cache.h>
 #include <resource_handler.h>
-#include <vector>
-#include <map>
 #include <http_handlers.h>
 #include <http_filters.h>
 #include <multi_part_parser.h>
 #include <regex>
 
 #define container_of(ptr, type, member) \
-	((type *)((char *)(ptr)-offsetof(type, member)))
+    ((type *)((char *)(ptr)-offsetof(type, member)))
 
 #define MAX_WRITE_HANDLES 1000
 #define VARNAME "UV_THREADPOOL_SIZE"
@@ -45,19 +40,19 @@ namespace pigeon {
         uv_tcp_t handle;
         http_parser parser;
         uv_write_t write_req;
-        char* client_address;
-        void* data;
-        char* temp;
-        http_context* context;
+        char *client_address;
+        void *data;
+        char *temp;
+        http_context *context;
 
     } iconnection_t;
 
     typedef struct {
 
         uv_work_t request;
-        iconnection_t* iConn;
+        iconnection_t *iConn;
         bool error;
-        char* result;
+        char *result;
         size_t length;
 
     } msg_baton_t;
@@ -66,11 +61,11 @@ namespace pigeon {
 
     private:
 
-		uv_loop_t* uv_loop;
-		uv_tcp_t uv_tcp;
+        uv_loop_t *uv_loop;
+        uv_tcp_t uv_tcp;
         vector<string> filters;
 
-        void _init(){
+        void _init() {
 
             settings::load_setting();
             cache::get()->load(settings::resource_location);
@@ -81,50 +76,50 @@ namespace pigeon {
 
         }
 
-        void _tcp(){
+        void _tcp() {
 
             int r = uv_tcp_init(uv_loop, &uv_tcp);
 
-            if (r != 0){
+            if (r != 0) {
                 logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
             }
 
             r = uv_tcp_keepalive(&uv_tcp, 1, 60);
-            if (r != 0){
+            if (r != 0) {
                 logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
             }
 
         }
 
-        void _bind(){
+        void _bind() {
 
             string _address = settings::address;
             int _port = settings::port;
 
             struct sockaddr_in address;
             int r = uv_ip4_addr(_address.c_str(), _port, &address);
-            if (r != 0){
+            if (r != 0) {
                 logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
             }
 
-            r = uv_tcp_bind(&uv_tcp, (const struct sockaddr*)&address, 0);
-            if (r != 0){
+            r = uv_tcp_bind(&uv_tcp, (const struct sockaddr *) &address, 0);
+            if (r != 0) {
                 logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
             }
 
         }
 
-        void _listen(){
+        void _listen() {
 
             uv_tcp.data = this;
 
-            int r = uv_listen((uv_stream_t*)&uv_tcp, MAX_WRITE_HANDLES,
+            int r = uv_listen((uv_stream_t *) &uv_tcp, MAX_WRITE_HANDLES,
                               [](uv_stream_t *socket, int status) {
-                                  server_impl* srvImpl = static_cast<server_impl*>(socket->data);
+                                  server_impl *srvImpl = static_cast<server_impl *>(socket->data);
                                   srvImpl->on_connect(socket, status);
                               });
 
-            if (r != 0){
+            if (r != 0) {
                 logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
             }
 
@@ -136,11 +131,11 @@ namespace pigeon {
 
         void _parser() {
 
-            parser_settings.on_url = [](http_parser* parser, const char* at, size_t len) -> int {
+            parser_settings.on_url = [](http_parser *parser, const char *at, size_t len) -> int {
 
-                iconnection_t* iConn = (iconnection_t*)parser->data;
+                iconnection_t *iConn = (iconnection_t *) parser->data;
                 if (at && iConn->context->request) {
-                    char *data = (char *)malloc(sizeof(char) * len + 1);
+                    char *data = (char *) malloc(sizeof(char) * len + 1);
                     strncpy(data, at, len);
                     data[len] = '\0';
                     iConn->context->request->url += data;
@@ -150,12 +145,12 @@ namespace pigeon {
 
             };
 
-            parser_settings.on_header_field = [](http_parser* parser, const char* at, size_t len) -> int {
+            parser_settings.on_header_field = [](http_parser *parser, const char *at, size_t len) -> int {
 
-                iconnection_t* iConn = (iconnection_t*)parser->data;
+                iconnection_t *iConn = (iconnection_t *) parser->data;
                 if (at && iConn->context->request) {
                     string s;
-                    iConn->temp = (char *)malloc(sizeof(char) * len + 1);
+                    iConn->temp = (char *) malloc(sizeof(char) * len + 1);
 
                     strncpy(iConn->temp, at, len);
                     iConn->temp[len] = '\0';
@@ -165,12 +160,12 @@ namespace pigeon {
 
             };
 
-            parser_settings.on_header_value = [](http_parser* parser, const char* at, size_t len) -> int {
+            parser_settings.on_header_value = [](http_parser *parser, const char *at, size_t len) -> int {
 
-                iconnection_t* iConn = (iconnection_t*)parser->data;
+                iconnection_t *iConn = (iconnection_t *) parser->data;
                 if (at && iConn->context->request) {
                     string key, value;
-                    char *data = (char *)malloc(sizeof(char) * len + 1);
+                    char *data = (char *) malloc(sizeof(char) * len + 1);
                     strncpy(data, at, len);
                     data[len] = '\0';
                     value += data;
@@ -183,9 +178,9 @@ namespace pigeon {
 
             };
 
-            parser_settings.on_headers_complete = [](http_parser* parser) -> int {
+            parser_settings.on_headers_complete = [](http_parser *parser) -> int {
 
-                iconnection_t* iConn = (iconnection_t*)parser->data;
+                iconnection_t *iConn = (iconnection_t *) parser->data;
                 iConn->context->request->method = parser->method;
                 iConn->context->request->http_major_version = parser->http_major;
                 iConn->context->request->http_minor_version = parser->http_minor;
@@ -193,12 +188,12 @@ namespace pigeon {
 
             };
 
-            parser_settings.on_body = [](http_parser* parser, const char* at, size_t len) -> int {
+            parser_settings.on_body = [](http_parser *parser, const char *at, size_t len) -> int {
 
-                iconnection_t* iConn = (iconnection_t*)parser->data;
+                iconnection_t *iConn = (iconnection_t *) parser->data;
                 if (at && iConn->context->request) {
 
-                    for(int i=0; i < len; ++i){
+                    for (int i = 0; i < len; ++i) {
                         iConn->context->request->content.push_back(at[i]);
                     }
 
@@ -207,9 +202,9 @@ namespace pigeon {
 
             };
 
-            parser_settings.on_message_complete = [](http_parser* parser) -> int {
+            parser_settings.on_message_complete = [](http_parser *parser) -> int {
 
-                iconnection_t* iConn = (iconnection_t*)parser->data;
+                iconnection_t *iConn = (iconnection_t *) parser->data;
                 msg_baton_t *closure = new msg_baton_t();
                 closure->request.data = closure;
                 closure->iConn = iConn;
@@ -217,18 +212,18 @@ namespace pigeon {
 
                 int status = uv_queue_work(uv_default_loop(),
                                            &closure->request,
-                                           [](uv_work_t* req){
-                                               msg_baton_t* bton =  static_cast<msg_baton_t*>(req->data);
-                                               server_impl* srvImpl = static_cast<server_impl*>(bton->iConn->data);
+                                           [](uv_work_t *req) {
+                                               msg_baton_t *bton = static_cast<msg_baton_t *>(req->data);
+                                               server_impl *srvImpl = static_cast<server_impl *>(bton->iConn->data);
                                                srvImpl->on_process(req);
                                            },
-                                           [](uv_work_t* req, int status){
-                                               msg_baton_t* bton =  static_cast<msg_baton_t*>(req->data);
-                                               server_impl* srvImpl = static_cast<server_impl*>(bton->iConn->data);
+                                           [](uv_work_t *req, int status) {
+                                               msg_baton_t *bton = static_cast<msg_baton_t *>(req->data);
+                                               server_impl *srvImpl = static_cast<server_impl *>(bton->iConn->data);
                                                srvImpl->on_process_complete(req);
                                            });
 
-                if (status != 0){
+                if (status != 0) {
                     logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
                 }
 
@@ -239,58 +234,57 @@ namespace pigeon {
 
     public:
 
-		void on_shutdown(uv_handle_t* req, int status) {
-			if (!uv_is_closing((uv_handle_t*)req)) {
-				uv_close((uv_handle_t*)req, [](uv_handle_t *handle){
-					server_impl* srvImpl = static_cast<server_impl*>(handle->data);
-					srvImpl->on_close((uv_handle_t *)&handle);
-				});
-			}
-			free(req);
-		}
+        void on_shutdown(uv_handle_t *req, int status) {
+            if (!uv_is_closing((uv_handle_t *) req)) {
+                uv_close((uv_handle_t *) req, [](uv_handle_t *handle) {
+                    server_impl *srvImpl = static_cast<server_impl *>(handle->data);
+                    srvImpl->on_close((uv_handle_t *) &handle);
+                });
+            }
+            free(req);
+        }
 
-        void on_process(uv_work_t* req){
+        void on_process(uv_work_t *req) {
 
-            msg_baton_t* closure =  static_cast<msg_baton_t*>(req->data);
-            iconnection_t* iConn = closure->iConn;
+            msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
+            iconnection_t *iConn = closure->iConn;
 
 
             iConn->context->request->is_api = is_api(iConn->context->request->url, settings::api_route);
             parse_query_string(*iConn->context->request);
 
-            server_impl* srvImpl = static_cast<server_impl*>(iConn->data);
+            server_impl *srvImpl = static_cast<server_impl *>(iConn->data);
 
             srvImpl->process(iConn->context);
 
-            closure->result = (char*)iConn->context->response->message.c_str();
+            closure->result = (char *) iConn->context->response->message.c_str();
             closure->length = iConn->context->response->message.size();
 
         }
 
-        void on_process_complete(uv_work_t* req){
+        void on_process_complete(uv_work_t *req) {
 
-            msg_baton_t* closure =  static_cast<msg_baton_t*>(req->data);
-            iconnection_t* iConn = closure->iConn;
+            msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
+            iconnection_t *iConn = closure->iConn;
 
             uv_buf_t resbuf;
             resbuf.base = closure->result;
-            resbuf.len = (unsigned long)closure->length;
-
+            resbuf.len = (unsigned long) closure->length;
 
 
             iConn->write_req.data = closure;
 
             int r = uv_write(&iConn->write_req,
-                             (uv_stream_t*)&iConn->handle,
+                             (uv_stream_t *) &iConn->handle,
                              &resbuf,
                              1,
                              [](uv_write_t *req, int status) {
                                  msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
-                                 server_impl* srvImpl = static_cast<server_impl*>(closure->iConn->data);
+                                 server_impl *srvImpl = static_cast<server_impl *>(closure->iConn->data);
                                  srvImpl->on_send_complete(req, status);
                              });
 
-            if (r != 0){
+            if (r != 0) {
                 logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
             }
 
@@ -300,7 +294,7 @@ namespace pigeon {
 
             try {
 
-                iconnection_t* iConn = (iconnection_t*)handle->data;
+                iconnection_t *iConn = (iconnection_t *) handle->data;
                 delete iConn->context;
                 free(iConn);
 
@@ -314,41 +308,40 @@ namespace pigeon {
 
             try {
 
-                if (status != 0){
+                if (status != 0) {
                     logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
                 }
 
-				if (!uv_is_closing((uv_handle_t*)req->handle))
-				{
-					msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
-					delete closure;
-					uv_close((uv_handle_t*)req->handle, [](uv_handle_t *handle){
-						server_impl* srvImpl = static_cast<server_impl*>(handle->data);
-						srvImpl->on_close((uv_handle_t *)&handle);
-					});
-				}
-				 
+                if (!uv_is_closing((uv_handle_t *) req->handle)) {
+                    msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
+                    delete closure;
+                    uv_close((uv_handle_t *) req->handle, [](uv_handle_t *handle) {
+                        server_impl *srvImpl = static_cast<server_impl *>(handle->data);
+                        srvImpl->on_close((uv_handle_t *) &handle);
+                    });
+                }
+
             }
-            catch (std::exception& ex){
+            catch (std::exception &ex) {
                 throw std::runtime_error(ex.what());
             }
 
         }
 
-        void on_read(uv_stream_t* tcp, ssize_t nread, const uv_buf_t* buf) {
+        void on_read(uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf) {
             try {
 
                 ssize_t parsed;
 
-                iconnection_t *iConn = (iconnection_t *)tcp->data;
+                iconnection_t *iConn = (iconnection_t *) tcp->data;
                 if (nread >= 0) {
 
-                    parsed = (ssize_t)http_parser_execute(&iConn->parser, &parser_settings, buf->base, nread);
+                    parsed = (ssize_t) http_parser_execute(&iConn->parser, &parser_settings, buf->base, nread);
                     if (parsed < nread) {
                         logger::get()->write(LogType::Error, Severity::Critical, "parse failed");
-                        uv_close((uv_handle_t *)&iConn->handle, [](uv_handle_t *handle){
-                            server_impl* srvImpl = static_cast<server_impl*>(handle->data);
-                            srvImpl->on_close((uv_handle_t *)&handle);
+                        uv_close((uv_handle_t *) &iConn->handle, [](uv_handle_t *handle) {
+                            server_impl *srvImpl = static_cast<server_impl *>(handle->data);
+                            srvImpl->on_close((uv_handle_t *) &handle);
                         });
                     }
                 }
@@ -356,26 +349,26 @@ namespace pigeon {
                     if (nread != UV_EOF) {
                         logger::get()->write(LogType::Error, Severity::Critical, "read failed");
                     }
-                    uv_close((uv_handle_t *)&iConn->handle, [](uv_handle_t *handle){
-                        server_impl* srvImpl = static_cast<server_impl*>(handle->data);
-                        srvImpl->on_close((uv_handle_t *)&handle);
+                    uv_close((uv_handle_t *) &iConn->handle, [](uv_handle_t *handle) {
+                        server_impl *srvImpl = static_cast<server_impl *>(handle->data);
+                        srvImpl->on_close((uv_handle_t *) &handle);
                     });
                 }
                 free(buf->base);
             }
-            catch (std::exception& ex){
+            catch (std::exception &ex) {
 
                 throw std::runtime_error(ex.what());
 
             }
         }
 
-        void on_connect(uv_stream_t* server_handle, int status) {
+        void on_connect(uv_stream_t *server_handle, int status) {
             try {
 
-                assert((uv_tcp_t*)server_handle == &uv_tcp);
+                assert((uv_tcp_t *) server_handle == &uv_tcp);
 
-                iconnection_t* iConn = (iconnection_t*)malloc(sizeof(iconnection_t));
+                iconnection_t *iConn = (iconnection_t *) malloc(sizeof(iconnection_t));
 
                 iConn->context = new http_context;
 
@@ -388,16 +381,16 @@ namespace pigeon {
                 iConn->parser.data = iConn;
                 iConn->handle.data = iConn;
 
-                int r = uv_accept(server_handle, (uv_stream_t*)&iConn->handle);
-                if (r != 0){
+                int r = uv_accept(server_handle, (uv_stream_t *) &iConn->handle);
+                if (r != 0) {
                     logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
                 }
-                uv_tcp_nodelay((uv_tcp_t*)&server_handle, 1);
+                uv_tcp_nodelay((uv_tcp_t *) &server_handle, 1);
 
                 struct sockaddr_in name;
                 int namelen = sizeof(name);
-                r = uv_tcp_getpeername(&iConn->handle, (struct sockaddr*) &name, &namelen);
-                if (r != 0){
+                r = uv_tcp_getpeername(&iConn->handle, (struct sockaddr *) &name, &namelen);
+                if (r != 0) {
                     logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
                 }
 
@@ -411,20 +404,21 @@ namespace pigeon {
 #endif
                 iConn->client_address = buf;
 
-                if (r != 0){
+                if (r != 0) {
                     logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
                 }
 
-                uv_read_start((uv_stream_t*)&iConn->handle, [](uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
-                    *buf = uv_buf_init((char *) malloc(suggested_size), suggested_size);
-                }, [](uv_stream_t *socket, ssize_t nread, const uv_buf_t *buf) {
-                    server_impl* srvImpl = static_cast<server_impl*>(socket->data);
-                    srvImpl->on_read(socket, nread, buf);
-                });
+                uv_read_start((uv_stream_t *) &iConn->handle,
+                              [](uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
+                                  *buf = uv_buf_init((char *) malloc(suggested_size), suggested_size);
+                              }, [](uv_stream_t *socket, ssize_t nread, const uv_buf_t *buf) {
+                            server_impl *srvImpl = static_cast<server_impl *>(socket->data);
+                            srvImpl->on_read(socket, nread, buf);
+                        });
 
 
             }
-            catch (std::exception& ex){
+            catch (std::exception &ex) {
                 throw std::runtime_error(ex.what());
             }
         }
@@ -439,7 +433,7 @@ namespace pigeon {
 
 #ifdef _WIN32
             string num_of_threads = std::to_string(settings::worker_threads);
-		    SetEnvironmentVariable(L"UV_THREADPOOL_SIZE", (LPTSTR)num_of_threads.c_str());
+            SetEnvironmentVariable(L"UV_THREADPOOL_SIZE", (LPTSTR)num_of_threads.c_str());
 #else
             stringstream ss;
             ss << std::to_string(settings::worker_threads);
@@ -448,7 +442,7 @@ namespace pigeon {
             //load filter tokens
             int i = 0;
             stringstream ss_filters(settings::filters);
-            while (ss_filters.good() && i < 4){
+            while (ss_filters.good() && i < 4) {
                 string filt;
                 ss_filters >> filt;
                 filters.push_back(filt);
@@ -466,20 +460,20 @@ namespace pigeon {
 
         void process(http_context *context) {
 
-            for(auto& flt:filters){
- 
-                if(flt.size() > 0){
-                    auto filter = http_filters::instance()->get(flt); 
+            for (auto &flt:filters) {
+
+                if (flt.size() > 0) {
+                    auto filter = http_filters::instance()->get(flt);
                     filter->execute(context);
                     filter->clean();
                 }
- 
+
             }
 
             //check if content type is multipar/form-data
             string content_type = context->request->get_header("Content-Type");
 
-            if(content_type.size() > 0){
+            if (content_type.size() > 0) {
 
                 std::regex re(";|=|\\+s");
                 std::sregex_token_iterator p(content_type.begin(), content_type.end(), re, -1);
@@ -487,7 +481,7 @@ namespace pigeon {
                 string val, boundary;
                 val += *p++;
 
-                if(val == "multipart/form-data"){
+                if (val == "multipart/form-data") {
                     *p++;
                     boundary += *p++;
                     multi_part_parser mpp;
@@ -496,11 +490,11 @@ namespace pigeon {
 
             }
 
-            if(context->request->is_api){
-                auto handler = http_handlers::instance()->get(context->request->url);  
+            if (context->request->is_api) {
+                auto handler = http_handlers::instance()->get(context->request->url);
                 handler->process(context);
             } else {
-                auto handler = http_handlers::instance()->get("resource"); 
+                auto handler = http_handlers::instance()->get("resource");
                 handler->process(context);
             }
 
@@ -509,14 +503,11 @@ namespace pigeon {
 
     };
 
-	server::server() { _Impl = new server_impl; }
+    server::server() { _Impl = new server_impl; }
 
-	server::~server() { delete _Impl; }
+    server::~server() { delete _Impl; }
 
-	void server::start() { _Impl->start(); }
-
-
-
+    void server::start() { _Impl->start(); }
 
 
 }

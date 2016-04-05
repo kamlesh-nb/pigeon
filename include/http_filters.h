@@ -9,32 +9,31 @@
 
 namespace pigeon {
 
-	class http_filters
-	{
+    class http_filters {
 
-	private:
+    private:
 
-		http_filters();
-		static std::mutex _mtx;
-		static std::shared_ptr<http_filters> temp;
-		std::unordered_map<string, http_filter_base*> filters;
+        http_filters();
 
-	public:
+        static std::mutex _mtx;
+        static std::shared_ptr<http_filters> temp;
+        std::unordered_map<string, http_filter_base *> filters;
 
-		~http_filters();
-		http_filters(const http_filters &filters);
+    public:
 
-		void add(std::string, http_filter_base*);
-		http_filter_base* get(std::string&);
+        ~http_filters();
 
-		static std::shared_ptr<http_filters>& instance();
+        http_filters(const http_filters &filters);
 
-	};
+        void add(std::string, http_filter_base *);
+
+        http_filter_base *get(std::string &);
+
+        static std::shared_ptr<http_filters> &instance();
+
+    };
 
 }
-
-
-
 
 
 #endif //PIGEON_HTTP_FILTERS_H

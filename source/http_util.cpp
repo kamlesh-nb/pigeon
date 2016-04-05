@@ -8,358 +8,357 @@
 
 using namespace pigeon;
 
-    struct logtype {
-        int log_id;
-        const char *log_type;
-    } logtypes[] =
-            {
-                    {1, "[WARNING]"},
-                    {2, "[INFORMATION]"},
-                    {3, "[ERROR]"},
-                    {0, 0}
-            };
+struct logtype {
+    int log_id;
+    const char *log_type;
+} logtypes[] =
+        {
+                {1, "[WARNING]"},
+                {2, "[INFORMATION]"},
+                {3, "[ERROR]"},
+                {0, 0}
+        };
 
-    struct severity {
-        int severity_id;
-        const char *severity_type;
-    } severities[] =
-            {
-                    {1, "[LOW]"},
-                    {2, "[MEDIUM]"},
-                    {3, "[HIGH]"},
-                    {4, "[CRITICAL]"},
-                    {0, 0}
-            };
+struct severity {
+    int severity_id;
+    const char *severity_type;
+} severities[] =
+        {
+                {1, "[LOW]"},
+                {2, "[MEDIUM]"},
+                {3, "[HIGH]"},
+                {4, "[CRITICAL]"},
+                {0, 0}
+        };
 
-    struct header {
-        int header_id;
-        const char *header_field;
-    } headers[] =
-            {
-                    {1, "Content-Type: "},
-                    {2, "Content-Length: "},
-                    {3, "Last-Modified: "},
-                    {4, "ETag: "},
-                    {5, "Content-Encoding: deflate\r\n"},
-                    {0, 0}
-            };
+struct header {
+    int header_id;
+    const char *header_field;
+} headers[] =
+        {
+                {1, "Content-Type: "},
+                {2, "Content-Length: "},
+                {3, "Last-Modified: "},
+                {4, "ETag: "},
+                {5, "Content-Encoding: deflate\r\n"},
+                {0, 0}
+        };
 
-    struct statusphrase {
-        int status_code;
-        const char *status_phrase;
-    } statusphrases[] =
-            {
-                    {100, "HTTP/1.1 100 Continue"},
-                    {101, "HTTP/1.1 101 Switching Protocols"},
-                    {103, "HTTP/1.1 103 Checkpoint"},
-                    {200, "HTTP/1.1 200 OK"},
-                    {201, "HTTP/1.1 201 Created"},
-                    {202, "HTTP/1.1 202 Accepted"},
-                    {203, "HTTP/1.1 203 Non-Authoritative-Information"},
-                    {204, "HTTP/1.1 204 No Content"},
-                    {205, "HTTP/1.1 205 Reset Content"},
-                    {206, "HTTP/1.1 206 Partial Content"},
-                    {300, "HTTP/1.1 300 Multiple Choices"},
-                    {301, "HTTP/1.1 301 Moved Permanently"},
-                    {302, "HTTP/1.1 302 Found"},
-                    {303, "HTTP/1.1 303 See Other"},
-                    {304, "HTTP/1.1 304 Not Modified"},
-                    {306, "HTTP/1.1 306 Switch Proxy"},
-                    {307, "HTTP/1.1 307 Temporary Redirect"},
-                    {308, "HTTP/1.1 308 Resume Incomplete"},
-                    {400, "HTTP/1.1 400 Bad Request"},
-                    {401, "HTTP/1.1 401 Unauthorized"},
-                    {402, "HTTP/1.1 402 Payment Required"},
-                    {403, "HTTP/1.1 403 Forbidden"},
-                    {404, "HTTP/1.1 404 Not Found"},
-                    {405, "HTTP/1.1 405 Method Not Allowed"},
-                    {406, "HTTP/1.1 406 Not Acceptable"},
-                    {407, "HTTP/1.1 407 Proxy Authentication Required"},
-                    {408, "HTTP/1.1 408 Request Timeout"},
-                    {409, "HTTP/1.1 409 Conflict"},
-                    {410, "HTTP/1.1 410 Gone"},
-                    {411, "HTTP/1.1 411 Length Required"},
-                    {412, "HTTP/1.1 412 Precondition Failed"},
-                    {413, "HTTP/1.1 413 Request Entity Too Large"},
-                    {414, "HTTP/1.1 414 Request URI Too Large"},
-                    {415, "HTTP/1.1 415 Unsupported Media Type"},
-                    {416, "HTTP/1.1 416 Requested Range Not Satisfiable"},
-                    {417, "HTTP/1.1 417 Expectation Failled"},
-                    {500, "HTTP/1.1 500 Internal Server Error"},
-                    {501, "HTTP/1.1 501 Not Implemented"},
-                    {502, "HTTP/1.1 502 Bad Gateway"},
-                    {503, "HTTP/1.1 503 Service Unavailable"},
-                    {504, "HTTP/1.1 504 Gateway Timeout"},
-                    {505, "HTTP/1.1 505 HTTP Version Not Supported"},
-                    {511, "HTTP/1.1 511 Network Authentication Required"},
-                    {0,   0}
-            };
+struct statusphrase {
+    int status_code;
+    const char *status_phrase;
+} statusphrases[] =
+        {
+                {100, "HTTP/1.1 100 Continue"},
+                {101, "HTTP/1.1 101 Switching Protocols"},
+                {103, "HTTP/1.1 103 Checkpoint"},
+                {200, "HTTP/1.1 200 OK"},
+                {201, "HTTP/1.1 201 Created"},
+                {202, "HTTP/1.1 202 Accepted"},
+                {203, "HTTP/1.1 203 Non-Authoritative-Information"},
+                {204, "HTTP/1.1 204 No Content"},
+                {205, "HTTP/1.1 205 Reset Content"},
+                {206, "HTTP/1.1 206 Partial Content"},
+                {300, "HTTP/1.1 300 Multiple Choices"},
+                {301, "HTTP/1.1 301 Moved Permanently"},
+                {302, "HTTP/1.1 302 Found"},
+                {303, "HTTP/1.1 303 See Other"},
+                {304, "HTTP/1.1 304 Not Modified"},
+                {306, "HTTP/1.1 306 Switch Proxy"},
+                {307, "HTTP/1.1 307 Temporary Redirect"},
+                {308, "HTTP/1.1 308 Resume Incomplete"},
+                {400, "HTTP/1.1 400 Bad Request"},
+                {401, "HTTP/1.1 401 Unauthorized"},
+                {402, "HTTP/1.1 402 Payment Required"},
+                {403, "HTTP/1.1 403 Forbidden"},
+                {404, "HTTP/1.1 404 Not Found"},
+                {405, "HTTP/1.1 405 Method Not Allowed"},
+                {406, "HTTP/1.1 406 Not Acceptable"},
+                {407, "HTTP/1.1 407 Proxy Authentication Required"},
+                {408, "HTTP/1.1 408 Request Timeout"},
+                {409, "HTTP/1.1 409 Conflict"},
+                {410, "HTTP/1.1 410 Gone"},
+                {411, "HTTP/1.1 411 Length Required"},
+                {412, "HTTP/1.1 412 Precondition Failed"},
+                {413, "HTTP/1.1 413 Request Entity Too Large"},
+                {414, "HTTP/1.1 414 Request URI Too Large"},
+                {415, "HTTP/1.1 415 Unsupported Media Type"},
+                {416, "HTTP/1.1 416 Requested Range Not Satisfiable"},
+                {417, "HTTP/1.1 417 Expectation Failled"},
+                {500, "HTTP/1.1 500 Internal Server Error"},
+                {501, "HTTP/1.1 501 Not Implemented"},
+                {502, "HTTP/1.1 502 Bad Gateway"},
+                {503, "HTTP/1.1 503 Service Unavailable"},
+                {504, "HTTP/1.1 504 Gateway Timeout"},
+                {505, "HTTP/1.1 505 HTTP Version Not Supported"},
+                {511, "HTTP/1.1 511 Network Authentication Required"},
+                {0,   0}
+        };
 
-    struct statusmsg {
-        int status_code;
-        const char *status_msg;
-    } statusmsgs[] =
-            {
-                    {100, "Continue"},
-                    {101, "Switching Protocols"},
-                    {103, "Checkpoint"},
-                    {200, "OK"},
-                    {201, "Created"},
-                    {202, "Accepted"},
-                    {203, "Non-Authoritative-Information"},
-                    {204, "No Content"},
-                    {205, "Reset Content"},
-                    {206, "Partial Content"},
-                    {300, "Multiple Choices"},
-                    {301, "Moved Permanently"},
-                    {302, "Found"},
-                    {303, "See Other"},
-                    {304, "Not Modified"},
-                    {306, "Switch Proxy"},
-                    {307, "Temporary Redirect"},
-                    {308, "Resume Incomplete"},
-                    {400, "Bad Request"},
-                    {401, "Unauthorized"},
-                    {402, "Payment Required"},
-                    {403, "Forbidden"},
-                    {404, "Not Found"},
-                    {405, "Method Not Allowed"},
-                    {406, "Not Acceptable"},
-                    {407, "Proxy Authentication Required"},
-                    {408, "Request Timeout"},
-                    {409, "Conflict"},
-                    {410, "Gone"},
-                    {411, "Length Required"},
-                    {412, "Precondition Failed"},
-                    {413, "Request Entity Too Large"},
-                    {414, "Request URI Too Large"},
-                    {415, "Unsupported Media Type"},
-                    {416, "Requested Range Not Satisfiable"},
-                    {417, "Expectation Failled"},
-                    {500, "Internal Server Error"},
-                    {501, "Not Implemented"},
-                    {502, "Bad Gateway"},
-                    {503, "Service Unavailable"},
-                    {504, "Gateway Timeout"},
-                    {505, "HTTP Version Not Supported"},
-                    {511, "Network Authentication Required"},
-                    {0,   0}
-            };
+struct statusmsg {
+    int status_code;
+    const char *status_msg;
+} statusmsgs[] =
+        {
+                {100, "Continue"},
+                {101, "Switching Protocols"},
+                {103, "Checkpoint"},
+                {200, "OK"},
+                {201, "Created"},
+                {202, "Accepted"},
+                {203, "Non-Authoritative-Information"},
+                {204, "No Content"},
+                {205, "Reset Content"},
+                {206, "Partial Content"},
+                {300, "Multiple Choices"},
+                {301, "Moved Permanently"},
+                {302, "Found"},
+                {303, "See Other"},
+                {304, "Not Modified"},
+                {306, "Switch Proxy"},
+                {307, "Temporary Redirect"},
+                {308, "Resume Incomplete"},
+                {400, "Bad Request"},
+                {401, "Unauthorized"},
+                {402, "Payment Required"},
+                {403, "Forbidden"},
+                {404, "Not Found"},
+                {405, "Method Not Allowed"},
+                {406, "Not Acceptable"},
+                {407, "Proxy Authentication Required"},
+                {408, "Request Timeout"},
+                {409, "Conflict"},
+                {410, "Gone"},
+                {411, "Length Required"},
+                {412, "Precondition Failed"},
+                {413, "Request Entity Too Large"},
+                {414, "Request URI Too Large"},
+                {415, "Unsupported Media Type"},
+                {416, "Requested Range Not Satisfiable"},
+                {417, "Expectation Failled"},
+                {500, "Internal Server Error"},
+                {501, "Not Implemented"},
+                {502, "Bad Gateway"},
+                {503, "Service Unavailable"},
+                {504, "Gateway Timeout"},
+                {505, "HTTP Version Not Supported"},
+                {511, "Network Authentication Required"},
+                {0,   0}
+        };
 
-    struct mapping {
-        const char *extension;
-        const char *mime_type;
-    } mappings[] =
-            {
-                    {"html",  "text/html; charset=UTF-8"},
-                    {"htm",   "text/html; charset=UTF-8"},
-                    {"htmls", "text/html; charset=UTF-8"},
-                    {"jpe",   "image/jpeg"},
-                    {"jpeg",  "image/jpeg"},
-                    {"jpg",   "image/jpeg"},
-                    {"js",    "application/javascript; charset=UTF-8"},
-                    {"jsonp", "application/javascript; charset=UTF-8"},
-                    {"json",  "application/json; charset=UTF-8"},
-                    {"map",   "application/json; charset=UTF-8"},
-                    {"gif",   "image/gif"},
-                    {"css",   "text/css; charset=UTF-8"},
-                    {"gz",    "application/x-gzip"},
-                    {"gzip",  "multipart/x-gzip"},
-                    {"ico",   "image/x-icon"},
-                    {"png",   "image/png"},
-                    {0,       0}
-            };
+struct mapping {
+    const char *extension;
+    const char *mime_type;
+} mappings[] =
+        {
+                {"html",  "text/html; charset=UTF-8"},
+                {"htm",   "text/html; charset=UTF-8"},
+                {"htmls", "text/html; charset=UTF-8"},
+                {"jpe",   "image/jpeg"},
+                {"jpeg",  "image/jpeg"},
+                {"jpg",   "image/jpeg"},
+                {"js",    "application/javascript; charset=UTF-8"},
+                {"jsonp", "application/javascript; charset=UTF-8"},
+                {"json",  "application/json; charset=UTF-8"},
+                {"map",   "application/json; charset=UTF-8"},
+                {"gif",   "image/gif"},
+                {"css",   "text/css; charset=UTF-8"},
+                {"gz",    "application/x-gzip"},
+                {"gzip",  "multipart/x-gzip"},
+                {"ico",   "image/x-icon"},
+                {"png",   "image/png"},
+                {0,       0}
+        };
 
 
-	string cached_date_response = "\r\nDate: ";
-	string err_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: text/html; charset=UTF-8\r\n";
-	string api_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: application/json\r\n";
+string cached_date_response = "\r\nDate: ";
+string err_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: text/html; charset=UTF-8\r\n";
+string api_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: application/json\r\n";
 
-	const char *err_msg1 = "<!DOCTYPE html><html><head lang='en'><meta charset='UTF-8'><title>Status</title></head><body><table style='border=1'><th>Status Code</th><th>Message</th><tr><td>";
-	const char *err_msg3 = "</td><td>";
-	const char *err_msg5 = "</td></tr></table></body></html>";
+const char *err_msg1 = "<!DOCTYPE html><html><head lang='en'><meta charset='UTF-8'><title>Status</title></head><body><table style='border=1'><th>Status Code</th><th>Message</th><tr><td>";
+const char *err_msg3 = "</td><td>";
+const char *err_msg5 = "</td></tr></table></body></html>";
 
- 
 
-    char* pigeon::now() {
+char *pigeon::now() {
 
-        time_t now = time(0);
-        char *dt;
+    time_t now = time(0);
+    char *dt;
 
-        tm *gmtm = gmtime(&now);
-        dt = asctime(gmtm);
-        dt[strlen(dt) - 1] = '\0';
+    tm *gmtm = gmtime(&now);
+    dt = asctime(gmtm);
+    dt[strlen(dt) - 1] = '\0';
 
-        return dt;
+    return dt;
+}
+
+string pigeon::get_cached_response(bool is_api) {
+
+    string cached_response;
+
+    cached_response += cached_date_response;
+    cached_response += now();
+
+    if (is_api) {
+        cached_response += api_cached_response;
     }
+    return cached_response;
 
-	string pigeon::get_cached_response(bool is_api) {
+}
 
-        string cached_response;
+string pigeon::get_header_field(HttpHeader hdr) {
 
-        cached_response += cached_date_response;
-        cached_response += now();
-
-        if (is_api) {
-            cached_response += api_cached_response;
+    for (header *m = headers; m->header_id; ++m) {
+        if (m->header_id == static_cast<int>(hdr)) {
+            return m->header_field;
         }
-        return cached_response;
-
     }
 
-	string pigeon::get_header_field(HttpHeader hdr) {
+    return "unknown header";
+}
 
-        for (header *m = headers; m->header_id; ++m) {
-            if (m->header_id == static_cast<int>(hdr)) {
-                return m->header_field;
-            }
+string pigeon::get_status_phrase(HttpStatus status) {
+
+    for (statusphrase *m = statusphrases; m->status_code; ++m) {
+        if (m->status_code == static_cast<int>(status)) {
+            return m->status_phrase;
         }
-
-        return "unknown header";
     }
 
-	string pigeon::get_status_phrase(HttpStatus status) {
+    return "unknown phrase";
+}
 
-        for (statusphrase *m = statusphrases; m->status_code; ++m) {
-            if (m->status_code == static_cast<int>(status)) {
-                return m->status_phrase;
-            }
+string pigeon::get_status_msg(HttpStatus status) {
+
+    for (statusmsg *m = statusmsgs; m->status_code; ++m) {
+        if (m->status_code == static_cast<int>(status)) {
+            return m->status_msg;
         }
-
-        return "unknown phrase";
     }
 
-	string pigeon::get_status_msg(HttpStatus status) {
+    return "unknown msg";
+}
 
-        for (statusmsg *m = statusmsgs; m->status_code; ++m) {
-            if (m->status_code == static_cast<int>(status)) {
-                return m->status_msg;
-            }
+string pigeon::get_err_msg(HttpStatus status) {
+
+    string message;
+    string headers;
+
+    message += err_msg1;
+    message += std::to_string((int) status);
+    message += err_msg3;
+    message += get_status_msg(status);
+    message += err_msg5;
+
+    headers += err_cached_response;
+
+    headers += get_header_field(HttpHeader::Content_Length);
+    unsigned long length = message.size();
+    headers += std::to_string(length);
+    headers += "\r\n\r\n";
+
+    headers += message;
+
+    return headers;
+
+}
+
+string pigeon::get_mime_type(string &extension) {
+
+    for (mapping *m = mappings; m->extension; ++m) {
+        if (m->extension == extension) {
+            return m->mime_type;
         }
-
-        return "unknown msg";
     }
 
-	string pigeon::get_err_msg(HttpStatus status){
+    return string("text/plain");
 
-		string message;
-        string headers;
+}
 
-        message += err_msg1;
-        message += std::to_string((int)status);
-        message += err_msg3;
-        message += get_status_msg(status);
-        message += err_msg5;
+string pigeon::get_log_type(LogType type) {
 
-        headers += err_cached_response;
-
-        headers += get_header_field(HttpHeader::Content_Length);
-        unsigned long length =  message.size();
-        headers += std::to_string(length);
-        headers += "\r\n\r\n";
-
-        headers += message;
-
-		return headers;
-
-	}
-
-	string pigeon::get_mime_type(string &extension) {
-
-        for (mapping *m = mappings; m->extension; ++m) {
-            if (m->extension == extension) {
-                return m->mime_type;
-            }
+    for (logtype *m = logtypes; m->log_id; ++m) {
+        if (m->log_id == static_cast<int>(type)) {
+            return m->log_type;
         }
-
-        return string("text/plain");
-
     }
 
-	string pigeon::get_log_type(LogType type) {
+    return "unknown log type";
+}
 
-        for (logtype *m = logtypes; m->log_id; ++m) {
-            if (m->log_id == static_cast<int>(type)) {
-                return m->log_type;
-            }
+string pigeon::get_severity(Severity severe) {
+    for (severity *m = severities; m->severity_id; ++m) {
+        if (m->severity_id == static_cast<int>(severe)) {
+            return m->severity_type;
         }
-
-        return "unknown log type";
     }
 
-	string pigeon::get_severity(Severity severe) {
-        for (severity *m = severities; m->severity_id; ++m) {
-            if (m->severity_id == static_cast<int>(severe)) {
-                return m->severity_type;
-            }
+    return "unknown severity type";
+}
+
+bool pigeon::is_api(string &Uri, string &apiroute) {
+    std::size_t pos = Uri.find(apiroute);
+    return pos != string::npos;
+}
+
+void pigeon::parse_query_string(http_request &req) {
+
+    string query_uri(req.url);
+    std::size_t _parStart = req.url.find('?');
+
+    if (_parStart != string::npos) {
+
+        req.url = query_uri.substr(0, _parStart);
+        query_uri = query_uri.substr(_parStart + 1, query_uri.size());
+    }
+
+    if (_parStart != string::npos) {
+        replace(query_uri.begin(), query_uri.end(), '&', ' ');
+        std::istringstream issParams(query_uri.c_str());
+        vector<string> vparams{istream_iterator<string>{issParams},
+                               istream_iterator<string>{}};
+        size_t end;
+        for (auto &par : vparams) {
+            end = par.find("=", 0);
+            string key = par.substr(0, end);
+            string value = par.substr(end + 1, par.size() - 1);
+            req.set_parameter(key, value);
         }
-
-        return "unknown severity type";
     }
 
-    bool pigeon::is_api(string &Uri, string& apiroute) {
-        std::size_t pos = Uri.find(apiroute);
-        return pos != string::npos;
-    }
+}
 
-    void pigeon::parse_query_string(http_request &req) {
+bool pigeon::url_decode(const string &in, string &out) {
 
-        string query_uri(req.url);
-        std::size_t _parStart = req.url.find('?');
-
-        if (_parStart != string::npos) {
-
-            req.url = query_uri.substr(0, _parStart);
-            query_uri = query_uri.substr(_parStart + 1, query_uri.size());
-        }
-
-        if (_parStart != string::npos) {
-            replace(query_uri.begin(), query_uri.end(), '&', ' ');
-            std::istringstream issParams(query_uri.c_str());
-            vector<string> vparams{istream_iterator<string>{issParams},
-                                   istream_iterator<string>{}};
-            size_t end;
-            for (auto &par : vparams) {
-                end = par.find("=", 0);
-                string key = par.substr(0, end);
-                string value = par.substr(end + 1, par.size() - 1);
-                req.set_parameter(key, value);
-            }
-        }
-
-    }
-
-	bool pigeon::url_decode(const string &in, string &out) {
-
-        out.clear();
-        out.reserve(in.size());
-        for (std::size_t i = 0; i < in.size(); ++i) {
-            if (in[i] == '%') {
-                if (i + 3 <= in.size()) {
-                    int value = 0;
-                    std::istringstream is(in.substr(i + 1, 2));
-                    if (is >> std::hex >> value) {
-                        out += static_cast<char>(value);
-                        i += 2;
-                    }
-                    else {
-                        return false;
-                    }
+    out.clear();
+    out.reserve(in.size());
+    for (std::size_t i = 0; i < in.size(); ++i) {
+        if (in[i] == '%') {
+            if (i + 3 <= in.size()) {
+                int value = 0;
+                std::istringstream is(in.substr(i + 1, 2));
+                if (is >> std::hex >> value) {
+                    out += static_cast<char>(value);
+                    i += 2;
                 }
                 else {
                     return false;
                 }
-            }    
-            else if (in[i] == '+') {
-                out += ' ';
             }
             else {
-                out += in[i];
+                return false;
             }
         }
-        return true;
-
+        else if (in[i] == '+') {
+            out += ' ';
+        }
+        else {
+            out += in[i];
+        }
     }
+    return true;
+
+}
 
  
 

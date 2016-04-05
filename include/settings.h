@@ -4,6 +4,7 @@
 
 #ifndef PIGEON_APP_SETTINGS_H
 #define PIGEON_APP_SETTINGS_H
+
 #include <string>
 #include <vector>
 #include <key_value_pair.h>
@@ -44,7 +45,6 @@ namespace pigeon {
     };
 
 }
-
 
 
 #endif //PIGEON_APP_SETTINGS_H

@@ -14,21 +14,22 @@ using namespace std;
 namespace pigeon {
 
 
-
     class server {
 
     private:
         class server_impl;
-        server_impl* _Impl;
+
+        server_impl *_Impl;
 
     public:
 
         server();
+
         ~server();
+
         void start();
 
     };
-
 
 
 }

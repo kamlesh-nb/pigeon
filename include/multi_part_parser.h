@@ -17,8 +17,7 @@ namespace pigeon {
         vector<string> file_contents;
         string boundary;
 
-        enum state
-        {
+        enum state {
             boundary_start,
             expecting_newline_1,
             header_line_start,
@@ -32,8 +31,7 @@ namespace pigeon {
             body_end
         } state_;
 
-        enum param_state
-        {
+        enum param_state {
             param_start,
             param_name,
             param_value
@@ -42,8 +40,9 @@ namespace pigeon {
 
     public:
 
-        form parse_part(string, string& boundary);
-        void parse(http_context*, string);
+        form parse_part(string, string &boundary);
+
+        void parse(http_context *, string);
 
     };
 

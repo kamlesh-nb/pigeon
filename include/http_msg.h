@@ -12,7 +12,7 @@
 using namespace std;
 
 
-namespace  pigeon {
+namespace pigeon {
 
 
     class http_msg {
@@ -29,9 +29,9 @@ namespace  pigeon {
         int http_minor_version;
         string content;
 
-		auto has_headers() -> bool;
+        auto has_headers() -> bool;
 
-        virtual auto set_header(string&, string&) -> void;
+        virtual auto set_header(string &, string &) -> void;
 
         virtual auto get_header(string) -> string;
 
@@ -64,7 +64,7 @@ namespace  pigeon {
     private:
 
         unordered_map<string, string> parameters;
-		shared_ptr<http_response> response;
+        shared_ptr<http_response> response;
 
     public:
 
@@ -75,17 +75,17 @@ namespace  pigeon {
         bool is_api{false};
         vector<form> forms;
 
-        char* data;
+        char *data;
 
-        auto get_parameter(string&) -> string;
+        auto get_parameter(string &) -> string;
 
-        auto set_parameter(string&, string&) -> void;
+        auto set_parameter(string &, string &) -> void;
 
-		auto create_response(const char*, http_response&, HttpStatus status) -> void;
+        auto create_response(const char *, http_response &, HttpStatus status) -> void;
 
-        auto create_response(string&, http_response&, HttpStatus status) -> void;
+        auto create_response(string &, http_response &, HttpStatus status) -> void;
 
-		auto create_response(string&, string&, http_response&, HttpStatus status) -> void;
+        auto create_response(string &, string &, http_response &, HttpStatus status) -> void;
 
 
     };

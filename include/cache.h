@@ -22,16 +22,16 @@ namespace pigeon {
         static std::shared_ptr<cache> temp;
 
         string _path;
-         
+
         vector<file_info> cache_data;
 
         uv_rwlock_t cache_lock;
 
-        void compress_item(file_info& fi);
+        void compress_item(file_info &fi);
 
-        void cache_item(string& file);
+        void cache_item(string &file);
 
-        void load_files(string filepath, uv_fs_t* req);
+        void load_files(string filepath, uv_fs_t *req);
 
     public:
 
@@ -43,16 +43,14 @@ namespace pigeon {
 
         void reload_item(string &file);
 
-        void get_item(string &file, file_info& fi);
+        void get_item(string &file, file_info &fi);
 
-        static std::shared_ptr<cache>& get();
+        static std::shared_ptr<cache> &get();
 
     };
 
 
 }
-
-
 
 
 #endif //PIGEON_CACHE_H

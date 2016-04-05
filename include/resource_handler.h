@@ -13,23 +13,28 @@ namespace pigeon {
     class resource_handler : public http_handler_base {
 
     private:
-        
-		string default_page;
+
+        string default_page;
         string resource_location;
         string cached_response;
 
     public:
 
         resource_handler();
+
         virtual ~resource_handler();
-		void get(http_context*) override;
-		void post(http_context*) override;
-		void put(http_context*) override;
-		void del(http_context*) override;
 
-		void process(http_context*) override;
+        void get(http_context *) override;
 
-		void options(http_context*);
+        void post(http_context *) override;
+
+        void put(http_context *) override;
+
+        void del(http_context *) override;
+
+        void process(http_context *) override;
+
+        void options(http_context *);
 
     };
 

@@ -11,14 +11,15 @@ namespace pigeon {
 
     struct http_context {
 
-        http_request* request;
-        http_response* response;
+        http_request *request;
+        http_response *response;
 
-        http_context(){
+        http_context() {
             request = new http_request;
             response = new http_response;
         }
-        ~http_context(){
+
+        ~http_context() {
             delete request;
             delete response;
         }

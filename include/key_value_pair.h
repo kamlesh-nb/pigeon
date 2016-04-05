@@ -66,10 +66,10 @@ namespace pigeon {
 
     };
 
-	struct key_value_pair {
-		std::string key;
-		std::string value;
-	};
+    struct key_value_pair {
+        std::string key;
+        std::string value;
+    };
 }
 
 #endif //KEY_VALUE_PAIR_H

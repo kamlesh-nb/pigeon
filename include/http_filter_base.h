@@ -15,11 +15,11 @@ namespace pigeon {
 
         virtual ~http_filter_base();
 
-		virtual void init() = 0;
+        virtual void init() = 0;
 
         virtual void execute(http_context *) = 0;
 
-		virtual void clean() = 0;
+        virtual void clean() = 0;
 
     };
 

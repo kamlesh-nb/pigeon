@@ -67,15 +67,17 @@ auto settings::load_setting() -> void {
         db_conn_string = doc["db_conn_string"].GetString();
         enable_cors = doc["enable_cors"].GetBool();
 
-        for (Value::ConstMemberIterator it = doc["cors_headers"].MemberBegin(); it != doc["cors_headers"].MemberEnd(); ++it) {
+        for (Value::ConstMemberIterator it = doc["cors_headers"].MemberBegin();
+             it != doc["cors_headers"].MemberEnd(); ++it) {
             cors_headers.emplace(std::pair<string, string>(it->name.GetString(), it->value.GetString()));
         }
 
-        for (Value::ConstMemberIterator it = doc["app_settings"].MemberBegin(); it != doc["app_settings"].MemberEnd(); ++it) {
+        for (Value::ConstMemberIterator it = doc["app_settings"].MemberBegin();
+             it != doc["app_settings"].MemberEnd(); ++it) {
             app_settings.emplace(std::pair<string, string>(it->name.GetString(), it->value.GetString()));
         }
     }
-    catch(std::exception& ex){
+    catch (std::exception &ex) {
         cout << ex.what() << endl;
     }
 

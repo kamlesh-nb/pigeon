@@ -12,7 +12,7 @@ logger::logger() {
     }
 }
 
-logger::logger(const logger &lgr){
+logger::logger(const logger &lgr) {
 
 }
 
@@ -44,15 +44,12 @@ std::shared_ptr<logger> logger::instance = nullptr;
 
 std::mutex logger::_mtx;
 
-std::shared_ptr<logger>&logger::get()
-{
+std::shared_ptr<logger> &logger::get() {
     static std::shared_ptr<logger> tmp = instance;
 
-    if (!tmp)
-    {
+    if (!tmp) {
         std::lock_guard<std::mutex> lock(_mtx);
-        if (!tmp)
-        {
+        if (!tmp) {
             instance.reset(new logger);
             tmp = instance;
         }

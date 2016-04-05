@@ -9,33 +9,33 @@
 
 namespace pigeon {
 
-	class http_handlers
-	{
+    class http_handlers {
 
-	private:
+    private:
 
-		http_handlers();
-		static std::mutex _mtx;
-		static std::shared_ptr<http_handlers> temp;
-		std::unordered_map<string, http_handler_base*> handlers;
+        http_handlers();
 
-	public:
+        static std::mutex _mtx;
+        static std::shared_ptr<http_handlers> temp;
+        std::unordered_map<string, http_handler_base *> handlers;
 
-		~http_handlers();
-		http_handlers(const http_handlers &handlers);
+    public:
 
-		void add(std::string, http_handler_base*);
-		http_handler_base* get(std::string);
-		http_handler_base* get();
+        ~http_handlers();
 
-		static std::shared_ptr<http_handlers>& instance();
+        http_handlers(const http_handlers &handlers);
 
-	};
+        void add(std::string, http_handler_base *);
+
+        http_handler_base *get(std::string);
+
+        http_handler_base *get();
+
+        static std::shared_ptr<http_handlers> &instance();
+
+    };
 
 }
-
-
-
 
 
 #endif //PIGEON_HTTP_HANDLERS_H
