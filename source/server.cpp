@@ -19,8 +19,6 @@
 #include <multi_part_parser.h>
 #include <regex>
 
-#define container_of(ptr, type, member) \
-    ((type *)((char *)(ptr)-offsetof(type, member)))
 
 #define MAX_WRITE_HANDLES 1000
 #define VARNAME "UV_THREADPOOL_SIZE"
