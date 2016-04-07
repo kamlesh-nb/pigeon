@@ -13,8 +13,10 @@ namespace pigeon {
 
 		bool execute_request_filters(http_context*);
 		void parse_multipart(http_context*);
+        void parse_cookies(http_context*);
+        void parse_url(http_context*);
 		bool execute_response_filters(http_context*);
-		void handle_cors_request(http_context*);
+		void handle_cors(http_context *);
 
 	public:
 		request_processor();

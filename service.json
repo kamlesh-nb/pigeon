@@ -2,8 +2,7 @@
   "service_name": "test-service",
   "worker_threads": 3,
   "address": "127.0.0.1",
-  "port":  8080,
-  "filters": "",
+  "port": 8080,
   "use_ssl": false,
   "ssl_cert_file": "/home/kamlesh/Documents/re-app/pigen.pem",
   "ssl_key_file": "/home/kamlesh/Documents/re-app/pigen.pem",
@@ -14,19 +13,35 @@
   "api_route": "/api/",
   "db_conn_string": "localhost:27017",
   "log_location": "/home/kamlesh/Documents/log/service.log",
-  "enable_cors": true,
-
-  "cors_headers": {
-        "Access-Control-Allow-Origin:": "http://foo.example",
-        "Access-Control-Allow-Methods:": "POST, GET, OPTIONS",
-        "Access-Control-Allow-Headers:": "X-PINGOTHER",
-        "Access-Control-Max-Age:": "1728000",
-        "Access-Control-Allow-Credentials:": "false",
-        "Access-Control-Expose-Headers:": "none"
+  "filters": [
+    {
+      "type": "request",
+      "filter_names": [
+        {
+          "filter_name": ""
+        }
+      ]
     },
-
+    {
+      "type": "response",
+      "filter_names": [
+        {
+          "filter_name": ""
+        }
+      ]
+    }
+  ],
+  "enable_cors": true,
+  "cors_headers": {
+    "Access-Control-Allow-Origin:": "http://foo.example",
+    "Access-Control-Allow-Methods:": "POST, GET, OPTIONS",
+    "Access-Control-Allow-Headers:": "X-PINGOTHER",
+    "Access-Control-Max-Age:": "1728000",
+    "Access-Control-Allow-Credentials:": "false",
+    "Access-Control-Expose-Headers:": "none"
+  },
   "app_settings": {
-      "custom_log_location": "none",
-      "backtest_duration": "3"
+    "custom_log_location": "none",
+    "backtest_duration": "3"
   }
 }

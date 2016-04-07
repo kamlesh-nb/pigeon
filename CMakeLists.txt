@@ -23,9 +23,11 @@ set(SOURCE_FILES main.cpp
         source/stop_watch.cpp include/stop_watch.h
         source/md5.cpp include/md5.h
         source/resource_handler.cpp include/resource_handler.h
+        source/request_processor.cpp include/request_processor.h
         source/cache.cpp include/cache.h
         source/settings.cpp include/settings.h
-        source/server.cpp include/server.h source/multi_part_parser.cpp include/multi_part_parser.h)
+        source/server.cpp include/server.h
+        source/multi_part_parser.cpp include/multi_part_parser.h)
 
 #add_library(pigeon ${SOURCE_FILES})
 add_executable(pigeon ${SOURCE_FILES})

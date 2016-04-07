@@ -1,4 +1,4 @@
-#include "request_processor.h"
+#include <request_processor.h>
 
 using namespace pigeon;
 
@@ -31,7 +31,7 @@ bool request_processor::execute_response_filters(http_context *)
 	return false;
 }
 
-void request_processor::handle_cors_request(http_context *)
+void request_processor::handle_cors(http_context *)
 {
 }
 
