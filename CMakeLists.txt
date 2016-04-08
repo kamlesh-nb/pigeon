@@ -27,7 +27,8 @@ set(SOURCE_FILES main.cpp
         source/cache.cpp include/cache.h
         source/settings.cpp include/settings.h
         source/server.cpp include/server.h
-        source/multi_part_parser.cpp include/multi_part_parser.h)
+        source/multi_part_parser.cpp include/multi_part_parser.h
+        polltopics.cpp polltopics.h)
 
 #add_library(pigeon ${SOURCE_FILES})
 add_executable(pigeon ${SOURCE_FILES})

@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
-#include <key_value_pair.h>
+#include <http_util.h>
 #include <unordered_map>
 
 
@@ -18,9 +18,12 @@ namespace pigeon {
     class http_msg {
 
     private:
-        unordered_map<string, string> cookies;
         unordered_map<string, string> headers;
         string temp;
+
+    protected:
+        unordered_map<string, string> cookies;
+
     public:
 
         virtual ~http_msg();
@@ -36,8 +39,6 @@ namespace pigeon {
         virtual auto get_header(string) -> string;
 
         virtual auto set_cookie(string &, string &) -> void;
-
-        virtual auto get_cookie(string) -> string;
 
         virtual auto get_non_default_headers(string &) -> void;
 
@@ -80,6 +81,8 @@ namespace pigeon {
         vector<form> forms;
 
         char *data;
+
+        auto get_cookie(string) -> string;
 
         auto get_parameter(string &) -> string;
 

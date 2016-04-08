@@ -15,9 +15,8 @@
 #include <cache.h>
 #include <resource_handler.h>
 #include <http_handlers.h>
-#include <http_filters.h>
-#include <multi_part_parser.h>
 #include <regex>
+#include <request_processor.h>
 
 
 #define MAX_WRITE_HANDLES 1000
@@ -69,6 +68,8 @@ namespace pigeon {
             cache::get()->load(settings::resource_location);
 
             http_handlers::instance()->add("resource", new resource_handler());
+
+            RequestProcessor = new request_processor;
 
             uv_loop = uv_default_loop();
 
@@ -232,6 +233,8 @@ namespace pigeon {
 
     public:
 
+        request_processor* RequestProcessor;
+
         void on_shutdown(uv_handle_t *req, int status) {
             if (!uv_is_closing((uv_handle_t *) req)) {
                 uv_close((uv_handle_t *) req, [](uv_handle_t *handle) {
@@ -247,13 +250,9 @@ namespace pigeon {
             msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
             iconnection_t *iConn = closure->iConn;
 
-
-            iConn->context->request->is_api = is_api(iConn->context->request->url, settings::api_route);
-            parse_query_string(*iConn->context->request);
-
             server_impl *srvImpl = static_cast<server_impl *>(iConn->data);
 
-            srvImpl->process(iConn->context);
+            srvImpl->RequestProcessor->process(iConn->context);
 
             closure->result = (char *) iConn->context->response->message.c_str();
             closure->length = iConn->context->response->message.size();
@@ -456,47 +455,6 @@ namespace pigeon {
 
         }
 
-        void process(http_context *context) {
-
-            for (auto &flt:filters) {
-
-                if (flt.size() > 0) {
-                    auto filter = http_filters::instance()->get(flt);
-                    filter->execute(context);
-                    filter->clean();
-                }
-
-            }
-
-            //check if content type is multipar/form-data
-            string content_type = context->request->get_header("Content-Type");
-
-            if (content_type.size() > 0) {
-
-                std::regex re(";|=|\\+s");
-                std::sregex_token_iterator p(content_type.begin(), content_type.end(), re, -1);
-                std::sregex_token_iterator end;
-                string val, boundary;
-                val += *p++;
-
-                if (val == "multipart/form-data") {
-                    *p++;
-                    boundary += *p++;
-                    multi_part_parser mpp;
-                    mpp.parse(context, boundary);
-                }
-
-            }
-
-            if (context->request->is_api) {
-                auto handler = http_handlers::instance()->get(context->request->url);
-                handler->process(context);
-            } else {
-                auto handler = http_handlers::instance()->get("resource");
-                handler->process(context);
-            }
-
-        }
 
 
     };

@@ -5,12 +5,13 @@
 #include <fstream>
 #include <string.h>
 #include <md5.h>
-#include "http_util.h"
+#include <http_util.h>
 #include <zlib.h>
 #include <sstream>
 #include <logger.h>
 
-#include "cache.h"
+#include <cache.h>
+#include <algorithm>
 
 using namespace pigeon;
 

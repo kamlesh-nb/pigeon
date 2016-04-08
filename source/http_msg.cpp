@@ -1,6 +1,5 @@
-#include "http_msg.h"
+#include <http_msg.h>
 #include <http_util.h>
-#include <iostream>
 
 using namespace std;
 using namespace pigeon;
@@ -32,7 +31,7 @@ auto http_msg::set_cookie(string &key, string &value) -> void {
 
 }
 
-auto http_msg::get_cookie(string key) -> string {
+auto http_request::get_cookie(string key) -> string {
 
     return cookies[key];
 
@@ -87,9 +86,7 @@ auto http_request::create_response(string &message, http_response &response, Htt
 
 }
 
-
-auto http_request::create_response(string &cached_headers, string &message, http_response &response,
-                                   HttpStatus status) -> void {
+auto http_request::create_response(string &cached_headers, string &message, http_response &response, HttpStatus status) -> void {
 
     response.content += message;
     response.status = (unsigned int) status;
@@ -111,8 +108,6 @@ auto http_request::create_response(string &cached_headers, string &message, http
     response.message += response.content;
 
 }
-
-
 
 http_response::~http_response() {
 

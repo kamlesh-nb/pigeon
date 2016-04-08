@@ -137,15 +137,14 @@ form multi_part_parser::parse_part(string data, string &boundary) {
             }
         }
         //adding last key value, since it cannot be captured in the loop
-        form_data.parameters.emplace(std::pair<string, string>(key, val));
-        key.clear();
-        val.clear();
-
+        if(key.size() > 0 && val.size() > 0){
+            form_data.parameters.emplace(std::pair<string, string>(key, val));
+            key.clear(); val.clear();
+        }
     }
 
     return form_data;
 }
-
 
 void multi_part_parser::parse(http_context *context, string _boundary) {
 

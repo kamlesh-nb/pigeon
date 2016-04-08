@@ -17,7 +17,7 @@ namespace pigeon {
         void parse_url(http_context*);
 		bool execute_response_filters(http_context*);
 		void handle_cors(http_context *);
-
+        bool is_api(string &Uri, string &);
 	public:
 		request_processor();
 		~request_processor();

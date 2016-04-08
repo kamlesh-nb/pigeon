@@ -9,8 +9,8 @@
 #include <fstream>
 #include <string.h>
 #include <memory>
-#include "settings.h"
-#include "http_util.h"
+#include <settings.h>
+#include <http_util.h>
 
 using namespace std;
 

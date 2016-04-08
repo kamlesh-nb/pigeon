@@ -3,12 +3,11 @@
 //
 
 #include <uv.h>
-#include "settings.h"
-
+#include <settings.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/document.h>
 #include <fstream>
-#include <iostream>
+#include <logger.h>
 
 using namespace rapidjson;
 using namespace pigeon;
@@ -31,6 +30,8 @@ string settings::api_route;
 bool settings::enable_cors;
 unordered_map<string, string> settings::app_settings;
 unordered_map<string, string> settings::cors_headers;
+vector<string> settings::request_filters;
+vector<string> settings::response_filters;
 
 
 auto settings::load_setting() -> void {
@@ -54,7 +55,7 @@ auto settings::load_setting() -> void {
         worker_threads = doc["worker_threads"].GetInt();
         address = doc["address"].GetString();
         port = doc["port"].GetInt();
-        filters = doc["filters"].GetString();
+
         use_ssl = doc["use_ssl"].GetBool();
         ssl_cert_file = doc["ssl_cert_file"].GetString();
         ssl_key_file = doc["ssl_key_file"].GetString();
@@ -76,9 +77,24 @@ auto settings::load_setting() -> void {
              it != doc["app_settings"].MemberEnd(); ++it) {
             app_settings.emplace(std::pair<string, string>(it->name.GetString(), it->value.GetString()));
         }
+
+
+        const Value& req_filters = doc["request_filters"];
+        assert(req_filters.IsArray());
+        for (SizeType i = 0; i < req_filters.Size(); i++) {
+            request_filters.push_back(req_filters[i].GetString());
+        }
+
+        const Value& res_filters = doc["response_filters"];
+        assert(res_filters.IsArray());
+        for (SizeType i = 0; i < res_filters.Size(); i++) {
+            response_filters.push_back(res_filters[i].GetString());
+        }
+
+
     }
     catch (std::exception &ex) {
-        cout << ex.what() << endl;
+        logger::get()->write(LogType::Error, ex.what());
     }
 
 

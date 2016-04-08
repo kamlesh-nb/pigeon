@@ -1,9 +1,6 @@
 #ifndef STOP_WATCH_H
 #define STOP_WATCH_H
 
-#include <iostream>
-#include <vector>
-#include <string>
 #include <stdint.h>
 #include <random>
 #include <time.h>

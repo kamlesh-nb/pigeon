@@ -6,7 +6,7 @@
 #define PIGEON_CACHE_H
 
 #include <uv.h>
-#include "file_info.h"
+#include <file_info.h>
 #include <vector>
 #include <string>
 #include <mutex>

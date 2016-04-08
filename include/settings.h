@@ -7,8 +7,6 @@
 
 #include <string>
 #include <vector>
-#include <key_value_pair.h>
-#include <map>
 #include <unordered_map>
 
 using namespace std;
@@ -38,6 +36,8 @@ namespace pigeon {
         static bool enable_cors;
         static unordered_map<string, string> app_settings;
         static unordered_map<string, string> cors_headers;
+        static vector<string> request_filters;
+        static vector<string> response_filters;
 
         static auto load_setting() -> void;
 

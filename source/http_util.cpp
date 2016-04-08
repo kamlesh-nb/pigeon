@@ -1,4 +1,4 @@
-#include "http_util.h"
+#include <http_util.h>
 #include <ctime>
 #include <string.h>
 #include <chrono>
@@ -41,6 +41,8 @@ struct header {
                 {3, "Last-Modified: "},
                 {4, "ETag: "},
                 {5, "Content-Encoding: deflate\r\n"},
+                {6, "Set-Cookie: "},
+                {7, "Authorization:"},
                 {0, 0}
         };
 
@@ -175,7 +177,7 @@ string cached_date_response = "\r\nDate: ";
 string err_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: text/html; charset=UTF-8\r\n";
 string api_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: application/json\r\n";
 
-const char *err_msg1 = "<!DOCTYPE html><html><head lang='en'><meta charset='UTF-8'><title>Status</title></head><body><table style='border=1'><th>Status Code</th><th>Message</th><tr><td>";
+const char *err_msg1 = "<!DOCTYPE html><html><head lang='en'><meta charset='UTF-8'><title>Status</title></head><body><table border=1><th>Status Code</th><th>Message</th><tr><td>";
 const char *err_msg3 = "</td><td>";
 const char *err_msg5 = "</td></tr></table></body></html>";
 
@@ -294,42 +296,6 @@ string pigeon::get_severity(Severity severe) {
     }
 
     return "unknown severity type";
-}
-
-bool pigeon::is_api(string &Uri, string &apiroute) {
-    std::size_t pos = Uri.find(apiroute);
-    return pos != string::npos;
-}
-
-void ::pigeon::parse_key_val(unordered_map<string, string>& key_val_map, char key_val_separater, string source) {
-
-}
-
-void pigeon::parse_query_string(http_request &req) {
-
-    string query_uri(req.url);
-    std::size_t _parStart = req.url.find('?');
-
-    if (_parStart != string::npos) {
-
-        req.url = query_uri.substr(0, _parStart);
-        query_uri = query_uri.substr(_parStart + 1, query_uri.size());
-    }
-
-    if (_parStart != string::npos) {
-        replace(query_uri.begin(), query_uri.end(), '&', ' ');
-        std::istringstream issParams(query_uri.c_str());
-        vector<string> vparams{istream_iterator<string>{issParams},
-                               istream_iterator<string>{}};
-        size_t end;
-        for (auto &par : vparams) {
-            end = par.find("=", 0);
-            string key = par.substr(0, end);
-            string value = par.substr(end + 1, par.size() - 1);
-            req.set_parameter(key, value);
-        }
-    }
-
 }
 
 bool pigeon::url_decode(const string &in, string &out) {

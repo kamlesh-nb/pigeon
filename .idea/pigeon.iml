@@ -2,6 +2,21 @@
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/main.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/cache.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/http_util.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/http_filters.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/http_msg.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/http_handlers.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/server.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/request_processor.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/logger.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/settings.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/multi_part_parser.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/md5.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/resource_handler.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/source/stop_watch.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/logger.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/settings.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/http_context.h" isTestSource="false" />
@@ -20,21 +35,8 @@
       <sourceFolder url="file://$MODULE_DIR$/include/md5.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/file_info.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/key_value_pair.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/main.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/settings.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/cache.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/http_util.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/http_filters.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/http_msg.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/http_handlers.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/server.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/request_processor.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/logger.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/resource_handler.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/multi_part_parser.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/md5.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/source/stop_watch.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/polltopics.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/polltopics.h" isTestSource="false" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
