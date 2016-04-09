@@ -20,7 +20,16 @@ namespace pigeon {
         ETag,
         Content_Encoding,
         Set_Cookie,
-        Authorization
+        Authorization,
+        Access_Control_Allow_Origin,
+        Access_Control_Allow_Methods,
+        Access_Control_Allow_Headers,
+        Access_Control_Max_Age,
+        Access_Control_Allow_Credentials,
+        Access_Control_Expose_Headers,
+        Vary,
+        Keep_Alive,
+        Connection
     };
     enum class HttpStatus {
 

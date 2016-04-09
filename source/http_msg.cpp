@@ -1,5 +1,6 @@
 #include <http_msg.h>
 #include <http_util.h>
+#include <http_parser.h>
 
 using namespace std;
 using namespace pigeon;
@@ -8,8 +9,8 @@ http_msg::~http_msg() {
 
 }
 
-auto http_msg::has_headers() -> bool {
-    if (headers.size() > 0) { return true; }
+auto http_msg::has_cookies() -> bool {
+    if (cookies.size() > 0) { return true; }
     else { return false; }
 }
 
@@ -72,7 +73,7 @@ auto http_request::create_response(string &message, http_response &response, Htt
     response.message += get_status_phrase(status);
     response.message += get_cached_response(is_api);
 
-    if (is_api) {
+    if (is_api && !method == HTTP_OPTIONS) {
 
         response.message += get_header_field(HttpHeader::Content_Length);
         response.message += std::to_string(message.size());

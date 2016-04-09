@@ -11,6 +11,20 @@ namespace pigeon {
 	{
 	private:
 
+        string allowed_origins_cfg;
+        string allowed_methods_cfg;
+        string allowed_headers_cfg;
+        string allowed_max_age_cfg;
+        string allowed_credential_cfg;
+        string allowed_expose_headers_cfg;
+
+        string allowed_origins_hdr_fld;
+        string allowed_methods_hdr_fld;
+        string allowed_headers_hdr_fld;
+        string allowed_max_age_hdr_fld;
+        string allowed_credentials_hdr_fld;
+        string allowed_expose_headers_hdr_fld;
+
 		bool execute_request_filters(http_context*);
 		void parse_multipart(http_context*);
         void parse_cookies(http_context*);
@@ -18,6 +32,7 @@ namespace pigeon {
 		bool execute_response_filters(http_context*);
 		void handle_cors(http_context *);
         bool is_api(string &Uri, string &);
+
 	public:
 		request_processor();
 		~request_processor();

@@ -32,7 +32,7 @@ namespace pigeon {
         int http_minor_version;
         string content;
 
-        auto has_headers() -> bool;
+        auto has_cookies() -> bool;
 
         virtual auto set_header(string &, string &) -> void;
 
@@ -79,8 +79,6 @@ namespace pigeon {
         unsigned int method;
         bool is_api{false};
         vector<form> forms;
-
-        char *data;
 
         auto get_cookie(string) -> string;
 

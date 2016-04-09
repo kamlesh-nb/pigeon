@@ -11,7 +11,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmultichar -std=c++14")
 set(SOURCE_FILES main.cpp
         include/http_context.h
         include/file_info.h
-        include/key_value_pair.h
         include/http_handler_base.h
         include/http_filter_base.h
         source/logger.cpp include/logger.h

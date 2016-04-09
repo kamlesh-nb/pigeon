@@ -38,7 +38,8 @@ namespace pigeon {
         static unordered_map<string, string> cors_headers;
         static vector<string> request_filters;
         static vector<string> response_filters;
-
+        static vector<string> cors_allowed_origins;
+        static vector<string> cors_allowed_methods;
         static auto load_setting() -> void;
 
 

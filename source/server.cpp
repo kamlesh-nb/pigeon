@@ -69,7 +69,7 @@ namespace pigeon {
 
             http_handlers::instance()->add("resource", new resource_handler());
 
-            RequestProcessor = new request_processor;
+            RequestProcessor = new request_processor();
 
             uv_loop = uv_default_loop();
 
@@ -171,6 +171,7 @@ namespace pigeon {
                     key += iConn->temp;
                     free(data);
                     free(iConn->temp);
+
                     iConn->context->request->set_header(key, value);
                 }
                 return 0;
@@ -329,7 +330,6 @@ namespace pigeon {
             try {
 
                 ssize_t parsed;
-
                 iconnection_t *iConn = (iconnection_t *) tcp->data;
                 if (nread >= 0) {
 

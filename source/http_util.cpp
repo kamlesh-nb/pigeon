@@ -43,6 +43,15 @@ struct header {
                 {5, "Content-Encoding: deflate\r\n"},
                 {6, "Set-Cookie: "},
                 {7, "Authorization:"},
+                {8, "Access-Control-Allow-Origin:"},
+                {9, "Access-Control-Allow-Methods:"},
+                {10, "Access-Control-Allow-Headers:"},
+                {11, "Access-Control-Max-Age:"},
+                {12, "Access-Control-Allow-Credentials:"},
+                {13, "Access-Control-Expose-Headers:"},
+                {14, "Vary"},
+                {15, "Keep-Alive"},
+                {16, "Connection"},
                 {0, 0}
         };
 

@@ -13,6 +13,23 @@
 
 using namespace pigeon;
 
+enum state {
+    header_line_start,
+    header_lws,
+    header_name,
+    space_before_header_value,
+    header_value,
+    expecting_newline_2,
+    expecting_newline_3,
+    body_start
+} state_;
+
+enum param_state {
+    param_start,
+    param_name,
+    param_value
+} param_state_;
+
 form multi_part_parser::parse_part(string data, string &boundary) {
     state_ = header_line_start;
     form form_data;
@@ -82,7 +99,7 @@ form multi_part_parser::parse_part(string data, string &boundary) {
             case body_start:
                 string body_with_boundary = string(begin, end);
                 unsigned long pos = body_with_boundary.find(boundary);
-                for (unsigned long actualPos = pos; actualPos >= 0; --actualPos) {
+                for (unsigned long actualPos = pos; actualPos <= pos; --actualPos) {
                     if (body_with_boundary[actualPos] == '\r') {
                         pos = actualPos;
                         break;

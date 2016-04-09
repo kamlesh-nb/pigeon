@@ -17,25 +17,7 @@ namespace pigeon {
         vector<string> file_contents;
         string boundary;
 
-        enum state {
-            boundary_start,
-            expecting_newline_1,
-            header_line_start,
-            header_lws,
-            header_name,
-            space_before_header_value,
-            header_value,
-            expecting_newline_2,
-            expecting_newline_3,
-            body_start,
-            body_end
-        } state_;
 
-        enum param_state {
-            param_start,
-            param_name,
-            param_value
-        } param_state_;
 
 
     public:

@@ -113,9 +113,7 @@ void resource_handler::del(http_context *context) {
 }
 
 void resource_handler::options(http_context *context) {
-
-    context->request->create_response("Not Implemented!", *context->response, HttpStatus::NotImplemented);
-
+    context->request->create_response(context->response->message, *context->response, HttpStatus::OK);
 }
 
 void resource_handler::process(http_context *context) {

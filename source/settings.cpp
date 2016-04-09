@@ -32,6 +32,8 @@ unordered_map<string, string> settings::app_settings;
 unordered_map<string, string> settings::cors_headers;
 vector<string> settings::request_filters;
 vector<string> settings::response_filters;
+vector<string> settings::cors_allowed_origins;
+vector<string> settings::cors_allowed_methods;
 
 
 auto settings::load_setting() -> void {
@@ -70,7 +72,7 @@ auto settings::load_setting() -> void {
 
         for (Value::ConstMemberIterator it = doc["cors_headers"].MemberBegin();
              it != doc["cors_headers"].MemberEnd(); ++it) {
-            cors_headers.emplace(std::pair<string, string>(it->name.GetString(), it->value.GetString()));
+                cors_headers.emplace(std::pair<string, string>(it->name.GetString(), it->value.GetString()));
         }
 
         for (Value::ConstMemberIterator it = doc["app_settings"].MemberBegin();

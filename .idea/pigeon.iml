@@ -34,7 +34,6 @@
       <sourceFolder url="file://$MODULE_DIR$/include/http_filter_base.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/md5.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/include/file_info.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/include/key_value_pair.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/polltopics.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/polltopics.h" isTestSource="false" />
     </content>

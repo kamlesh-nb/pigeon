@@ -23,6 +23,23 @@ enum cookie_state {
 
 request_processor::request_processor()
 {
+    allowed_origins_cfg = settings::cors_headers["Access-Control-Allow-Origin"];
+    allowed_methods_cfg = settings::cors_headers["Access-Control-Allow-Methods"];
+    allowed_headers_cfg = settings::cors_headers["Access-Control-Allow-Headers"];
+    allowed_max_age_cfg = settings::cors_headers["Access-Control-Max-Age"];
+    allowed_credential_cfg = settings::cors_headers["Access-Control-Allow-Credentials"];
+    allowed_expose_headers_cfg = settings::cors_headers["Access-Control-Expose-Headers"];
+
+
+
+    allowed_origins_hdr_fld = get_header_field(HttpHeader::Access_Control_Allow_Origin);
+    allowed_methods_hdr_fld = get_header_field(HttpHeader::Access_Control_Allow_Methods);
+    allowed_headers_hdr_fld = get_header_field(HttpHeader::Access_Control_Allow_Headers);
+    allowed_max_age_hdr_fld = get_header_field(HttpHeader::Access_Control_Max_Age);
+    allowed_credentials_hdr_fld = get_header_field(HttpHeader::Access_Control_Allow_Credentials);
+    allowed_expose_headers_hdr_fld = get_header_field(HttpHeader::Access_Control_Expose_Headers);
+
+
 }
 
 request_processor::~request_processor()
@@ -50,7 +67,16 @@ void request_processor::process(http_context *context)
         return;
     }
 
-    if (context->request->is_api) {
+    //if cors is enabled for the service, deal with it
+    if(settings::enable_cors){
+        handle_cors(context);
+    }
+
+    if ((context->request->is_api) &
+            (context->request->method == HTTP_GET ||
+            context->request->method == HTTP_PUT ||
+            context->request->method == HTTP_POST ||
+            context->request->method == HTTP_DELETE)) {
         //process the request if it is for web api
         auto handler = http_handlers::instance()->get(context->request->url);
         handler->process(context);
@@ -62,10 +88,7 @@ void request_processor::process(http_context *context)
         handler->process(context);
     }
 
-    //if cors is enabled for the service, deal with it
-    if(settings::enable_cors){
-        handle_cors(context);
-    }
+
 
     //execute if there are any response filters registered,
     //if any of the filter fails, it will terminate the further processing of request
@@ -134,6 +157,38 @@ bool request_processor::execute_response_filters(http_context *context)
 
 void request_processor::handle_cors(http_context *context)
 {
+    string origin = context->request->get_header("Origin");
+    string host = context->request->get_header("Host");
+
+    unsigned long pos = origin.find(host);
+
+
+    if(pos == string::npos){
+        unsigned long allowed_origin_pos = allowed_origins_cfg.find(origin);
+
+        if((allowed_origin_pos != string::npos) || (allowed_origins_cfg == "*") ){
+
+            if(context->request->method == HTTP_GET ||
+                context->request->method == HTTP_HEAD ||
+                context->request->method == HTTP_POST ||
+                context->request->method == HTTP_PUT){
+
+                context->response->set_header(allowed_origins_hdr_fld, origin);
+                context->response->set_header(allowed_credentials_hdr_fld, allowed_credential_cfg);
+
+            } else if (context->request->method == HTTP_OPTIONS) {
+
+                context->response->set_header(allowed_origins_hdr_fld, origin);
+                context->response->set_header(allowed_methods_hdr_fld, allowed_methods_cfg);
+                context->response->set_header(allowed_headers_hdr_fld, allowed_headers_cfg);
+                context->response->set_header(allowed_max_age_hdr_fld, allowed_max_age_cfg);
+                context->response->set_header(allowed_credentials_hdr_fld, allowed_credential_cfg);
+            }
+
+        }
+
+    }
+
 }
 
 void request_processor::parse_cookies(http_context *context)
