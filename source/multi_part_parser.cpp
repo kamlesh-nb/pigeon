@@ -13,22 +13,22 @@
 
 using namespace pigeon;
 
-enum state {
-    header_line_start,
-    header_lws,
-    header_name,
-    space_before_header_value,
-    header_value,
-    expecting_newline_2,
-    expecting_newline_3,
-    body_start
-} state_;
+        enum state {
+            header_line_start,
+            header_lws,
+            header_name,
+            space_before_header_value,
+            header_value,
+            expecting_newline_2,
+            expecting_newline_3,
+            body_start
+        } state_;
 
-enum param_state {
-    param_start,
-    param_name,
-    param_value
-} param_state_;
+        enum param_state {
+            param_start,
+            param_name,
+            param_value
+        } param_state_;
 
 form multi_part_parser::parse_part(string data, string &boundary) {
     state_ = header_line_start;

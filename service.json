@@ -17,11 +17,11 @@
   "response_filters": ["testres1", "testres2", "testres3"],
   "enable_cors": true,
   "cors_headers": {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, PUT",
-    "Access-Control-Allow-Headers": "X-PINGARUNER, Content-Type",
+    "Access-Control-Allow-Origin": "http://foo.example",
+    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+    "Access-Control-Allow-Headers": "X-PINGOTHER",
     "Access-Control-Max-Age": "1728000",
-    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Credentials": "false",
     "Access-Control-Expose-Headers": "none"
   },
   "app_settings": {

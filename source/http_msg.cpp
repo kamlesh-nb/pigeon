@@ -73,7 +73,7 @@ auto http_request::create_response(string &message, http_response &response, Htt
     response.message += get_status_phrase(status);
     response.message += get_cached_response(is_api);
 
-    if (is_api && !method == HTTP_OPTIONS) {
+    if (is_api && (method != HTTP_OPTIONS)) {
 
         response.message += get_header_field(HttpHeader::Content_Length);
         response.message += std::to_string(message.size());
