@@ -23,6 +23,7 @@ enum cookie_state {
 
 request_processor::request_processor()
 {
+    //one time loading of all the cors headers cosfigured in service.json
     allowed_origins_cfg = settings::cors_headers["Access-Control-Allow-Origin"];
     allowed_methods_cfg = settings::cors_headers["Access-Control-Allow-Methods"];
     allowed_headers_cfg = settings::cors_headers["Access-Control-Allow-Headers"];
@@ -30,8 +31,7 @@ request_processor::request_processor()
     allowed_credential_cfg = settings::cors_headers["Access-Control-Allow-Credentials"];
     allowed_expose_headers_cfg = settings::cors_headers["Access-Control-Expose-Headers"];
 
-
-
+    //one time loading of all the header names that has to be sent for cors requests
     allowed_origins_hdr_fld = get_header_field(HttpHeader::Access_Control_Allow_Origin);
     allowed_methods_hdr_fld = get_header_field(HttpHeader::Access_Control_Allow_Methods);
     allowed_headers_hdr_fld = get_header_field(HttpHeader::Access_Control_Allow_Headers);
@@ -101,6 +101,7 @@ void request_processor::process(http_context *context)
 void request_processor::parse_multipart(http_context *context)
 {
 
+    //check if the request if really for multipart/form-data
     string content_type = context->request->get_header("Content-Type");
 
     if (content_type.size() > 0) {

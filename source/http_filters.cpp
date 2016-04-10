@@ -12,8 +12,15 @@ http_filters::http_filters() {
 http_filters::~http_filters() {
 }
 
-http_filters::http_filters(const http_filters &filter) {
+http_filters::http_filters(const http_filters& filters) {
+    temp = filters.temp;
+}
 
+http_filters& http_filters::operator = (const http_filters& filters) {
+    if (this != &filters) {
+       temp = filters.temp;
+    }
+    return *this;
 }
 
 

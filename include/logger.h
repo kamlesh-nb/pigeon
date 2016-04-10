@@ -30,7 +30,7 @@ namespace pigeon {
 
 
         logger(const logger &lgr);
-
+        logger& operator = (logger const &);
         ~logger();
 
         void write(LogType, Severity, string);

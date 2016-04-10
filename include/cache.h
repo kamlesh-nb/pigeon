@@ -43,7 +43,7 @@ namespace pigeon {
 
         void reload_item(string &file);
 
-        void get_item(string &file, file_info &fi);
+        void get_item(file_info &fi);
 
         static std::shared_ptr<cache> &get();
 

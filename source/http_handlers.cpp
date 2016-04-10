@@ -12,10 +12,16 @@ http_handlers::http_handlers() {
 http_handlers::~http_handlers() {
 }
 
-http_handlers::http_handlers(const http_handlers &handler) {
-
+http_handlers::http_handlers(const http_handlers& handlers) {
+    temp = handlers.temp;
 }
 
+http_handlers& http_handlers::operator = (const http_handlers& handlers) {
+    if (this != &handlers) {
+       temp = handlers.temp;
+    }
+    return *this;
+}
 
 void http_handlers::add(string handler_name, http_handler_base *handler) {
     handlers.emplace(std::pair<string, http_handler_base *>(handler_name, handler));

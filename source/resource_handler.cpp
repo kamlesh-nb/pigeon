@@ -29,12 +29,12 @@ void resource_handler::get(http_context *context) {
         std::string request_path;
 
         if (!url_decode(context->request->url, request_path)) {
-            context->request->create_response("Not Found!", *context->response, HttpStatus::NotFound);
+            context->request->create_response("Resource you requested cannot be found on the server!", *context->response, HttpStatus::NotFound);
             return;
         }
 
         if (request_path.empty() || request_path[0] != '/' || request_path.find("..") != std::string::npos) {
-            context->request->create_response("Not Found!", *context->response, HttpStatus::NotFound);
+            context->request->create_response("Resource you requested cannot be found on the server!", *context->response, HttpStatus::NotFound);
             return;
         }
 
@@ -45,10 +45,10 @@ void resource_handler::get(http_context *context) {
         std::string full_path = resource_location + request_path;
 
         file_info fi(full_path);
-        cache::get()->get_item(full_path, fi);
+        cache::get()->get_item(fi);
 
         if (fi.file_size == 0) {
-            context->request->create_response("Not Found!", *context->response, HttpStatus::NotFound);
+            context->request->create_response("Resource you requested cannot be found on the server!", *context->response, HttpStatus::NotFound);
             return;
         }
 
@@ -57,7 +57,7 @@ void resource_handler::get(http_context *context) {
 
         if (if_modified_since.size() > 0) {
             if (if_modified_since == fi.last_write_time) {
-                context->request->create_response("Not Modified!", *context->response, HttpStatus::NotModified);
+                context->request->create_response("", *context->response, HttpStatus::NotModified);
                 return;
             }
         }
@@ -91,16 +91,6 @@ void resource_handler::get(http_context *context) {
 }
 
 void resource_handler::post(http_context *context) {
-
-//            ofstream uploaded_file;
-//            string file_path = settings::file_upload_location;
-//            file_path += "/";
-//            file_path += context->request->form_data.parameters["filename"];
-//            uploaded_file.open(file_path.c_str(), ios::app);
-//            uploaded_file << context->request->form_data.filedata << endl;
-//            uploaded_file.flush();
-//            uploaded_file.close();
-
     context->request->create_response("Not Implemented!", *context->response, HttpStatus::NotImplemented);
 }
 

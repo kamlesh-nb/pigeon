@@ -20,6 +20,12 @@ std::shared_ptr<cache> cache::temp = nullptr;
 
 void refresh(uv_fs_event_t *handle, const char *filename, int events, int status) {
 
+    if (status != 0) {
+        logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
+    }
+
+    logger::get()->write(LogType::Error, Severity::Critical, filename);
+    
     char path[2048];
     size_t size = 2048;
 
@@ -282,7 +288,7 @@ void cache::reload_item(string &file) {
 
 }
 
-void cache::get_item(string &file, file_info &fi) {
+void cache::get_item(file_info &fi) {
 
     for (auto &data : cache_data) {
 

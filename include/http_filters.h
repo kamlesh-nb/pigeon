@@ -24,6 +24,7 @@ namespace pigeon {
         ~http_filters();
 
         http_filters(const http_filters &filters);
+        http_filters& operator = (http_filters const &);
 
         void add(std::string, http_filter_base *);
 

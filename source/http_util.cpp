@@ -186,9 +186,10 @@ string cached_date_response = "\r\nDate: ";
 string err_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: text/html; charset=UTF-8\r\n";
 string api_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: application/json\r\n";
 
-const char *err_msg1 = "<!DOCTYPE html><html><head lang='en'><meta charset='UTF-8'><title>Status</title></head><body><table border=1><th>Status Code</th><th>Message</th><tr><td>";
+const char *err_msg1 = "<!DOCTYPE html><html><head lang='en'><meta charset='UTF-8'><title>Status</title></head><body><p/><p/><p/><p/><p/><p/><p/><table align=\"center\" style=\"font-family: monospace;font-size: large;background-color: lemonchiffon;border-left-color: green;border-color: red;\"><tr style=\"background: burlywood;\"><th>Status Code</th><th>Message</th></tr><tr><td>";
 const char *err_msg3 = "</td><td>";
-const char *err_msg5 = "</td></tr></table></body></html>";
+const char *err_msg5 = "</td></tr><tr><td>Description: </td><td>";
+const char *err_msg7 = "</td></tr></table></body></html>";
 
 
 char *pigeon::now() {
@@ -250,7 +251,7 @@ string pigeon::get_status_msg(HttpStatus status) {
     return "unknown msg";
 }
 
-string pigeon::get_err_msg(HttpStatus status) {
+string pigeon::get_err_msg(const char* msg, HttpStatus status) {
 
     string message;
     string headers;
@@ -260,6 +261,8 @@ string pigeon::get_err_msg(HttpStatus status) {
     message += err_msg3;
     message += get_status_msg(status);
     message += err_msg5;
+    message += msg;
+    message += err_msg7;
 
     headers += err_cached_response;
 

@@ -61,7 +61,8 @@ auto http_request::set_parameter(string &key, string &value) -> void {
 auto http_request::create_response(const char *msg, http_response &response, HttpStatus status) -> void {
 
     response.message += get_status_phrase(status);
-    response.message += get_err_msg(status);;
+    response.message += get_err_msg(msg, status);;
+
 
 }
 

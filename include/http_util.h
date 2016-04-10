@@ -89,7 +89,7 @@ namespace pigeon {
 
     string get_status_msg(HttpStatus status);
 
-    string get_err_msg(HttpStatus status);
+    string get_err_msg(const char*, HttpStatus status);
 
     string get_mime_type(string &extension);
 

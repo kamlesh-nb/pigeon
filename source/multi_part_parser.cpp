@@ -13,22 +13,21 @@
 
 using namespace pigeon;
 
-        enum state {
-            header_line_start,
-            header_lws,
-            header_name,
-            space_before_header_value,
-            header_value,
-            expecting_newline_2,
-            expecting_newline_3,
-            body_start
-        } state_;
+enum state {
+    header_line_start,
+    header_name,
+    space_before_header_value,
+    header_value,
+    expecting_newline_2,
+    expecting_newline_3,
+    body_start
+} state_;
 
-        enum param_state {
-            param_start,
-            param_name,
-            param_value
-        } param_state_;
+enum param_state {
+    param_start,
+    param_name,
+    param_value
+} param_state_;
 
 form multi_part_parser::parse_part(string data, string &boundary) {
     state_ = header_line_start;
@@ -51,8 +50,6 @@ form multi_part_parser::parse_part(string data, string &boundary) {
             case header_line_start:
                 if (c == '\r') {
                     state_ = expecting_newline_3;
-                } else if (!form_data.headers.empty() && (c == ' ' || c == '\t')) {
-                    state_ = header_lws;
                 }
                 else {
                     temp.push_back(c);
@@ -181,7 +178,14 @@ void multi_part_parser::parse(http_context *context, string _boundary) {
     }
 
     for (auto &str: file_contents) {
-        context->request->forms.push_back(parse_part(str, boundary));
+        form fr = parse_part(str, boundary);
+        //in my tests, i found that borwser also postin the submit button as multipartdata, 
+        //the Content-Disposition header though, didn't contain the filename attribute
+        //hence added the below check is filename doesn't exists the don't add that part 
+        //in foms collections
+        if(fr.parameters["filename"].size() != 0) {
+            context->request->forms.push_back(fr);
+        }
     }
 
 

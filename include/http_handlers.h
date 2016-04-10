@@ -23,8 +23,9 @@ namespace pigeon {
 
         ~http_handlers();
 
-        http_handlers(const http_handlers &handlers);
-
+        http_handlers(const http_handlers &handler);
+        http_handlers& operator = (http_handlers const &);
+        
         void add(std::string, http_handler_base *);
 
         http_handler_base *get(std::string);

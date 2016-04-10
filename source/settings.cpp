@@ -11,7 +11,7 @@
 
 using namespace rapidjson;
 using namespace pigeon;
-    
+
 string settings::service_name;
 int settings::worker_threads;
 string settings::address;

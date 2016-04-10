@@ -12,12 +12,19 @@ logger::logger() {
     }
 }
 
-logger::logger(const logger &lgr) {
+logger::~logger() {
 
 }
 
-logger::~logger() {
+logger::logger(const logger& lgr) {
+    instance = lgr.instance;
+}
 
+logger& logger::operator = (logger const &lgr) {
+    if (this != &lgr) {
+       instance = lgr.instance;
+    }
+    return *this;
 }
 
 void logger::write(LogType type, Severity severity, string message) {

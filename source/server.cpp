@@ -193,7 +193,7 @@ namespace pigeon {
                 iconnection_t *iConn = (iconnection_t *) parser->data;
                 if (at && iConn->context->request) {
 
-                    for (int i = 0; i < len; ++i) {
+                    for (size_t i = 0; i < len; ++i) {
                         iConn->context->request->content.push_back(at[i]);
                     }
 
@@ -220,7 +220,7 @@ namespace pigeon {
                                            [](uv_work_t *req, int status) {
                                                msg_baton_t *bton = static_cast<msg_baton_t *>(req->data);
                                                server_impl *srvImpl = static_cast<server_impl *>(bton->iConn->data);
-                                               srvImpl->on_process_complete(req);
+                                               srvImpl->on_process_complete(req, status);
                                            });
 
                 if (status != 0) {
@@ -237,6 +237,9 @@ namespace pigeon {
         request_processor* RequestProcessor;
 
         void on_shutdown(uv_handle_t *req, int status) {
+            if (status != 0) {
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
+            }
             if (!uv_is_closing((uv_handle_t *) req)) {
                 uv_close((uv_handle_t *) req, [](uv_handle_t *handle) {
                     server_impl *srvImpl = static_cast<server_impl *>(handle->data);
@@ -260,7 +263,11 @@ namespace pigeon {
 
         }
 
-        void on_process_complete(uv_work_t *req) {
+        void on_process_complete(uv_work_t *req, int status) {
+
+            if (status != 0) {
+                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
+            }
 
             msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
             iconnection_t *iConn = closure->iConn;
@@ -362,6 +369,10 @@ namespace pigeon {
 
         void on_connect(uv_stream_t *server_handle, int status) {
             try {
+
+                if (status != 0) {
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
+                }
 
                 assert((uv_tcp_t *) server_handle == &uv_tcp);
 
