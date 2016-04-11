@@ -36,7 +36,7 @@ namespace pigeon {
 
         virtual auto set_header(string &, string &) -> void;
 
-        virtual auto get_header(string) -> string;
+        virtual auto get_header(string) -> string&;
 
         virtual auto set_cookie(string &, string &) -> void;
 
@@ -49,6 +49,15 @@ namespace pigeon {
         unordered_map<string, string> parameters;
         string file_data;
     };
+
+
+	struct url
+	{
+		string host;
+		string scheme;
+		string resource;
+
+	};
 
     class http_response : public http_msg {
 
@@ -80,9 +89,9 @@ namespace pigeon {
         bool is_api{false};
         vector<form> forms;
 
-        auto get_cookie(string) -> string;
+        auto get_cookie(string) -> string&;
 
-        auto get_parameter(string &) -> string;
+        auto get_parameter(string &) -> string&;
 
         auto set_parameter(string &, string &) -> void;
 

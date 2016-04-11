@@ -20,7 +20,7 @@ auto http_msg::set_header(string &key, string &value) -> void {
 
 }
 
-auto http_msg::get_header(string key) -> string {
+auto http_msg::get_header(string key) -> string& {
 
     return headers[key];
 
@@ -32,7 +32,7 @@ auto http_msg::set_cookie(string &key, string &value) -> void {
 
 }
 
-auto http_request::get_cookie(string key) -> string {
+auto http_request::get_cookie(string key) -> string& {
 
     return cookies[key];
 
@@ -48,7 +48,7 @@ auto http_msg::get_non_default_headers(string &msg) -> void {
     }
 }
 
-auto http_request::get_parameter(string &_key) -> string {
+auto http_request::get_parameter(string &_key) -> string& {
 
     return parameters[_key];
 

@@ -79,26 +79,27 @@ namespace pigeon {
 
     };
 
-    string get_cached_response(bool is_api);
+    auto get_cached_response(bool is_api) -> string&;
 
     char *now();
 
-    string get_header_field(HttpHeader hdr);
+    auto get_header_field(HttpHeader hdr) -> const string&;
 
-    string get_status_phrase(HttpStatus status);
+    auto get_status_phrase(HttpStatus status) -> const string&;
 
-    string get_status_msg(HttpStatus status);
+	auto get_status_msg(HttpStatus status) -> const string&;
 
-    string get_err_msg(const char*, HttpStatus status);
+	auto get_err_msg(const char*, HttpStatus status) -> string&;
 
-    string get_mime_type(string &extension);
+	auto get_mime_type(string &extension) -> const string&;
 
-    string get_log_type(LogType type);
+	auto get_log_type(LogType type) -> const string&;
 
-    string get_severity(Severity severe);
+	auto get_severity(Severity severe) -> const string&;
 
-    bool url_decode(const string &in, string &out);
+	auto url_decode(const string &in, string &out) -> bool;
 
+	auto deflate_string(string&, string&) -> unsigned long;
 
 }
 

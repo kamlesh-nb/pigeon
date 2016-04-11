@@ -4,7 +4,7 @@
 #include <chrono>
 #include <sstream>
 #include <iterator>
-
+#include <zlib.h>
 
 using namespace pigeon;
 
@@ -204,7 +204,7 @@ char *pigeon::now() {
     return dt;
 }
 
-string pigeon::get_cached_response(bool is_api) {
+auto pigeon::get_cached_response(bool is_api) -> string& {
 
     string cached_response;
 
@@ -218,7 +218,7 @@ string pigeon::get_cached_response(bool is_api) {
 
 }
 
-string pigeon::get_header_field(HttpHeader hdr) {
+auto pigeon::get_header_field(HttpHeader hdr) -> const string& {
 
     for (header *m = headers; m->header_id; ++m) {
         if (m->header_id == static_cast<int>(hdr)) {
@@ -229,7 +229,7 @@ string pigeon::get_header_field(HttpHeader hdr) {
     return "unknown header";
 }
 
-string pigeon::get_status_phrase(HttpStatus status) {
+auto pigeon::get_status_phrase(HttpStatus status) -> const string& {
 
     for (statusphrase *m = statusphrases; m->status_code; ++m) {
         if (m->status_code == static_cast<int>(status)) {
@@ -240,7 +240,7 @@ string pigeon::get_status_phrase(HttpStatus status) {
     return "unknown phrase";
 }
 
-string pigeon::get_status_msg(HttpStatus status) {
+auto pigeon::get_status_msg(HttpStatus status) -> const string& {
 
     for (statusmsg *m = statusmsgs; m->status_code; ++m) {
         if (m->status_code == static_cast<int>(status)) {
@@ -251,7 +251,7 @@ string pigeon::get_status_msg(HttpStatus status) {
     return "unknown msg";
 }
 
-string pigeon::get_err_msg(const char* msg, HttpStatus status) {
+auto pigeon::get_err_msg(const char* msg, HttpStatus status) -> string& {
 
     string message;
     string headers;
@@ -267,7 +267,7 @@ string pigeon::get_err_msg(const char* msg, HttpStatus status) {
     headers += err_cached_response;
 
     headers += get_header_field(HttpHeader::Content_Length);
-    unsigned long length = message.size();
+    size_t length = message.size();
     headers += std::to_string(length);
     headers += "\r\n\r\n";
 
@@ -277,7 +277,7 @@ string pigeon::get_err_msg(const char* msg, HttpStatus status) {
 
 }
 
-string pigeon::get_mime_type(string &extension) {
+auto pigeon::get_mime_type(string &extension) -> const string& {
 
     for (mapping *m = mappings; m->extension; ++m) {
         if (m->extension == extension) {
@@ -289,7 +289,7 @@ string pigeon::get_mime_type(string &extension) {
 
 }
 
-string pigeon::get_log_type(LogType type) {
+auto pigeon::get_log_type(LogType type) -> const string& {
 
     for (logtype *m = logtypes; m->log_id; ++m) {
         if (m->log_id == static_cast<int>(type)) {
@@ -300,7 +300,7 @@ string pigeon::get_log_type(LogType type) {
     return "unknown log type";
 }
 
-string pigeon::get_severity(Severity severe) {
+auto pigeon::get_severity(Severity severe) -> const string& {
     for (severity *m = severities; m->severity_id; ++m) {
         if (m->severity_id == static_cast<int>(severe)) {
             return m->severity_type;
@@ -310,7 +310,7 @@ string pigeon::get_severity(Severity severe) {
     return "unknown severity type";
 }
 
-bool pigeon::url_decode(const string &in, string &out) {
+auto pigeon::url_decode(const string &in, string &out) -> bool {
 
     out.clear();
     out.reserve(in.size());
@@ -341,6 +341,50 @@ bool pigeon::url_decode(const string &in, string &out) {
     return true;
 
 }
+
+auto pigeon::deflate_string(string& content, string& deflated_content) -> unsigned long {
+	string str(content);
+	z_stream zs;                        // z_stream is zlib's control structure
+	memset(&zs, 0, sizeof(zs));
+	int compressionlevel = Z_BEST_COMPRESSION;
+	if (deflateInit(&zs, compressionlevel) != Z_OK)
+		throw (std::runtime_error("deflateInit failed while compressing."));
+
+	zs.next_in = (Bytef *)str.data();
+	zs.avail_in = static_cast<unsigned int>(str.size());           // set the z_stream's input
+
+	int ret;
+	char outbuffer[32768];
+	std::string outstring;
+
+	// retrieve the compressed bytes blockwise
+	do {
+		zs.next_out = reinterpret_cast<Bytef *>(outbuffer);
+		zs.avail_out = sizeof(outbuffer);
+
+		ret = deflate(&zs, Z_FINISH);
+
+		if (outstring.size() < zs.total_out) {
+			// append the block to the output string
+			outstring.append(outbuffer, zs.total_out - outstring.size());
+		}
+	} while (ret == Z_OK);
+
+	deflateEnd(&zs);
+
+	if (ret != Z_STREAM_END) {          // an error occurred that was not EOF
+		std::ostringstream oss;
+		oss << "Exception during zlib compression: (" << ret << ") " << zs.msg;
+		throw (std::runtime_error(oss.str()));
+	}
+
+	zs.avail_out = zs.total_out;// outstring.size();
+ 
+	deflated_content = outstring;
+
+	return zs.total_out;
+}
+
 
  
 

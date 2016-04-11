@@ -179,7 +179,7 @@ void multi_part_parser::parse(http_context *context, string _boundary) {
 
     for (auto &str: file_contents) {
         form fr = parse_part(str, boundary);
-        //in my tests, i found that borwser also postin the submit button as multipartdata, 
+        //browser also posting the submit button as multipart/form-data, 
         //the Content-Disposition header though, didn't contain the filename attribute
         //hence added the below check is filename doesn't exists the don't add that part 
         //in foms collections
