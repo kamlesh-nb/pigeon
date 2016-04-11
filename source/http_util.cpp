@@ -204,7 +204,7 @@ char *pigeon::now() {
     return dt;
 }
 
-auto pigeon::get_cached_response(bool is_api) -> string& {
+auto pigeon::get_cached_response(bool is_api) -> string {
 
     string cached_response;
 
@@ -218,7 +218,7 @@ auto pigeon::get_cached_response(bool is_api) -> string& {
 
 }
 
-auto pigeon::get_header_field(HttpHeader hdr) -> const string& {
+auto pigeon::get_header_field(HttpHeader hdr) -> const string {
 
     for (header *m = headers; m->header_id; ++m) {
         if (m->header_id == static_cast<int>(hdr)) {
@@ -226,10 +226,10 @@ auto pigeon::get_header_field(HttpHeader hdr) -> const string& {
         }
     }
 
-    return "unknown header";
+    return  "unknown header";
 }
 
-auto pigeon::get_status_phrase(HttpStatus status) -> const string& {
+auto pigeon::get_status_phrase(HttpStatus status) -> const string {
 
     for (statusphrase *m = statusphrases; m->status_code; ++m) {
         if (m->status_code == static_cast<int>(status)) {
@@ -240,7 +240,7 @@ auto pigeon::get_status_phrase(HttpStatus status) -> const string& {
     return "unknown phrase";
 }
 
-auto pigeon::get_status_msg(HttpStatus status) -> const string& {
+auto pigeon::get_status_msg(HttpStatus status) -> const string {
 
     for (statusmsg *m = statusmsgs; m->status_code; ++m) {
         if (m->status_code == static_cast<int>(status)) {
@@ -251,7 +251,7 @@ auto pigeon::get_status_msg(HttpStatus status) -> const string& {
     return "unknown msg";
 }
 
-auto pigeon::get_err_msg(const char* msg, HttpStatus status) -> string& {
+auto pigeon::get_err_msg(const char* msg, HttpStatus status) -> string {
 
     string message;
     string headers;
@@ -277,7 +277,7 @@ auto pigeon::get_err_msg(const char* msg, HttpStatus status) -> string& {
 
 }
 
-auto pigeon::get_mime_type(string &extension) -> const string& {
+auto pigeon::get_mime_type(string &extension) -> const string {
 
     for (mapping *m = mappings; m->extension; ++m) {
         if (m->extension == extension) {
@@ -289,7 +289,7 @@ auto pigeon::get_mime_type(string &extension) -> const string& {
 
 }
 
-auto pigeon::get_log_type(LogType type) -> const string& {
+auto pigeon::get_log_type(LogType type) -> const string {
 
     for (logtype *m = logtypes; m->log_id; ++m) {
         if (m->log_id == static_cast<int>(type)) {
@@ -300,7 +300,7 @@ auto pigeon::get_log_type(LogType type) -> const string& {
     return "unknown log type";
 }
 
-auto pigeon::get_severity(Severity severe) -> const string& {
+auto pigeon::get_severity(Severity severe) -> const string {
     for (severity *m = severities; m->severity_id; ++m) {
         if (m->severity_id == static_cast<int>(severe)) {
             return m->severity_type;
