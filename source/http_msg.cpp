@@ -1,6 +1,7 @@
 #include <http_msg.h>
 #include <http_util.h>
 #include <http_parser.h>
+#include <cstring>
 
 using namespace std;
 using namespace pigeon;
@@ -38,13 +39,17 @@ auto http_request::get_cookie(string key) -> string& {
 
 }
 
-auto http_msg::get_non_default_headers(string &msg) -> void {
-
+auto http_msg::get_non_default_headers() -> void {
 
     for (auto &header : headers) {
-        msg += header.first;
-        msg += header.second;
-        msg += "\r\n";
+
+        content.insert(content.end(), header.first.begin(), header.first.end());
+        content.insert(content.end(), header.second.begin(), header.second.end());
+
+        const char* nl = "\r\n";
+        const char* f = nl + strlen(nl);
+        content.insert(content.end(), nl, f);
+
     }
 }
 
@@ -60,55 +65,67 @@ auto http_request::set_parameter(string &key, string &value) -> void {
 
 auto http_request::create_response(const char *msg, http_response &response, HttpStatus status) -> void {
 
-    response.message += get_status_phrase(status);
-    response.message += get_err_msg(msg, status);;
-
+     get_status_phrase(status, response.content);
+     get_err_msg(msg, status, response.content);
 
 }
 
 auto http_request::create_response(string &message, http_response &response, HttpStatus status) -> void {
 
-    response.content += message;
     response.status = (unsigned int) status;
 
-    response.message += get_status_phrase(status);
-    response.message += get_cached_response(is_api);
+    get_status_phrase(status, response.content);
+    get_cached_response(is_api, response.content);
 
     if (is_api && (method != HTTP_OPTIONS)) {
 
-        response.message += get_header_field(HttpHeader::Content_Length);
-        response.message += std::to_string(message.size());
-        response.message += "\r\n";
+        get_header_field(HttpHeader::Content_Length, response.content);
+        string sz = std::to_string(message.size());
+        response.content.insert(response.content.end(), sz.begin(), sz.end());
+
+        const char* nl = "\r\n";
+        const char* e = nl + strlen(nl);
+        response.content.insert(response.content.end(), nl, e);
 
     }
 
-    response.get_non_default_headers(response.message);
-    response.message += "\r\n";
-    response.message += response.content;
+    response.get_non_default_headers();
+    const char* nl1 = "\r\n";
+    const char* f = nl1 + strlen(nl1);
+    response.content.insert(response.content.end(), nl1, f);
+
+    response.content.insert(response.content.end(), message.begin(), message.end());
 
 }
 
 auto http_request::create_response(string &cached_headers, string &message, http_response &response, HttpStatus status) -> void {
 
-    response.content += message;
     response.status = (unsigned int) status;
 
-    response.message += get_status_phrase(status);
-    response.message += get_cached_response(is_api);
+    get_status_phrase(status, response.content);
+    get_cached_response(is_api, response.content);
 
     if (is_api) {
 
-        response.message += get_header_field(HttpHeader::Content_Length);
-        response.message += std::to_string(message.size());
-        response.message += "\r\n";
+        get_header_field(HttpHeader::Content_Length, response.content);
+        string sz = std::to_string(message.size()).c_str();
+        response.content.insert(response.content.end(), sz.begin(), sz.end());
 
+        const char* nl = "\r\n";
+        const char* e = nl + strlen(nl);
+        response.content.insert(response.content.end(), nl, e);
     }
 
-    response.message += cached_headers;
-    response.get_non_default_headers(response.message);
-    response.message += "\r\n";
-    response.message += response.content;
+    response.content.insert(response.content.end(), cached_headers.begin(), cached_headers.end());
 
+    response.get_non_default_headers();
+
+    const char* nl1 = "\r\n";
+    const char* f = nl1 + strlen(nl1);
+    response.content.insert(response.content.end(), nl1, f);
+
+    response.content.insert(response.content.end(), message.begin(), message.end());
+    
 }
 
 http_response::~http_response() {

@@ -2,6 +2,7 @@
 #define HTTP_UTIL_H
 
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -79,17 +80,21 @@ namespace pigeon {
 
     };
 
-    auto get_cached_response(bool is_api) -> string;
+    auto get_cached_response(bool is_api, vector<char>& ) -> void;
 
     char *now();
 
     auto get_header_field(HttpHeader hdr) -> const string;
 
-    auto get_status_phrase(HttpStatus status) -> const string;
+    auto get_header_field(HttpHeader hdr, vector<char>&) -> void;
 
-	auto get_status_msg(HttpStatus status) -> const string;
+    auto get_header_field(HttpHeader hdr, string&) -> void;
 
-	auto get_err_msg(const char*, HttpStatus status) -> string;
+    auto get_status_phrase(HttpStatus status, vector<char>&) -> void;
+
+	auto get_status_msg(HttpStatus status, string& data) -> void;
+
+	auto get_err_msg(const char*, HttpStatus status, vector<char>&) -> void;
 
 	auto get_mime_type(string &extension) -> const string;
 

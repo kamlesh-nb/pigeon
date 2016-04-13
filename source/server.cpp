@@ -192,10 +192,13 @@ namespace pigeon {
 
                 iconnection_t *iConn = (iconnection_t *) parser->data;
                 if (at && iConn->context->request) {
+                    const char* end = at + len;
+                    iConn->context->request->content.insert(iConn->context->request->content.begin(),
+                        at, end);
 
-                    for (size_t i = 0; i < len; ++i) {
+                    /*for (size_t i = 0; i < len; ++i) {
                         iConn->context->request->content.push_back(at[i]);
-                    }
+                    }*/
 
                 }
                 return 0;
@@ -258,8 +261,8 @@ namespace pigeon {
 
             srvImpl->RequestProcessor->process(iConn->context);
 
-            closure->result = (char *) iConn->context->response->message.c_str();
-            closure->length = iConn->context->response->message.size();
+            closure->result = reinterpret_cast<char*>(iConn->context->response->content.data());
+            closure->length = iConn->context->response->content.size();
 
         }
 

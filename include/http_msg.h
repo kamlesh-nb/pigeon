@@ -30,7 +30,7 @@ namespace pigeon {
 
         int http_major_version;
         int http_minor_version;
-        string content;
+        vector<char> content;
 
         auto has_cookies() -> bool;
 
@@ -40,7 +40,7 @@ namespace pigeon {
 
         virtual auto set_cookie(string &, string &) -> void;
 
-        virtual auto get_non_default_headers(string &) -> void;
+        virtual auto get_non_default_headers() -> void;
 
     };
 

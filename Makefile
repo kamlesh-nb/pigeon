@@ -6,7 +6,7 @@ INC = -I ./include -I /usr/include/ -I /usr/local/include/rapidjson/
 
 CXX = clang++
 
-FLAGS = -Wall -Wextra -pedantic-errors -std=c++14 -O3 $(INC)
+FLAGS = -Wall -Wextra -pedantic -pedantic-errors -std=c++14 -O3 $(INC)
 
 OBJ = $(CPP:.cpp=.o)
 
@@ -26,6 +26,4 @@ clean:
 install:
 	sudo cp $(PROJECT) /usr/local/lib
 	sudo cp ./include/* /usr/local/include/pigeon
-
-
-
+    

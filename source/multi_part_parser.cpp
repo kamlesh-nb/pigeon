@@ -164,7 +164,7 @@ void multi_part_parser::parse(http_context *context, string _boundary) {
 
     boundary = _boundary;
 
-    string parts = context->request->content;
+    string parts(context->request->content.begin(), context->request->content.end());
 
     unsigned long start_pos = parts.find(boundary);
     while (start_pos != string::npos) {

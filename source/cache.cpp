@@ -144,19 +144,19 @@ void cache::cache_item(string &file) {
 
         ///uncompressed headers
         fi.cached_headers += "\r\nCache-Control: public, max-age=0\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\n";
-        fi.cached_headers += get_header_field(HttpHeader::Content_Type);
+        get_header_field(HttpHeader::Content_Type, fi.cached_headers);
         fi.cached_headers += get_mime_type(extension);
         fi.cached_headers += "\r\n";
 
-        fi.cached_headers += get_header_field(HttpHeader::Content_Length);
+        get_header_field(HttpHeader::Content_Length, fi.cached_headers);
         fi.cached_headers += std::to_string(fi.file_size);
         fi.cached_headers += "\r\n";
 
-        fi.cached_headers += get_header_field(HttpHeader::Last_Modified);
+        get_header_field(HttpHeader::Last_Modified, fi.cached_headers);
         fi.cached_headers += fi.last_write_time;
         fi.cached_headers += "\r\n";
 
-        fi.cached_headers += get_header_field(HttpHeader::ETag);
+        get_header_field(HttpHeader::ETag, fi.cached_headers);
         fi.cached_headers += fi.etag;
         fi.cached_headers += "\r\n";
 
@@ -165,21 +165,21 @@ void cache::cache_item(string &file) {
 
         ///compresses headers
         fi.compresses_cached_headers += "\r\nCache-Control: public, max-age=0\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\n";
-        fi.compresses_cached_headers += get_header_field(HttpHeader::Content_Encoding);
+        get_header_field(HttpHeader::Content_Encoding, fi.compresses_cached_headers);
 
-        fi.compresses_cached_headers += get_header_field(HttpHeader::Content_Type);
+        get_header_field(HttpHeader::Content_Type, fi.compresses_cached_headers);
         fi.compresses_cached_headers += get_mime_type(extension);
         fi.compresses_cached_headers += "\r\n";
 
-        fi.compresses_cached_headers += get_header_field(HttpHeader::Content_Length);
+        get_header_field(HttpHeader::Content_Length, fi.compresses_cached_headers);
         fi.compresses_cached_headers += std::to_string(fi.compressed_file_size);
         fi.compresses_cached_headers += "\r\n";
 
-        fi.compresses_cached_headers += get_header_field(HttpHeader::Last_Modified);
+        get_header_field(HttpHeader::Last_Modified, fi.compresses_cached_headers);
         fi.compresses_cached_headers += fi.last_write_time;
         fi.compresses_cached_headers += "\r\n";
 
-        fi.compresses_cached_headers += get_header_field(HttpHeader::ETag);
+        get_header_field(HttpHeader::ETag, fi.compresses_cached_headers);
         fi.compresses_cached_headers += fi.etag;
         fi.compresses_cached_headers += "\r\n";
 
