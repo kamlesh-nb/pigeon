@@ -29,6 +29,7 @@ enum param_state {
     param_value
 } param_state_;
 
+//parse the multipart data and separate the file contents and the headers
 form multi_part_parser::parse_part(string data, string &boundary) {
     state_ = header_line_start;
     form form_data;
@@ -111,8 +112,12 @@ form multi_part_parser::parse_part(string data, string &boundary) {
         }
     }
 
+	//get the Content-Disposition header to get attributes like filename etc.
     string cont_disp = form_data.headers["Content-Disposition"];
-
+	
+	//parse all attributes of Content-Disposition and add them to the
+	//parameters map, which can be used while handling the writting of
+	//file on the disk
     if (cont_disp.size() > 0) {
         param_state_ = param_start;
         string key, val;
@@ -166,6 +171,8 @@ void multi_part_parser::parse(http_context *context, string _boundary) {
 
     string parts(context->request->content.begin(), context->request->content.end());
 
+	//split all the files that are uploaded into separate strings
+	//and add them to a vector, so that each can be parsed individually
     unsigned long start_pos = parts.find(boundary);
     while (start_pos != string::npos) {
         unsigned long end_pos = parts.find(boundary, start_pos + boundary.size());
@@ -181,8 +188,8 @@ void multi_part_parser::parse(http_context *context, string _boundary) {
         form fr = parse_part(str, boundary);
         //browser also posting the submit button as multipart/form-data, 
         //the Content-Disposition header though, didn't contain the filename attribute
-        //hence added the below check is filename doesn't exists the don't add that part 
-        //in foms collections
+        //hence added the below check is filename doesn't exists then don't add that part 
+        //in forms collection
         if(fr.parameters["filename"].size() != 0) {
             context->request->forms.push_back(fr);
         }

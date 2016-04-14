@@ -55,14 +55,15 @@ void request_processor::process(http_context *context)
     //parse cookies if any
     parse_cookies(context);
 
-    //parse url for any query string parameters
+    //parse url for query string parameters
     parse_url(context);
 
     //check if content type is multipart/form-data, parse content if it is
     parse_multipart(context);
 
     //execute if there are any request filters registered,
-    //if any of the filter fails, it will terminate the further processing of request
+    //if any of the filter fails, it will terminate the further 
+	//processing of request
     if(!execute_request_filters(context)){
         return;
     }
@@ -91,7 +92,8 @@ void request_processor::process(http_context *context)
 
 
     //execute if there are any response filters registered,
-    //if any of the filter fails, it will terminate the further processing of request
+    //if any of the filter fails, it will terminate the further 
+	//processing of request
     if(!execute_response_filters(context)){
         return;
     }

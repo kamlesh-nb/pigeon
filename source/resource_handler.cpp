@@ -90,6 +90,7 @@ void resource_handler::get(http_context *context) {
 
 }
 
+
 void resource_handler::post(http_context *context) {
     context->request->create_response("Not Implemented!", *context->response, HttpStatus::NotImplemented);
 }

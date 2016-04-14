@@ -6,6 +6,11 @@
 using namespace std;
 using namespace pigeon;
 
+
+const char* nl = "\r\n";
+const char* e = nl + strlen(nl);
+
+
 http_msg::~http_msg() {
 
 }
@@ -45,10 +50,7 @@ auto http_msg::get_non_default_headers() -> void {
 
         content.insert(content.end(), header.first.begin(), header.first.end());
         content.insert(content.end(), header.second.begin(), header.second.end());
-
-        const char* nl = "\r\n";
-        const char* f = nl + strlen(nl);
-        content.insert(content.end(), nl, f);
+        content.insert(content.end(), nl, e);
 
     }
 }
@@ -83,16 +85,14 @@ auto http_request::create_response(string &message, http_response &response, Htt
         string sz = std::to_string(message.size());
         response.content.insert(response.content.end(), sz.begin(), sz.end());
 
-        const char* nl = "\r\n";
-        const char* e = nl + strlen(nl);
+        
         response.content.insert(response.content.end(), nl, e);
 
     }
 
     response.get_non_default_headers();
-    const char* nl1 = "\r\n";
-    const char* f = nl1 + strlen(nl1);
-    response.content.insert(response.content.end(), nl1, f);
+     
+    response.content.insert(response.content.end(), nl, e);
 
     response.content.insert(response.content.end(), message.begin(), message.end());
 
@@ -110,9 +110,6 @@ auto http_request::create_response(string &cached_headers, string &message, http
         get_header_field(HttpHeader::Content_Length, response.content);
         string sz = std::to_string(message.size()).c_str();
         response.content.insert(response.content.end(), sz.begin(), sz.end());
-
-        const char* nl = "\r\n";
-        const char* e = nl + strlen(nl);
         response.content.insert(response.content.end(), nl, e);
     }
 
@@ -120,9 +117,7 @@ auto http_request::create_response(string &cached_headers, string &message, http
 
     response.get_non_default_headers();
 
-    const char* nl1 = "\r\n";
-    const char* f = nl1 + strlen(nl1);
-    response.content.insert(response.content.end(), nl1, f);
+    response.content.insert(response.content.end(), nl, e);
 
     response.content.insert(response.content.end(), message.begin(), message.end());
     

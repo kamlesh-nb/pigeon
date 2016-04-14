@@ -266,8 +266,8 @@ auto pigeon::get_status_msg(HttpStatus status, string& data) -> void {
 
     for (statusmsg *m = statusmsgs; m->status_code; ++m) {
         if (m->status_code == static_cast<int>(status)) {
-            const char* d = m->status_msg + strlen(m->status_msg);
-            data.insert(data.end(), m->status_msg, d);
+            const char* end = m->status_msg + strlen(m->status_msg);
+            data.insert(data.end(), m->status_msg, end);
         }
     }
 
