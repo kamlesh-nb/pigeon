@@ -177,7 +177,10 @@ void request_processor::handle_cors(http_context *context)
                 context->request->method == HTTP_PUT){
 
                 context->response->set_header(allowed_origins_hdr_fld, origin);
-                context->response->set_header(allowed_credentials_hdr_fld, allowed_credential_cfg);
+
+				if (context->request->has_cookies()) {
+					context->response->set_header(allowed_credentials_hdr_fld, allowed_credential_cfg);
+				}
 
             } else if (context->request->method == HTTP_OPTIONS) {
 

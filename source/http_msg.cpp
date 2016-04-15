@@ -108,7 +108,7 @@ auto http_request::create_response(string &cached_headers, string &message, http
     if (is_api) {
 
         get_header_field(HttpHeader::Content_Length, response.content);
-        string sz = std::to_string(message.size()).c_str();
+        string sz = std::to_string(message.size());
         response.content.insert(response.content.end(), sz.begin(), sz.end());
         response.content.insert(response.content.end(), nl, e);
     }
