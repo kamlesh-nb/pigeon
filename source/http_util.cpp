@@ -232,7 +232,6 @@ auto pigeon::get_header_field(HttpHeader hdr) -> const string {
     return  "unknown header";
 }
 
-
 auto ::pigeon::get_header_field(HttpHeader hdr, vector<char>& data) -> void {
     for (header *m = headers; m->header_id; ++m) {
         if (m->header_id == static_cast<int>(hdr)) {
@@ -249,7 +248,6 @@ auto ::pigeon::get_header_field(HttpHeader hdr, string& data) -> void {
         }
     }
 }
-
 
 auto pigeon::get_status_phrase(HttpStatus status, vector<char>& data) -> void {
 
