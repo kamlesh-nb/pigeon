@@ -216,13 +216,13 @@ namespace pigeon {
                 int status = uv_queue_work(uv_default_loop(),
                                            &closure->request,
                                            [](uv_work_t *req) {
-                                               msg_baton_t *bton = static_cast<msg_baton_t *>(req->data);
-                                               server_impl *srvImpl = static_cast<server_impl *>(bton->iConn->data);
+                                               msg_baton_t *bton = reinterpret_cast<msg_baton_t *>(req->data);
+                                               server_impl *srvImpl = reinterpret_cast<server_impl *>(bton->iConn->data);
                                                srvImpl->on_process(req);
                                            },
                                            [](uv_work_t *req, int status) {
-                                               msg_baton_t *bton = static_cast<msg_baton_t *>(req->data);
-                                               server_impl *srvImpl = static_cast<server_impl *>(bton->iConn->data);
+                                               msg_baton_t *bton = reinterpret_cast<msg_baton_t *>(req->data);
+                                               server_impl *srvImpl = reinterpret_cast<server_impl *>(bton->iConn->data);
                                                srvImpl->on_process_complete(req, status);
                                            });
 
@@ -245,7 +245,7 @@ namespace pigeon {
             }
             if (!uv_is_closing((uv_handle_t *) req)) {
                 uv_close((uv_handle_t *) req, [](uv_handle_t *handle) {
-                    server_impl *srvImpl = static_cast<server_impl *>(handle->data);
+                    server_impl *srvImpl = reinterpret_cast<server_impl *>(handle->data);
                     srvImpl->on_close((uv_handle_t *) &handle);
                 });
             }
@@ -254,10 +254,10 @@ namespace pigeon {
 
         void on_process(uv_work_t *req) {
 
-            msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
+            msg_baton_t *closure = reinterpret_cast<msg_baton_t *>(req->data);
             iconnection_t *iConn = closure->iConn;
 
-            server_impl *srvImpl = static_cast<server_impl *>(iConn->data);
+            server_impl *srvImpl = reinterpret_cast<server_impl *>(iConn->data);
 
             srvImpl->RequestProcessor->process(iConn->context);
 
@@ -272,7 +272,7 @@ namespace pigeon {
                 logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
             }
 
-            msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
+            msg_baton_t *closure = reinterpret_cast<msg_baton_t *>(req->data);
             iconnection_t *iConn = closure->iConn;
 
             uv_buf_t resbuf;
@@ -287,8 +287,8 @@ namespace pigeon {
                              &resbuf,
                              1,
                              [](uv_write_t *req, int status) {
-                                 msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
-                                 server_impl *srvImpl = static_cast<server_impl *>(closure->iConn->data);
+                                 msg_baton_t *closure = reinterpret_cast<msg_baton_t *>(req->data);
+                                 server_impl *srvImpl = reinterpret_cast<server_impl *>(closure->iConn->data);
                                  srvImpl->on_send_complete(req, status);
                              });
 
@@ -321,10 +321,10 @@ namespace pigeon {
                 }
 
                 if (!uv_is_closing((uv_handle_t *) req->handle)) {
-                    msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
+                    msg_baton_t *closure = reinterpret_cast<msg_baton_t *>(req->data);
                     delete closure;
                     uv_close((uv_handle_t *) req->handle, [](uv_handle_t *handle) {
-                        server_impl *srvImpl = static_cast<server_impl *>(handle->data);
+                        server_impl *srvImpl = reinterpret_cast<server_impl *>(handle->data);
                         srvImpl->on_close((uv_handle_t *) &handle);
                     });
                 }
@@ -347,7 +347,7 @@ namespace pigeon {
                     if (parsed < nread) {
                         logger::get()->write(LogType::Error, Severity::Critical, "parse failed");
                         uv_close((uv_handle_t *) &iConn->handle, [](uv_handle_t *handle) {
-                            server_impl *srvImpl = static_cast<server_impl *>(handle->data);
+                            server_impl *srvImpl = reinterpret_cast<server_impl *>(handle->data);
                             srvImpl->on_close((uv_handle_t *) &handle);
                         });
                     }
@@ -357,7 +357,7 @@ namespace pigeon {
                         logger::get()->write(LogType::Error, Severity::Critical, "read failed");
                     }
                     uv_close((uv_handle_t *) &iConn->handle, [](uv_handle_t *handle) {
-                        server_impl *srvImpl = static_cast<server_impl *>(handle->data);
+                        server_impl *srvImpl = reinterpret_cast<server_impl *>(handle->data);
                         srvImpl->on_close((uv_handle_t *) &handle);
                     });
                 }
@@ -423,7 +423,7 @@ namespace pigeon {
                               [](uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
                                   *buf = uv_buf_init((char *) malloc(suggested_size), suggested_size);
                               }, [](uv_stream_t *socket, ssize_t nread, const uv_buf_t *buf) {
-                            server_impl *srvImpl = static_cast<server_impl *>(socket->data);
+                            server_impl *srvImpl = reinterpret_cast<server_impl *>(socket->data);
                             srvImpl->on_read(socket, nread, buf);
                         });
 
