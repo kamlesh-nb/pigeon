@@ -29,12 +29,12 @@ void resource_handler::get(http_context *context) {
         std::string request_path;
 
         if (!url_decode(context->request->url, request_path)) {
-            context->request->create_response("Resource you requested cannot be found on the server!", *context->response, HttpStatus::NotFound);
+            context->request->create_response("Resource you requested cannot be found on the server!", context->response, HttpStatus::NotFound);
             return;
         }
 
         if (request_path.empty() || request_path[0] != '/' || request_path.find("..") != std::string::npos) {
-            context->request->create_response("Resource you requested cannot be found on the server!", *context->response, HttpStatus::NotFound);
+            context->request->create_response("Resource you requested cannot be found on the server!", context->response, HttpStatus::NotFound);
             return;
         }
 
@@ -48,7 +48,7 @@ void resource_handler::get(http_context *context) {
         cache::get()->get_item(fi);
 
         if (fi.file_size == 0) {
-            context->request->create_response("Resource you requested cannot be found on the server!", *context->response, HttpStatus::NotFound);
+            context->request->create_response("Resource you requested cannot be found on the server!", context->response, HttpStatus::NotFound);
             return;
         }
 
@@ -57,7 +57,7 @@ void resource_handler::get(http_context *context) {
 
         if (if_modified_since.size() > 0) {
             if (if_modified_since == fi.last_write_time) {
-                context->request->create_response("", *context->response, HttpStatus::NotModified);
+                context->request->create_response("", context->response, HttpStatus::NotModified);
                 return;
             }
         }
@@ -75,36 +75,36 @@ void resource_handler::get(http_context *context) {
         }
 
         if (pos != string::npos) {
-            context->request->create_response(fi.compresses_cached_headers, fi.compressed_content, *context->response,
+            context->request->create_response(fi.compresses_cached_headers, fi.compressed_content, context->response,
                                               HttpStatus::OK);
         }
         else {
-            context->request->create_response(fi.cached_headers, fi.content, *context->response, HttpStatus::OK);
+            context->request->create_response(fi.cached_headers, fi.content, context->response, HttpStatus::OK);
         }
 
     }
     catch (std::exception &ex) {
         logger::get()->write(LogType::Error, Severity::Critical, ex.what());
-        context->request->create_response(ex.what(), *context->response, HttpStatus::InternalTcpServerError);
+        context->request->create_response(ex.what(), context->response, HttpStatus::InternalTcpServerError);
     }
 
 }
 
 
 void resource_handler::post(http_context *context) {
-    context->request->create_response("Not Implemented!", *context->response, HttpStatus::NotImplemented);
+    context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
 }
 
 void resource_handler::put(http_context *context) {
-    context->request->create_response("Not Implemented!", *context->response, HttpStatus::NotImplemented);
+    context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
 }
 
 void resource_handler::del(http_context *context) {
-    context->request->create_response("Not Implemented!", *context->response, HttpStatus::NotImplemented);
+    context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
 }
 
 void resource_handler::options(http_context *context) {
-    context->request->create_response(context->response->message, *context->response, HttpStatus::OK);
+    context->request->create_response(context->response->message, context->response, HttpStatus::OK);
 }
 
 void resource_handler::process(http_context *context) {

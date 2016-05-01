@@ -16,13 +16,9 @@ namespace pigeon {
 
         vector<string> file_contents;
         string boundary;
-
-
-
+        form parse_part(string, string &boundary);
 
     public:
-
-        form parse_part(string, string &boundary);
 
         void parse(http_context *, string);
 

@@ -114,7 +114,7 @@ namespace pigeon {
 
             int r = uv_listen((uv_stream_t *) &uv_tcp, MAX_WRITE_HANDLES,
                               [](uv_stream_t *socket, int status) {
-                                  server_impl *srvImpl = static_cast<server_impl *>(socket->data);
+                                  server_impl *srvImpl = reinterpret_cast<server_impl *>(socket->data);
                                   srvImpl->on_connect(socket, status);
                               });
 
@@ -192,13 +192,13 @@ namespace pigeon {
 
                 iconnection_t *iConn = (iconnection_t *) parser->data;
                 if (at && iConn->context->request) {
-                    const char* end = at + len;
-                    iConn->context->request->content.insert(iConn->context->request->content.begin(),
-                        at, end);
+                    // const char* end = at + len;
+                    // iConn->context->request->content.insert(iConn->context->request->content.begin(),
+                    //     at, end);
 
-                    /*for (size_t i = 0; i < len; ++i) {
+                    for (size_t i = 0; i < len; ++i) {
                         iConn->context->request->content.push_back(at[i]);
-                    }*/
+                    }
 
                 }
                 return 0;
@@ -261,8 +261,8 @@ namespace pigeon {
 
             srvImpl->RequestProcessor->process(iConn->context);
 
-            closure->result = reinterpret_cast<char*>(iConn->context->response->content.data());
-            closure->length = iConn->context->response->content.size();
+            closure->result = (char*)iConn->context->response->message.c_str();
+            closure->length = iConn->context->response->message.size();
 
         }
 

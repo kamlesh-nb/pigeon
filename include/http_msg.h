@@ -7,10 +7,9 @@
 #include <algorithm>
 #include <http_util.h>
 #include <unordered_map>
-
+#include <sstream>
 
 using namespace std;
-
 
 namespace pigeon {
 
@@ -30,7 +29,8 @@ namespace pigeon {
 
         int http_major_version;
         int http_minor_version;
-        vector<char> content;
+        string content;
+        ostringstream buffer;
 
         auto has_cookies() -> bool;
 
@@ -51,43 +51,19 @@ namespace pigeon {
     };
 
 
-	struct url
-	{
-		string host;
-		string scheme;
-		string resource;
-
-	};
-
-    class http_response : public http_msg {
-
+    class http_response {
+    private:
+        unordered_map<string, string> headers;
+        unordered_map<string, string> cookies;
 
     public:
-        virtual ~http_response();
-
-    public:
-
+        http_response();
+        ~http_response();
         unsigned int status;
         string message;
+        string content;
 
-
-    };
-
-    class http_request : public http_msg {
-
-    private:
-
-        unordered_map<string, string> parameters;
-        shared_ptr<http_response> response;
-
-    public:
-
-        virtual ~http_request();
-
-        string url;
-        unsigned int method;
-        bool is_api{false};
-        vector<form> forms;
+        auto set_cookie(string &, string &) -> void;
 
         auto get_cookie(string) -> string&;
 
@@ -95,11 +71,56 @@ namespace pigeon {
 
         auto set_parameter(string &, string &) -> void;
 
-        auto create_response(const char *, http_response &, HttpStatus status) -> void;
+        auto has_cookies() -> bool;
 
-        auto create_response(string &, http_response &, HttpStatus status) -> void;
+        auto set_header(string &, string &) -> void;
 
-        auto create_response(string &, string &, http_response &, HttpStatus status) -> void;
+        auto get_header(string) -> string&;
+
+        auto get_non_default_headers() -> void;
+
+    };
+
+
+    class http_request {
+
+    private:
+        unordered_map<string, string> parameters;
+        unordered_map<string, string> headers;
+        string temp;
+        unordered_map<string, string> cookies;
+
+    public:
+        http_request();
+        ~http_request();
+
+        int http_major_version;
+        int http_minor_version;
+        string content;
+        string url;
+        unsigned int method;
+        bool is_api{false};
+        vector<form> forms;
+        
+        auto get_cookie(string) -> string&;
+
+        auto set_cookie(string &, string &) -> void;
+
+        auto get_parameter(string &) -> string&;
+
+        auto set_parameter(string &, string &) -> void;
+
+        auto has_cookies() -> bool;
+
+        auto set_header(string &, string &) -> void;
+
+        auto get_header(string) -> string&;
+
+        auto create_response(const char *, http_response *response, HttpStatus status) -> void;
+
+        auto create_response(string &, http_response *response, HttpStatus status) -> void;
+
+        auto create_response(string &, string &, http_response *response, HttpStatus status) -> void;
 
 
     };

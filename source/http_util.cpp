@@ -205,7 +205,7 @@ char *pigeon::now() {
     return dt;
 }
 
-auto pigeon::get_cached_response(bool is_api, vector<char>& data) -> void {
+auto pigeon::get_cached_response(bool is_api) -> const char* {
 
     string cached_response;
 
@@ -215,13 +215,10 @@ auto pigeon::get_cached_response(bool is_api, vector<char>& data) -> void {
     if (is_api) {
         cached_response += api_cached_response;
     }
-    const char* cr = cached_response.c_str();
-    const char* d = cr + strlen(cr);
-    data.insert(data.end(), cr, d);
-
+    return cached_response.c_str();
 }
 
-auto pigeon::get_header_field(HttpHeader hdr) -> const string {
+auto pigeon::get_header_field(HttpHeader hdr) -> const char* {
 
     for (header *m = headers; m->header_id; ++m) {
         if (m->header_id == static_cast<int>(hdr)) {
@@ -232,16 +229,7 @@ auto pigeon::get_header_field(HttpHeader hdr) -> const string {
     return  "unknown header";
 }
 
-auto ::pigeon::get_header_field(HttpHeader hdr, vector<char>& data) -> void {
-    for (header *m = headers; m->header_id; ++m) {
-        if (m->header_id == static_cast<int>(hdr)) {
-            const char* d = m->header_field + strlen(m->header_field);
-            data.insert(data.end(), m->header_field, d);
-        }
-    }
-}
-
-auto ::pigeon::get_header_field(HttpHeader hdr, string& data) -> void {
+auto pigeon::get_header_field(HttpHeader hdr, string& data) -> void {
     for (header *m = headers; m->header_id; ++m) {
         if (m->header_id == static_cast<int>(hdr)) {
             data += m->header_field;
@@ -249,29 +237,27 @@ auto ::pigeon::get_header_field(HttpHeader hdr, string& data) -> void {
     }
 }
 
-auto pigeon::get_status_phrase(HttpStatus status, vector<char>& data) -> void {
+auto pigeon::get_status_phrase(HttpStatus status) -> const char* {
 
     for (statusphrase *m = statusphrases; m->status_code; ++m) {
         if (m->status_code == static_cast<int>(status)) {
-           const char* d = m->status_phrase + strlen(m->status_phrase);
-            data.insert(data.end(), m->status_phrase, d);
+            return m->status_phrase;
         }
     }
-
+    return "Unknown";
 }
 
-auto pigeon::get_status_msg(HttpStatus status, string& data) -> void {
+auto pigeon::get_status_msg(HttpStatus status) -> const char* {
 
     for (statusmsg *m = statusmsgs; m->status_code; ++m) {
         if (m->status_code == static_cast<int>(status)) {
-            const char* end = m->status_msg + strlen(m->status_msg);
-            data.insert(data.end(), m->status_msg, end);
+            return m->status_msg;
         }
     }
-
+    return "Unknown";
 }
 
-auto pigeon::get_err_msg(const char* msg, HttpStatus status, vector<char>& data) -> void {
+auto pigeon::get_err_msg(const char* msg, HttpStatus status) -> const char* {
 
     string message;
     string headers;
@@ -279,7 +265,7 @@ auto pigeon::get_err_msg(const char* msg, HttpStatus status, vector<char>& data)
     message += err_msg1;
     message += std::to_string((int) status);
     message += err_msg3;
-    get_status_msg(status, message);
+    message += get_status_msg(status);
     message += err_msg5;
     message += msg;
     message += err_msg7;
@@ -293,8 +279,7 @@ auto pigeon::get_err_msg(const char* msg, HttpStatus status, vector<char>& data)
 
     headers += message;
 
-    data.insert(data.end(), headers.begin(), headers.end());
-
+    return headers.c_str();
 
 }
 

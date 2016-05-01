@@ -6,7 +6,7 @@ INC = -I ./include -I /usr/include/ -I /usr/local/include/rapidjson/
 
 CXX = clang++
 
-FLAGS = -Wall -Wextra -pedantic -pedantic-errors -std=c++14 -O3 $(INC)
+FLAGS = -Wall -Wextra -pedantic -pedantic-errors -std=c++14 -g3 $(INC)
 
 OBJ = $(CPP:.cpp=.o)
 

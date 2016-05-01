@@ -5,6 +5,10 @@
 #include <http_handlers.h>
 #include <regex>
 #include <iostream>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/document.h>
+
+using namespace rapidjson;
 
 using namespace std;
 using namespace pigeon;
@@ -78,18 +82,21 @@ void request_processor::process(http_context *context)
             context->request->method == HTTP_PUT ||
             context->request->method == HTTP_POST ||
             context->request->method == HTTP_DELETE)) {
+
         //process the request if it is for web api
         auto handler = http_handlers::instance()->get(context->request->url);
-        handler->process(context);
+        if(handler){
+            handler->process(context);
+        }
     }
     else
     {
         //process the request if it is for static content
         auto handler = http_handlers::instance()->get("resource");
-        handler->process(context);
+        if(handler){
+            handler->process(context);
+        }
     }
-
-
 
     //execute if there are any response filters registered,
     //if any of the filter fails, it will terminate the further 
@@ -99,6 +106,7 @@ void request_processor::process(http_context *context)
     }
 
 }
+
 
 void request_processor::parse_multipart(http_context *context)
 {
