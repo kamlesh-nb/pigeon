@@ -21,6 +21,7 @@ namespace pigeon {
         string_builder();
         ~string_builder();
         char* find(char*);
+		size_t get_length();
         void reserve(size_t);
         void reset();
         void append(char*);

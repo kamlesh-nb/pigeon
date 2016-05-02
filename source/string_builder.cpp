@@ -45,6 +45,11 @@ void string_builder::resize(size_t sz) {
 char* string_builder::find(char * str) {
     char * pch;
     pch = strstr (base, str);
+	return pch;
+}
+
+size_t string_builder::get_length() {
+	return cur_pos;
 }
 
 void string_builder::reserve(size_t capacity) {

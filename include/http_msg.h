@@ -67,10 +67,6 @@ namespace pigeon {
 
         auto get_cookie(string) -> string&;
 
-        auto get_parameter(string &) -> string&;
-
-        auto set_parameter(string &, string &) -> void;
-
         auto has_cookies() -> bool;
 
         auto set_header(string &, string &) -> void;
