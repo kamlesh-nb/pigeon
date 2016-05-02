@@ -11,8 +11,6 @@
 
 using namespace pigeon;
 
-
-
 #define container_of(ptr, type, member) \
   ((type *) ((char *) (ptr) - offsetof(type, member)))
 
@@ -304,7 +302,34 @@ public:
 		http_parser_init(&iConn->parser, HTTP_REQUEST);
 
 		r = uv_accept(server_handle, (uv_stream_t*)&iConn->stream);
-		r = uv_read_start((uv_stream_t*)&iConn->stream, sv_alloc_cb, sv_read_cb);
+		r = uv_read_start((uv_stream_t*)&iConn->stream, [](uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
+			buf->base = (char*)malloc(suggested_size);
+			buf->len = suggested_size;
+		}, [](uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
+			ssize_t parsed;
+			iconnection_t *iConn = (iconnection_t *)handle->data;
+			if (nread >= 0) {
+				parsed = (ssize_t)http_parser_execute(&iConn->parser, &parser_settings, buf->base, nread);
+				if (parsed < nread) {
+					uv_close((uv_handle_t *)&iConn->stream, [](uv_handle_t *handle) {
+						iconnection_t* iConn = (iconnection_t*)handle->data;
+						delete iConn->context;
+						free(iConn);
+					});
+				}
+			}
+			else {
+				if (nread != UV_EOF) {
+				}
+				uv_close((uv_handle_t *)&iConn->stream, [](uv_handle_t *handle) {
+					iconnection_t* iConn = (iconnection_t*)handle->data;
+					delete iConn->context;
+					free(iConn);
+				});
+			}
+			free(buf->base);
+		
+		});
 
 	}
 
@@ -326,34 +351,41 @@ public:
 		conn_rec_t* conn = container_of(req, conn_rec_t, shutdown_req);
 		msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
 		delete closure;
-		uv_close((uv_handle_t*)&conn->handle, on_close);
+		uv_close((uv_handle_t*)&conn->handle, [](uv_handle_t *handle) {
+			iconnection_t* iConn = (iconnection_t*)handle->data;
+			delete iConn->context;
+			free(iConn);
+		});
 
 	}
 
 
 	void sv_read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
-		try {
+		 
 
 			ssize_t parsed;
 			iconnection_t *iConn = (iconnection_t *)handle->data;
 			if (nread >= 0) {
 				parsed = (ssize_t)http_parser_execute(&iConn->parser, &parser_settings, buf->base, nread);
 				if (parsed < nread) {
-					uv_close((uv_handle_t *)&iConn->stream, on_close);
+					uv_close((uv_handle_t *)&iConn->stream, [](uv_handle_t *handle) {
+						iconnection_t* iConn = (iconnection_t*)handle->data;
+						delete iConn->context;
+						free(iConn);
+					});
 				}
 			}
 			else {
 				if (nread != UV_EOF) {
 				}
-				uv_close((uv_handle_t *)&iConn->stream, on_close);
+				uv_close((uv_handle_t *)&iConn->stream, [](uv_handle_t *handle) {
+					iconnection_t* iConn = (iconnection_t*)handle->data;
+					delete iConn->context;
+					free(iConn);
+				});
 			}
 			free(buf->base);
-		}
-		catch (std::exception& ex) {
-
-			throw std::runtime_error(ex.what());
-
-		}
+		 
 	}
 
 };
@@ -427,4 +459,14 @@ void http_server::init()
 void http_server::run()
 {
 
+	settings::load_setting();
+#ifdef _WIN32
+	IPC_PIPE_NAME += "\\\\?\\pipe\\";
+	IPC_PIPE_NAME += settings::service_name;
+#else
+	IPC_PIPE_NAME += "/tmp/";
+	IPC_PIPE_NAME += _Settings->get_service_name();
+#endif
+	
+	init();
 }
