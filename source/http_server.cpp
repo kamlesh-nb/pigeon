@@ -89,124 +89,6 @@ uv_async_t* listener_async_handles;
 uv_barrier_t* listeners_created_barrier;
 uv_tcp_t server;
 
-
-
-class http_server::tcp {
-
-private:
-
-public:
-
-	void server_cb(void *arg) {
-
-		int r;
-		struct server_ctx *ctx;
-		uv_loop_t* loop;
-
-		ctx = (struct server_ctx *)arg;
-		loop = uv_loop_new();
-
-		ctx->loop = loop;
-		pipe* pipe_ptr = reinterpret_cast<pipe*>(ctx->pipe_ptr);
-		uv_barrier_wait(listeners_created_barrier);
-
-		r = uv_async_init(loop, &ctx->async_handle, sv_async_cb);
-		uv_unref((uv_handle_t*)&ctx->async_handle);
-
-		uv_sem_wait(&ctx->semaphore);
-		pipe_ptr->get_listen_handle(loop, (uv_stream_t*)&ctx->server_handle);
-		uv_sem_post(&ctx->semaphore);
-
-		r = uv_listen((uv_stream_t*)&ctx->server_handle, 128, sv_connection_cb);
-		r = uv_run(loop, UV_RUN_DEFAULT);
-
-		uv_loop_delete(loop);
-
-	}
-
-	void sv_async_cb(uv_async_t* handle) {
-		struct server_ctx* ctx;
-		ctx = container_of(handle, struct server_ctx, async_handle);
-		uv_close((uv_handle_t*)&ctx->server_handle, NULL);
-		uv_close((uv_handle_t*)&ctx->async_handle, NULL);
-	}
-
-	void sv_connection_cb(uv_stream_t* server_handle, int status) {
-
-		int r;
-		iconnection_t* iConn = (iconnection_t*)malloc(sizeof(iconnection_t));
-		iConn->context = new http_context;
-		 
-
-		iConn->parser.data = iConn;
-		iConn->stream.data = iConn;
-
-		r = uv_tcp_init(server_handle->loop, &iConn->stream);
-		http_parser_init(&iConn->parser, HTTP_REQUEST);
-
-		r = uv_accept(server_handle, (uv_stream_t*)&iConn->stream);
-		r = uv_read_start((uv_stream_t*)&iConn->stream, sv_alloc_cb, sv_read_cb);
-
-	}
-
-	void sv_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
-		buf->base = (char*)malloc(suggested_size);
-		buf->len = suggested_size;
-	}
-
-	auto on_close(uv_handle_t *handle) -> void {
-
-		try {
-
-			iconnection_t* iConn = (iconnection_t*)handle->data;
-			delete iConn->context;
-			free(iConn);
-
-		}
-		catch (std::exception ex) {
-
-		}
-	}
-
-	auto on_shutdown(uv_shutdown_t* req, int status) -> void {
-
-		conn_rec_t* conn = container_of(req, conn_rec_t, shutdown_req);
-		msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
-		delete closure;
-		uv_close((uv_handle_t*)&conn->handle, on_close);
-
-	}
-
-
-	void sv_read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
-		try {
-
-			ssize_t parsed;
-			iconnection_t *iConn = (iconnection_t *)handle->data;
-			if (nread >= 0) {
-				parsed = (ssize_t)http_parser_execute(&iConn->parser, &parser_settings, buf->base, nread);
-				if (parsed < nread) {
-					logger::get(_Settings)->write(LogType::Error, Severity::Critical, "parse failed");
-					uv_close((uv_handle_t *)&iConn->stream, on_close);
-				}
-			}
-			else {
-				if (nread != UV_EOF) {
-					logger::get(_Settings)->write(LogType::Error, Severity::Critical, "read failed");
-				}
-				uv_close((uv_handle_t *)&iConn->stream, on_close);
-			}
-			free(buf->base);
-		}
-		catch (std::exception& ex) {
-
-			throw std::runtime_error(ex.what());
-
-		}
-	}
-
-};
-
 class http_server::pipe {
 
 private:
@@ -314,7 +196,13 @@ public:
 		ctx = container_of(req, struct ipc_client_ctx, connect_req);
 		ctx->ipc_pipe.data = this;
 
-		r = uv_read_start((uv_stream_t*)&ctx->ipc_pipe, ipc_alloc_cb, ipc_read_cb);
+		r = uv_read_start((uv_stream_t*)&ctx->ipc_pipe, [](uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
+			pipe* pipe_ptr = reinterpret_cast<pipe*>(handle->data);
+			pipe_ptr->ipc_alloc_cb(handle, suggested_size, buf);
+		}, [](uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
+			pipe* pipe_ptr = reinterpret_cast<pipe*>(handle->data);
+			pipe_ptr->ipc_read_cb(handle, nread, buf);
+		});
 
 	}
 
@@ -349,6 +237,127 @@ public:
 	}
 
 };
+
+
+class http_server::tcp {
+
+private:
+
+public:
+
+	void server_cb(void *arg) {
+
+		int r;
+		struct server_ctx *ctx;
+		uv_loop_t* loop;
+
+		ctx = (struct server_ctx *)arg;
+		loop = uv_loop_new();
+		
+		ctx->loop = loop;
+		http_server::pipe* pipe_ptr = reinterpret_cast<http_server::pipe*>(ctx->pipe_ptr);
+		uv_barrier_wait(listeners_created_barrier);
+
+		r = uv_async_init(loop, &ctx->async_handle, [](uv_async_t* handle) {
+			struct server_ctx* ctx;
+			ctx = container_of(handle, struct server_ctx, async_handle);
+			http_server::tcp*  tcp_ptr = reinterpret_cast<http_server::tcp*>(ctx->tcp_ptr);
+			tcp_ptr->sv_async_cb(handle);
+		});
+		uv_unref((uv_handle_t*)&ctx->async_handle);
+		
+		uv_sem_wait(&ctx->semaphore);
+		pipe_ptr->get_listen_handle(loop, (uv_stream_t*)&ctx->server_handle);
+		uv_sem_post(&ctx->semaphore);
+
+		r = uv_listen((uv_stream_t*)&ctx->server_handle, 128, [](uv_stream_t* handle, int status) {
+			struct server_ctx* ctx;
+			ctx = container_of(handle, struct server_ctx, server_handle);
+			http_server::tcp*  tcp_ptr = reinterpret_cast<http_server::tcp*>(ctx->tcp_ptr);
+			tcp_ptr->sv_connection_cb(handle, status);
+		});
+		r = uv_run(loop, UV_RUN_DEFAULT);
+
+		uv_loop_delete(loop);
+
+	}
+
+	void sv_async_cb(uv_async_t* handle) {
+		struct server_ctx* ctx;
+		ctx = container_of(handle, struct server_ctx, async_handle);
+		uv_close((uv_handle_t*)&ctx->server_handle, NULL);
+		uv_close((uv_handle_t*)&ctx->async_handle, NULL);
+	}
+
+	void sv_connection_cb(uv_stream_t* server_handle, int status) {
+
+		int r;
+		iconnection_t* iConn = (iconnection_t*)malloc(sizeof(iconnection_t));
+		iConn->context = new http_context;
+		 
+
+		iConn->parser.data = iConn;
+		iConn->stream.data = iConn;
+
+		r = uv_tcp_init(server_handle->loop, &iConn->stream);
+		http_parser_init(&iConn->parser, HTTP_REQUEST);
+
+		r = uv_accept(server_handle, (uv_stream_t*)&iConn->stream);
+		r = uv_read_start((uv_stream_t*)&iConn->stream, sv_alloc_cb, sv_read_cb);
+
+	}
+
+	void sv_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
+		buf->base = (char*)malloc(suggested_size);
+		buf->len = suggested_size;
+	}
+
+	auto on_close(uv_handle_t *handle) -> void {
+ 
+		iconnection_t* iConn = (iconnection_t*)handle->data;
+		delete iConn->context;
+		free(iConn);
+
+	}
+
+	auto on_shutdown(uv_shutdown_t* req, int status) -> void {
+
+		conn_rec_t* conn = container_of(req, conn_rec_t, shutdown_req);
+		msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
+		delete closure;
+		uv_close((uv_handle_t*)&conn->handle, on_close);
+
+	}
+
+
+	void sv_read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
+		try {
+
+			ssize_t parsed;
+			iconnection_t *iConn = (iconnection_t *)handle->data;
+			if (nread >= 0) {
+				parsed = (ssize_t)http_parser_execute(&iConn->parser, &parser_settings, buf->base, nread);
+				if (parsed < nread) {
+					uv_close((uv_handle_t *)&iConn->stream, on_close);
+				}
+			}
+			else {
+				if (nread != UV_EOF) {
+				}
+				uv_close((uv_handle_t *)&iConn->stream, on_close);
+			}
+			free(buf->base);
+		}
+		catch (std::exception& ex) {
+
+			throw std::runtime_error(ex.what());
+
+		}
+	}
+
+};
+
+
 
 http_server::http_server()
 {

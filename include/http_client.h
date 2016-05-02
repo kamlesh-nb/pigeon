@@ -18,7 +18,7 @@ namespace pigeon {
 		~http_client();
 
 		int connect();
-		http_response* create_request(url&);
+		http_response* create_request();
 	};
 
 }
