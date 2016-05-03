@@ -1,6 +1,8 @@
 #ifndef PIGEON_HTTP_SERVER_H
 #define PIGEON_HTTP_SERVER_H
 
+#include <request_processor.h>
+
 namespace pigeon {
 
 	class http_server
@@ -14,7 +16,10 @@ namespace pigeon {
 		tcp* tcpImpl;
 		pipe* pipeImpl;
 
-		void init();
+		request_processor* RequestProcessor;
+
+		void _init();
+		void _parser();
 	
 	public:
 

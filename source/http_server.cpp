@@ -6,8 +6,9 @@
 #include <uv.h>
 #include <malloc.h>
 #include <logger.h>
-
-
+#include <cache.h>
+#include <http_handlers.h>
+#include <resource_handler.h>
 
 using namespace pigeon;
 
@@ -29,8 +30,10 @@ typedef struct {
 	uv_tcp_t stream;
 	http_parser parser;
 	uv_write_t write_req;
-	char* client_adress;
-	http_context* context;
+	char *client_address;
+	void *data;
+	char *temp;
+	http_context *context;
 
 } iconnection_t;
 
@@ -128,6 +131,7 @@ public:
 
 	}
 
+
 	void get_listen_handle(uv_loop_t* loop, uv_stream_t* server_handle) {
 		int r;
 		struct ipc_client_ctx ctx;
@@ -135,13 +139,16 @@ public:
 		ctx.server_handle->data = (void*)"server handle";
 		ctx.connect_req.data = this;
 		r = uv_pipe_init(loop, &ctx.ipc_pipe, 1);
-		uv_pipe_connect(&ctx.connect_req, &ctx.ipc_pipe, IPC_PIPE_NAME.c_str(), [](uv_connect_t* req, int status) {
+		uv_pipe_connect(&ctx.connect_req, &ctx.ipc_pipe, IPC_PIPE_NAME.c_str(), 
+		[](uv_connect_t* req, int status) {
 			pipe* pipe_ptr = reinterpret_cast<pipe*>(req->data);
 			pipe_ptr->ipc_connect_cb(req, status);
 		});
 		r = uv_run(loop, UV_RUN_DEFAULT);
 
 	}
+
+	 
 
 	void ipc_connection_cb(uv_stream_t* ipc_pipe, int status) {
 		int r;
@@ -163,15 +170,18 @@ public:
 			r = uv_pipe_init(loop, (uv_pipe_t*)&pc->peer_handle, 1);
 
 		r = uv_accept(ipc_pipe, (uv_stream_t*)&pc->peer_handle);
-		r = uv_write2(&pc->write_req, (uv_stream_t*)&pc->peer_handle, &buf, 1, (uv_stream_t*)&sc->server_handle, [](uv_write_t* req, int status) {
-			pipe* pipe_ptr = reinterpret_cast<pipe*>(req->data);
-			pipe_ptr->ipc_write_cb(req, status);
-		});
+		r = uv_write2(&pc->write_req, (uv_stream_t*)&pc->peer_handle, &buf, 1, (uv_stream_t*)&sc->server_handle, 
+			[](uv_write_t* req, int status) {
+				pipe* pipe_ptr = reinterpret_cast<pipe*>(req->data);
+				pipe_ptr->ipc_write_cb(req, status);
+			});
 
 		if (--sc->num_connects == 0)
 			uv_close((uv_handle_t*)ipc_pipe, NULL);
 
 	}
+
+
 
 	void ipc_write_cb(uv_write_t* req, int status) {
 		struct ipc_peer_ctx* ctx;
@@ -204,6 +214,8 @@ public:
 
 	}
 
+ 
+
 	void ipc_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
 		struct ipc_client_ctx* ctx;
 		ctx = container_of(handle, struct ipc_client_ctx, ipc_pipe);
@@ -234,6 +246,7 @@ public:
 		uv_close((uv_handle_t*)&ctx->ipc_pipe, NULL);
 	}
 
+
 };
 
 
@@ -256,24 +269,27 @@ public:
 		http_server::pipe* pipe_ptr = reinterpret_cast<http_server::pipe*>(ctx->pipe_ptr);
 		uv_barrier_wait(listeners_created_barrier);
 
-		r = uv_async_init(loop, &ctx->async_handle, [](uv_async_t* handle) {
-			struct server_ctx* ctx;
-			ctx = container_of(handle, struct server_ctx, async_handle);
-			http_server::tcp*  tcp_ptr = reinterpret_cast<http_server::tcp*>(ctx->tcp_ptr);
-			tcp_ptr->sv_async_cb(handle);
-		});
+		r = uv_async_init(loop, &ctx->async_handle, 
+			[](uv_async_t* handle) {
+				struct server_ctx* ctx;
+				ctx = container_of(handle, struct server_ctx, async_handle);
+				uv_close((uv_handle_t*)&ctx->server_handle, NULL);
+				uv_close((uv_handle_t*)&ctx->async_handle, NULL);
+			});
+
 		uv_unref((uv_handle_t*)&ctx->async_handle);
 		
 		uv_sem_wait(&ctx->semaphore);
 		pipe_ptr->get_listen_handle(loop, (uv_stream_t*)&ctx->server_handle);
 		uv_sem_post(&ctx->semaphore);
 
-		r = uv_listen((uv_stream_t*)&ctx->server_handle, 128, [](uv_stream_t* handle, int status) {
-			struct server_ctx* ctx;
-			ctx = container_of(handle, struct server_ctx, server_handle);
-			http_server::tcp*  tcp_ptr = reinterpret_cast<http_server::tcp*>(ctx->tcp_ptr);
-			tcp_ptr->sv_connection_cb(handle, status);
-		});
+		r = uv_listen((uv_stream_t*)&ctx->server_handle, 128, 
+			[](uv_stream_t* handle, int status) {
+				struct server_ctx* ctx;
+				ctx = container_of(handle, struct server_ctx, server_handle);
+				http_server::tcp*  tcp_ptr = reinterpret_cast<http_server::tcp*>(ctx->tcp_ptr);
+				tcp_ptr->sv_connection_cb(handle, status);
+			});
 		r = uv_run(loop, UV_RUN_DEFAULT);
 
 		uv_loop_delete(loop);
@@ -292,8 +308,6 @@ public:
 		int r;
 		iconnection_t* iConn = (iconnection_t*)malloc(sizeof(iconnection_t));
 		iConn->context = new http_context;
-		 
-		 
 
 		iConn->parser.data = iConn;
 		iConn->stream.data = iConn;
@@ -302,34 +316,36 @@ public:
 		http_parser_init(&iConn->parser, HTTP_REQUEST);
 
 		r = uv_accept(server_handle, (uv_stream_t*)&iConn->stream);
-		r = uv_read_start((uv_stream_t*)&iConn->stream, [](uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
+		r = uv_read_start((uv_stream_t*)&iConn->stream, 
+			[](uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
 			buf->base = (char*)malloc(suggested_size);
 			buf->len = suggested_size;
-		}, [](uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
-			ssize_t parsed;
-			iconnection_t *iConn = (iconnection_t *)handle->data;
-			if (nread >= 0) {
-				parsed = (ssize_t)http_parser_execute(&iConn->parser, &parser_settings, buf->base, nread);
-				if (parsed < nread) {
+			}, 
+			[](uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
+				ssize_t parsed;
+				iconnection_t *iConn = (iconnection_t *)handle->data;
+				if (nread >= 0) {
+					parsed = (ssize_t)http_parser_execute(&iConn->parser, &parser_settings, buf->base, nread);
+					if (parsed < nread) {
+						uv_close((uv_handle_t *)&iConn->stream, [](uv_handle_t *handle) {
+							iconnection_t* iConn = (iconnection_t*)handle->data;
+							delete iConn->context;
+							free(iConn);
+						});
+					}
+				}
+				else {
+					if (nread != UV_EOF) {
+					}
 					uv_close((uv_handle_t *)&iConn->stream, [](uv_handle_t *handle) {
 						iconnection_t* iConn = (iconnection_t*)handle->data;
 						delete iConn->context;
 						free(iConn);
 					});
 				}
-			}
-			else {
-				if (nread != UV_EOF) {
-				}
-				uv_close((uv_handle_t *)&iConn->stream, [](uv_handle_t *handle) {
-					iconnection_t* iConn = (iconnection_t*)handle->data;
-					delete iConn->context;
-					free(iConn);
-				});
-			}
-			free(buf->base);
+				free(buf->base);
 		
-		});
+			});
 
 	}
 
@@ -358,7 +374,6 @@ public:
 		});
 
 	}
-
 
 	void sv_read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
 		 
@@ -402,7 +417,104 @@ http_server::~http_server()
 {
 }
 
-void http_server::init()
+void http_server::_parser() {
+
+	parser_settings.on_url = [](http_parser *parser, const char *at, size_t len) -> int {
+
+		iconnection_t *iConn = (iconnection_t *)parser->data;
+		if (at && iConn->context->request) {
+			char *data = (char *)malloc(sizeof(char) * len + 1);
+			strncpy(data, at, len);
+			data[len] = '\0';
+			iConn->context->request->url += data;
+			free(data);
+		}
+		return 0;
+
+	};
+
+	parser_settings.on_header_field = [](http_parser *parser, const char *at, size_t len) -> int {
+
+		iconnection_t *iConn = (iconnection_t *)parser->data;
+		if (at && iConn->context->request) {
+			string s;
+			iConn->temp = (char *)malloc(sizeof(char) * len + 1);
+
+			strncpy(iConn->temp, at, len);
+			iConn->temp[len] = '\0';
+
+		}
+		return 0;
+
+	};
+
+	parser_settings.on_header_value = [](http_parser *parser, const char *at, size_t len) -> int {
+
+		iconnection_t *iConn = (iconnection_t *)parser->data;
+		if (at && iConn->context->request) {
+			string key, value;
+			char *data = (char *)malloc(sizeof(char) * len + 1);
+			strncpy(data, at, len);
+			data[len] = '\0';
+			value += data;
+			key += iConn->temp;
+			free(data);
+			free(iConn->temp);
+
+			iConn->context->request->set_header(key, value);
+		}
+		return 0;
+
+	};
+
+	parser_settings.on_headers_complete = [](http_parser *parser) -> int {
+
+		iconnection_t *iConn = (iconnection_t *)parser->data;
+		iConn->context->request->method = parser->method;
+		iConn->context->request->http_major_version = parser->http_major;
+		iConn->context->request->http_minor_version = parser->http_minor;
+		return 0;
+
+	};
+
+	parser_settings.on_body = [](http_parser *parser, const char *at, size_t len) -> int {
+
+		iconnection_t *iConn = (iconnection_t *)parser->data;
+		if (at && iConn->context->request) {
+			// const char* end = at + len;
+			// iConn->context->request->content.insert(iConn->context->request->content.begin(),
+			//     at, end);
+
+			for (size_t i = 0; i < len; ++i) {
+				iConn->context->request->content.push_back(at[i]);
+			}
+
+		}
+		return 0;
+
+	};
+
+	parser_settings.on_message_complete = [](http_parser *parser) -> int {
+
+		iconnection_t *iConn = (iconnection_t *)parser->data;
+		msg_baton_t *closure = new msg_baton_t();
+		closure->request.data = closure;
+		closure->iConn = iConn;
+		closure->error = false;
+
+	 
+
+	/*	if (status != 0) {
+			logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
+		}
+*/
+		return 0;
+
+	};
+
+}
+
+void http_server::_init()
 {
 	uv_async_t* service_handle = 0;
 
@@ -460,6 +572,14 @@ void http_server::run()
 {
 
 	settings::load_setting();
+	cache::get()->load(settings::resource_location);
+
+	http_handlers::instance()->add("resource", new resource_handler());
+
+	RequestProcessor = new request_processor();
+	_parser();
+
+
 #ifdef _WIN32
 	IPC_PIPE_NAME += "\\\\?\\pipe\\";
 	IPC_PIPE_NAME += settings::service_name;
@@ -468,5 +588,5 @@ void http_server::run()
 	IPC_PIPE_NAME += _Settings->get_service_name();
 #endif
 	
-	init();
+	_init();
 }
