@@ -9,6 +9,7 @@
 #include <cache.h>
 #include <http_handlers.h>
 #include <resource_handler.h>
+#include <request_processor.h>
 
 using namespace pigeon;
 
@@ -255,6 +256,7 @@ class http_server::tcp {
 private:
 
 public:
+    	request_processor* RequestProcessor;
 
 	void server_cb(void *arg) {
 
@@ -311,6 +313,7 @@ public:
 
 		iConn->parser.data = iConn;
 		iConn->stream.data = iConn;
+        	iConn->data = this;
 
 		r = uv_tcp_init(server_handle->loop, &iConn->stream);
 		http_parser_init(&iConn->parser, HTTP_REQUEST);
@@ -318,8 +321,8 @@ public:
 		r = uv_accept(server_handle, (uv_stream_t*)&iConn->stream);
 		r = uv_read_start((uv_stream_t*)&iConn->stream, 
 			[](uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
-			buf->base = (char*)malloc(suggested_size);
-			buf->len = suggested_size;
+                buf->base = (char*)malloc(suggested_size);
+                buf->len = suggested_size;
 			}, 
 			[](uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
 				ssize_t parsed;
@@ -349,20 +352,11 @@ public:
 
 	}
 
-	void sv_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
-		buf->base = (char*)malloc(suggested_size);
-		buf->len = suggested_size;
-	}
 
-	auto on_close(uv_handle_t *handle) -> void {
- 
-		iconnection_t* iConn = (iconnection_t*)handle->data;
-		delete iConn->context;
-		free(iConn);
 
-	}
 
-	auto on_shutdown(uv_shutdown_t* req, int status) -> void {
+
+    auto on_shutdown(uv_shutdown_t* req, int status) -> void {
 
 		conn_rec_t* conn = container_of(req, conn_rec_t, shutdown_req);
 		msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
@@ -375,33 +369,37 @@ public:
 
 	}
 
-	void sv_read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
-		 
 
-			ssize_t parsed;
-			iconnection_t *iConn = (iconnection_t *)handle->data;
-			if (nread >= 0) {
-				parsed = (ssize_t)http_parser_execute(&iConn->parser, &parser_settings, buf->base, nread);
-				if (parsed < nread) {
-					uv_close((uv_handle_t *)&iConn->stream, [](uv_handle_t *handle) {
-						iconnection_t* iConn = (iconnection_t*)handle->data;
-						delete iConn->context;
-						free(iConn);
-					});
-				}
-			}
-			else {
-				if (nread != UV_EOF) {
-				}
-				uv_close((uv_handle_t *)&iConn->stream, [](uv_handle_t *handle) {
-					iconnection_t* iConn = (iconnection_t*)handle->data;
-					delete iConn->context;
-					free(iConn);
-				});
-			}
-			free(buf->base);
-		 
-	}
+
+    auto on_send_complete(uv_write_t *req, int status) -> void {
+
+            if (status != 0){
+            }
+
+            conn_rec_t* conn = container_of(req, conn_rec_t, shutdown_req);
+
+            size_t _write_queue_size = ((uv_stream_t *)conn)->write_queue_size;
+
+            if (uv_is_writable((uv_stream_t *)req) && _write_queue_size > 0) {
+                uv_shutdown(&conn->shutdown_req, (uv_stream_t *)conn,
+                            [](uv_shutdown_t* req, int status){
+                                http_server::tcp* tcpImpl = static_cast<http_server::tcp*>(req->data);
+                                tcpImpl->on_shutdown(req, status);
+                            });
+            }
+            else {
+                if (!uv_is_closing((uv_handle_t*)req->handle))
+                {
+                    uv_close((uv_handle_t*)req->handle, [](uv_handle_t *handle){
+                        iconnection_t* iConn = (iconnection_t*)handle->data;
+                        delete iConn->context;
+                        free(iConn);
+                    });
+                }
+            }
+
+
+    }
 
 };
 
@@ -481,10 +479,6 @@ void http_server::_parser() {
 
 		iconnection_t *iConn = (iconnection_t *)parser->data;
 		if (at && iConn->context->request) {
-			// const char* end = at + len;
-			// iConn->context->request->content.insert(iConn->context->request->content.begin(),
-			//     at, end);
-
 			for (size_t i = 0; i < len; ++i) {
 				iConn->context->request->content.push_back(at[i]);
 			}
@@ -501,13 +495,32 @@ void http_server::_parser() {
 		closure->request.data = closure;
 		closure->iConn = iConn;
 		closure->error = false;
+        http_server::tcp* tcpImpl = static_cast<http_server::tcp*>(iConn->data);
 
-	 
+        tcpImpl->RequestProcessor->process(iConn->context);
 
-	/*	if (status != 0) {
-			logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
-		}
-*/
+        closure->result = (char*)iConn->context->response->message.c_str();
+        closure->length = iConn->context->response->message.size();
+
+        uv_buf_t resbuf;
+        resbuf.base = closure->result;
+        resbuf.len = (unsigned long)closure->length;
+
+        iConn->write_req.data = closure;
+
+        int r = uv_write(&iConn->write_req,
+                         (uv_stream_t*)&iConn->stream,
+                         &resbuf,
+                         1,
+                         [](uv_write_t *req, int status) {
+                             msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
+                             http_server::tcp* tcpImpl = static_cast<http_server::tcp*>(req->data);
+                             tcpImpl->on_send_complete(req, status);
+                         });
+
+        if (r != 0){
+            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        }
 		return 0;
 
 	};
@@ -576,7 +589,7 @@ void http_server::run()
 
 	http_handlers::instance()->add("resource", new resource_handler());
 
-	RequestProcessor = new request_processor();
+	tcpImpl->RequestProcessor = new request_processor();
 	_parser();
 
 
@@ -585,7 +598,7 @@ void http_server::run()
 	IPC_PIPE_NAME += settings::service_name;
 #else
 	IPC_PIPE_NAME += "/tmp/";
-	IPC_PIPE_NAME += _Settings->get_service_name();
+	IPC_PIPE_NAME += settings::service_name;
 #endif
 	
 	_init();

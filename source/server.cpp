@@ -57,7 +57,7 @@ namespace pigeon {
     class server::server_impl {
 
     private:
-
+        uv_rwlock_t rw_lock;
         uv_loop_t *uv_loop;
         uv_tcp_t uv_tcp;
         vector<string> filters;
@@ -205,30 +205,42 @@ namespace pigeon {
 
             };
 
-            parser_settings.on_message_complete = [](http_parser *parser) -> int {
+              parser_settings.on_message_complete = [](http_parser* parser) -> int {
 
-                iconnection_t *iConn = (iconnection_t *) parser->data;
+                iconnection_t* iConn = (iconnection_t*)parser->data;
                 msg_baton_t *closure = new msg_baton_t();
                 closure->request.data = closure;
                 closure->iConn = iConn;
                 closure->error = false;
 
-                int status = uv_queue_work(uv_default_loop(),
-                                           &closure->request,
-                                           [](uv_work_t *req) {
-                                               msg_baton_t *bton = reinterpret_cast<msg_baton_t *>(req->data);
-                                               server_impl *srvImpl = reinterpret_cast<server_impl *>(bton->iConn->data);
-                                               srvImpl->on_process(req);
-                                           },
-                                           [](uv_work_t *req, int status) {
-                                               msg_baton_t *bton = reinterpret_cast<msg_baton_t *>(req->data);
-                                               server_impl *srvImpl = reinterpret_cast<server_impl *>(bton->iConn->data);
-                                               srvImpl->on_process_complete(req, status);
-                                           });
+                 
+                server_impl* srvImpl = static_cast<server_impl*>(iConn->data);
 
-                if (status != 0) {
-                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
+                srvImpl->RequestProcessor->process(iConn->context);
+
+                closure->result = (char*)iConn->context->response->message.c_str();
+                closure->length = iConn->context->response->message.size();
+
+                uv_buf_t resbuf;
+                resbuf.base = closure->result;
+                resbuf.len = (unsigned long)closure->length;
+
+                iConn->write_req.data = closure;
+
+                int r = uv_write(&iConn->write_req,
+                                 (uv_stream_t*)&iConn->handle,
+                                 &resbuf,
+                                 1,
+                                 [](uv_write_t *req, int status) {
+                                     msg_baton_t *closure = static_cast<msg_baton_t *>(req->data);
+                                     server_impl* srvImpl = static_cast<server_impl*>(closure->iConn->data);
+                                     srvImpl->on_send_complete(req, status);
+                                 });
+
+                if (r != 0){
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
                 }
+
 
                 return 0;
 
@@ -259,11 +271,11 @@ namespace pigeon {
 
             server_impl *srvImpl = reinterpret_cast<server_impl *>(iConn->data);
 
-            srvImpl->RequestProcessor->process(iConn->context);
-
-            closure->result = (char*)iConn->context->response->message.c_str();
-            closure->length = iConn->context->response->message.size();
-
+            uv_rwlock_rdlock(&rw_lock);
+                srvImpl->RequestProcessor->process(iConn->context);
+                closure->result = (char*)iConn->context->response->message.c_str();
+                closure->length = iConn->context->response->message.size();
+            uv_rwlock_rdunlock(&rw_lock);
         }
 
         void on_process_complete(uv_work_t *req, int status) {
