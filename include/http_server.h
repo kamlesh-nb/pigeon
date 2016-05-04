@@ -1,7 +1,6 @@
 #ifndef PIGEON_HTTP_SERVER_H
 #define PIGEON_HTTP_SERVER_H
-
-
+ 
 
 namespace pigeon {
 
@@ -9,24 +8,15 @@ namespace pigeon {
 	{
 	
 	private:
+		class http_server_impl;
+		http_server_impl* _Impl;
 
-		class tcp;
-		class pipe;
-
-		tcp* tcpImpl;
-		pipe* pipeImpl;
-
-
-
-		void _init();
-		void _parser();
-	
 	public:
 
 		http_server();
 		~http_server();
 
-		void run();
+		void start();
 	
 
 	};

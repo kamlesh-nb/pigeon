@@ -17,6 +17,8 @@ int settings::worker_threads;
 string settings::address;
 int settings::port;
 string settings::filters;
+bool  settings::tcp_no_delay;
+int  settings::keep_alive;
 bool settings::use_ssl;
 string settings::ssl_cert_file;
 string settings::ssl_key_file;
