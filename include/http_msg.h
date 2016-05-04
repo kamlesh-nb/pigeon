@@ -8,6 +8,7 @@
 #include <http_util.h>
 #include <unordered_map>
 #include <sstream>
+#include <string_builder.h>
 
 using namespace std;
 
@@ -30,7 +31,7 @@ namespace pigeon {
         int http_major_version;
         int http_minor_version;
         string content;
-        ostringstream buffer;
+        string_builder* buffer;
 
         auto has_cookies() -> bool;
 
@@ -51,48 +52,34 @@ namespace pigeon {
     };
 
 
-    class http_response {
-    private:
-        unordered_map<string, string> headers;
-        unordered_map<string, string> cookies;
+	struct url
+	{
+		string host;
+		string scheme;
+		string resource;
 
+	};
+
+    class http_response : public http_msg {
     public:
-        http_response();
-        ~http_response();
+        virtual ~http_response();
         unsigned int status;
         string message;
-        string content;
-
-        auto set_cookie(string &, string &) -> void;
-
-        auto get_cookie(string) -> string&;
-
-        auto has_cookies() -> bool;
-
-        auto set_header(string &, string &) -> void;
-
-        auto get_header(string) -> string&;
-
-        auto get_non_default_headers() -> void;
 
     };
 
 
-    class http_request {
+    class http_request : public http_msg {
 
     private:
+
         unordered_map<string, string> parameters;
-        unordered_map<string, string> headers;
-        string temp;
-        unordered_map<string, string> cookies;
+        shared_ptr<http_response> response;
 
     public:
-        http_request();
-        ~http_request();
 
-        int http_major_version;
-        int http_minor_version;
-        string content;
+        virtual ~http_request();
+
         string url;
         unsigned int method;
         bool is_api{false};
@@ -100,17 +87,9 @@ namespace pigeon {
         
         auto get_cookie(string) -> string&;
 
-        auto set_cookie(string &, string &) -> void;
-
         auto get_parameter(string &) -> string&;
 
         auto set_parameter(string &, string &) -> void;
-
-        auto has_cookies() -> bool;
-
-        auto set_header(string &, string &) -> void;
-
-        auto get_header(string) -> string&;
 
         auto create_response(const char *, http_response *response, HttpStatus status) -> void;
 

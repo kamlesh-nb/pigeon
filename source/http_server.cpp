@@ -167,8 +167,8 @@ private:
 
 
 			uv_buf_t resbuf;
-			resbuf.base = (char*)client->context->response->message.c_str();
-			resbuf.len = (unsigned long)client->context->response->message.size();;
+			resbuf.base = (char*)client->context->response->buffer->to_cstr();
+			resbuf.len = (unsigned long)client->context->response->buffer->get_length();
 
 			client->write_req.data = client;
 
@@ -191,10 +191,12 @@ private:
 								[](uv_shutdown_t* req, int status) {
 									conn_rec_t* conn = container_of(req, conn_rec_t, shutdown_req);
 									client_t *client = static_cast<client_t *>(req->data);
-									delete client;
+
 									uv_close((uv_handle_t*)&conn->handle, 
 										[](uv_handle_t *handle) {
 											client_t* client = (client_t*)handle->data;
+                                            client->context->response->buffer->clear();
+                                            delete client->context->response->buffer;
 											delete client->context;
 											free(client);
 										});
@@ -206,7 +208,9 @@ private:
 								uv_close((uv_handle_t*)req->handle, 
 									[](uv_handle_t *handle) {
 										client_t* client = (client_t*)handle->data;
-										delete client->context;
+                                        client->context->response->buffer->clear();
+                                        delete client->context->response->buffer;
+                                        delete client->context;
 										free(client);
 									});
 							}
@@ -232,7 +236,6 @@ private:
 		uv_loop_t* loop;
 
 		unsigned int i;
-		double time;
 		int r;
 
 		int port = settings::port;

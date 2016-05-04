@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <string_builder.h>
 
 using namespace std;
 
@@ -80,7 +81,7 @@ namespace pigeon {
 
     };
 
-    auto get_cached_response(bool is_api) -> const char*;
+    auto get_cached_response(bool is_api, string_builder*) -> void;
 
     char *now();
 
@@ -92,7 +93,7 @@ namespace pigeon {
 
 	auto get_status_msg(HttpStatus status) -> const char*;
 
-	auto get_err_msg(const char*, HttpStatus status) -> const char*;
+	auto get_err_msg(const char*, HttpStatus status, string_builder*) -> void;
 
 	auto get_mime_type(string &extension) -> const string;
 
