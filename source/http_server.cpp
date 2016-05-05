@@ -84,7 +84,7 @@ class http_server::http_server_impl {
 private:
 
 	request_processor* RequestProcessor;
-
+	/*setup htp_parser callback lambda's*/
 	void parser() {
 
 		parser_settings.on_url = [](http_parser *parser, const char *at, size_t len) -> int {
@@ -225,7 +225,6 @@ private:
 		};
 
 	}
-
 
 	/*initialize the server*/
 	void init()
