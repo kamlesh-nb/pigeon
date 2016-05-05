@@ -178,7 +178,7 @@ private:
 				[](uv_write_t *req, int status) {
 				
 						if (status != 0) {
-							//use logger to log error
+							logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
 						}
 
 						conn_rec_t* conn = container_of(req, conn_rec_t, shutdown_req);
@@ -329,6 +329,9 @@ public:
 				client->data = ((uv_stream_t*)server_handle)->data;
 
 				r = uv_tcp_init(server_handle->loop, &client->stream);
+                if (settings::tcp_no_delay) {
+                    r = uv_tcp_nodelay((uv_tcp_t*)&client->stream, 1);
+                }
 				http_parser_init(&client->parser, HTTP_REQUEST);
 
 				r = uv_accept(server_handle, (uv_stream_t*)&client->stream);

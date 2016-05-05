@@ -87,6 +87,8 @@ void request_processor::process(http_context *context)
         auto handler = http_handlers::instance()->get(context->request->url);
         if(handler){
             handler->process(context);
+        } else {
+            context->request->create_response("Api not registered!", context->response, HttpStatus::NotImplemented);
         }
     }
     else
@@ -95,6 +97,8 @@ void request_processor::process(http_context *context)
         auto handler = http_handlers::instance()->get("resource");
         if(handler){
             handler->process(context);
+        } else {
+            context->request->create_response("Resurce handler not registered!", context->response, HttpStatus::NotImplemented);
         }
     }
 
@@ -283,7 +287,10 @@ void request_processor::parse_url(http_context *context)
                         key.clear(); value.clear();
                     }
                     else {
-                        value.push_back(c);
+                        if(c != '='){
+                            value.push_back(c);
+                        }
+
                     }
                     break;
 
