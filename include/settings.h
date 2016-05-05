@@ -24,7 +24,6 @@ namespace pigeon {
         static int port;
         static string filters;
 		static bool tcp_no_delay;
-		static int keep_alive;
         static bool use_ssl;
         static string ssl_cert_file;
         static string ssl_key_file;

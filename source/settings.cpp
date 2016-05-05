@@ -18,7 +18,6 @@ string settings::address;
 int settings::port;
 string settings::filters;
 bool  settings::tcp_no_delay;
-int  settings::keep_alive;
 bool settings::use_ssl;
 string settings::ssl_cert_file;
 string settings::ssl_key_file;
@@ -59,7 +58,7 @@ auto settings::load_setting() -> void {
         worker_threads = doc["worker_threads"].GetInt();
         address = doc["address"].GetString();
         port = doc["port"].GetInt();
-
+		tcp_no_delay = doc["tcp_no_delay"].GetBool();
         use_ssl = doc["use_ssl"].GetBool();
         ssl_cert_file = doc["ssl_cert_file"].GetString();
         ssl_key_file = doc["ssl_key_file"].GetString();

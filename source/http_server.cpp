@@ -82,6 +82,7 @@ uv_tcp_t server;
 class http_server::http_server_impl {
 
 private:
+
 	request_processor* RequestProcessor;
 
 	void parser() {
@@ -161,10 +162,8 @@ private:
 
 			client_t *client = (client_t *)parser->data;
 			 
-			request_processor rp;
-
-			rp.process(client->context);
-
+			http_server::http_server_impl* _impl = reinterpret_cast<http_server::http_server_impl*>(client->data);
+			_impl->process_request(client->context);
 
 			uv_buf_t resbuf;
 			resbuf.base = (char*)client->context->response->buffer->to_cstr();
@@ -227,39 +226,43 @@ private:
 
 	}
 
+
+	/*initialize the server*/
 	void init()
 	{
 		uv_async_t* service_handle = 0;
 
-		struct server_ctx* servers;
-		struct client_ctx* clients;
+#ifndef _WIN32
+		signal(SIGPIPE, SIG_IGN);
+#endif
+		 
 		uv_loop_t* loop;
 
 		unsigned int i;
 		int r;
 
-		int port = settings::port;
-		string addr = settings::address;
-		unsigned int no_of_threads = settings::worker_threads;
-		r = uv_ip4_addr(addr.c_str(), port, &listen_addr);
+		
+		unsigned int threads = settings::worker_threads;
 
 		server.data = this;
 
 		loop = uv_default_loop();
 		uv_tcp_init(loop, &server);
 
-		listener_async_handles = (uv_async_t*)calloc(no_of_threads, sizeof(uv_async_t));
+		listener_async_handles = (uv_async_t*)calloc(threads, sizeof(uv_async_t));
 
 		listeners_created_barrier = (uv_barrier_t*)malloc(sizeof(uv_barrier_t));
-		uv_barrier_init(listeners_created_barrier, no_of_threads + 1);
+		uv_barrier_init(listeners_created_barrier, threads + 1);
 
 		service_handle = (uv_async_t*)malloc(sizeof(uv_async_t));
 		uv_async_init(loop, service_handle, NULL);
 
 
-		servers = (struct server_ctx*)calloc(no_of_threads, sizeof(servers[0]));
 
-		for (i = 0; i < no_of_threads; i++) {
+		struct server_ctx* servers;
+		servers = (struct server_ctx*)calloc(threads, sizeof(servers[0]));
+
+		for (i = 0; i < threads; i++) {
 			struct server_ctx* ctx = servers + i;
 			ctx->ptr = this;
 
@@ -271,15 +274,21 @@ private:
 				_Impl->process(ctx);
 			}, ctx);
 		}
-		uv_barrier_wait(listeners_created_barrier);
 
-		dispatch_listen_handles(UV_TCP, no_of_threads, servers);
+		uv_barrier_wait(listeners_created_barrier);
+		dispatch_listen_handles(UV_TCP, threads, servers);
 		uv_run(loop, UV_RUN_DEFAULT);
 
 	}
 
 public:
 
+	/*process request*/
+	void process_request(http_context* context) {
+		RequestProcessor->process(context);
+	}
+
+	/*process the new connections*/
 	void process(void *arg) {
 
 		int r;
@@ -296,11 +305,12 @@ public:
 		r = uv_async_init(loop, &ctx->async_handle,
 			/*sv_async_cb*/
 			[](uv_async_t* handle) {
-			struct server_ctx* ctx;
-			ctx = container_of(handle, struct server_ctx, async_handle);
-			uv_close((uv_handle_t*)&ctx->server_handle, NULL);
-			uv_close((uv_handle_t*)&ctx->async_handle, NULL);
-		});
+				struct server_ctx* ctx;
+				ctx = container_of(handle, struct server_ctx, async_handle);
+				uv_close((uv_handle_t*)&ctx->server_handle, NULL);
+				uv_close((uv_handle_t*)&ctx->async_handle, NULL);
+			});
+			/*sv_async_cb*/
 
 		uv_unref((uv_handle_t*)&ctx->async_handle);
 
@@ -312,57 +322,63 @@ public:
 			/*sv_connection_cb*/
 			[](uv_stream_t* server_handle, int status) {
 
-			int r;
-			client_t* client = (client_t*)malloc(sizeof(client_t));
-			client->context = new http_context;
-			client->parser.data = client;
-			client->stream.data = client;
+				int r;
+				client_t* client = (client_t*)malloc(sizeof(client_t));
+				client->context = new http_context;
+				client->parser.data = client;
+				client->stream.data = client;
+				client->data = ((uv_stream_t*)server_handle)->data;
 
-			r = uv_tcp_init(server_handle->loop, &client->stream);
-			http_parser_init(&client->parser, HTTP_REQUEST);
+				r = uv_tcp_init(server_handle->loop, &client->stream);
+				http_parser_init(&client->parser, HTTP_REQUEST);
 
-			r = uv_accept(server_handle, (uv_stream_t*)&client->stream);
-			r = uv_read_start((uv_stream_t*)&client->stream,
-				/*sv_alloc_cb*/
-				[](uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
-					buf->base = (char*)malloc(suggested_size);
-					buf->len = suggested_size;
-				},
-				/*sv_read_cb*/
-				[](uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
-				ssize_t parsed;
-				client_t *client = (client_t *)handle->data;
-				if (nread >= 0) {
-					parsed = (ssize_t)http_parser_execute(&client->parser, &parser_settings, buf->base, nread);
-					if (parsed < nread) {
-						//use logger to log error
-						uv_close((uv_handle_t *)&client->stream,
-							/*on_close*/
-							[](uv_handle_t *handle) {
-							client_t* client = (client_t*)handle->data;
-							delete client->context;
-							free(client);
-						});
+				r = uv_accept(server_handle, (uv_stream_t*)&client->stream);
+				r = uv_read_start((uv_stream_t*)&client->stream,
+					/*sv_alloc_cb*/
+					[](uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
+						buf->base = (char*)malloc(suggested_size);
+						buf->len = suggested_size;
 					}
-				}
-				else {
-					if (nread != UV_EOF) {
-						//use logger to log error
-					}
-					uv_close((uv_handle_t *)&client->stream,
-						/*on_close*/
-						[](uv_handle_t *handle) {
-						client_t* client = (client_t*)handle->data;
-						delete client->context;
-						free(client);
+					/*sv_alloc_cb*/
+					,
+					/*sv_read_cb*/
+					[](uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
+						ssize_t parsed;
+						client_t *client = (client_t *)handle->data;
+						if (nread >= 0) {
+							parsed = (ssize_t)http_parser_execute(&client->parser, &parser_settings, buf->base, nread);
+							if (parsed < nread) {
+								//use logger to log error
+								uv_close((uv_handle_t *)&client->stream,
+									/*on_close*/
+									[](uv_handle_t *handle) {
+										client_t* client = (client_t*)handle->data;
+										delete client->context;
+										free(client);
+									});
+									/*on_close*/
+							}
+						}
+						else {
+							if (nread != UV_EOF) {
+								//use logger to log error
+							}
+							uv_close((uv_handle_t *)&client->stream,
+								/*on_close*/
+								[](uv_handle_t *handle) {
+									client_t* client = (client_t*)handle->data;
+									delete client->context;
+									free(client);
+								});
+								/*on_close*/
+						}
+
+						free(buf->base);
 					});
-				}
-
-				free(buf->base);
-			});
+					/*sv_read_cb*/
 
 		});
-
+		/*sv_connection_cb*/
 		r = uv_run(loop, UV_RUN_DEFAULT);
 
 		uv_loop_delete(loop);
@@ -379,7 +395,15 @@ public:
 		ctx.num_connects = num_servers;
 
 		if (type == UV_TCP) {
+
+			int port = settings::port;
+			string addr = settings::address;
+			r = uv_ip4_addr(addr.c_str(), port, &listen_addr);
 			r = uv_tcp_init(loop, (uv_tcp_t*)&ctx.server_handle);
+
+			if (settings::tcp_no_delay) {
+				r = uv_tcp_nodelay((uv_tcp_t*)&ctx.server_handle, 1);
+			}
 			r = uv_tcp_bind((uv_tcp_t*)&ctx.server_handle, (const struct sockaddr*) &listen_addr, 0);
 		}
 
@@ -388,48 +412,52 @@ public:
 		r = uv_listen((uv_stream_t*)&ctx.ipc_pipe, 128,
 			/*ipc_connection_cb*/
 			[](uv_stream_t* ipc_pipe, int status) {
-			int rc;
-			struct ipc_server_ctx* sc;
-			struct ipc_peer_ctx* pc;
-			uv_loop_t* loop;
-			uv_buf_t buf;
+				int rc;
+				struct ipc_server_ctx* sc;
+				struct ipc_peer_ctx* pc;
+				uv_loop_t* loop;
+				uv_buf_t buf;
 
-			loop = ipc_pipe->loop;
-			buf = uv_buf_init("PING", 4);
-			sc = container_of(ipc_pipe, struct ipc_server_ctx, ipc_pipe);
-			pc = (struct ipc_peer_ctx*)calloc(1, sizeof(*pc));
+				loop = ipc_pipe->loop;
+				buf = uv_buf_init("PING", 4);
+				sc = container_of(ipc_pipe, struct ipc_server_ctx, ipc_pipe);
+				pc = (struct ipc_peer_ctx*)calloc(1, sizeof(*pc));
 
-			if (ipc_pipe->type == UV_TCP) {
-				rc = uv_tcp_init(loop, (uv_tcp_t*)&pc->peer_handle);
-				if (settings::tcp_no_delay) {
-					rc = uv_tcp_nodelay((uv_tcp_t*)&pc->peer_handle, 1);
+				if (ipc_pipe->type == UV_TCP) {
+					rc = uv_tcp_init(loop, (uv_tcp_t*)&pc->peer_handle);
+					if (settings::tcp_no_delay) {
+						rc = uv_tcp_nodelay((uv_tcp_t*)&pc->peer_handle, 1);
+					}
 				}
-			}
-			else if (ipc_pipe->type == UV_NAMED_PIPE)
-				rc = uv_pipe_init(loop, (uv_pipe_t*)&pc->peer_handle, 1);
+				else if (ipc_pipe->type == UV_NAMED_PIPE)
+					rc = uv_pipe_init(loop, (uv_pipe_t*)&pc->peer_handle, 1);
 
-			rc = uv_accept(ipc_pipe, (uv_stream_t*)&pc->peer_handle);
-			rc = uv_write2(&pc->write_req,
-				(uv_stream_t*)&pc->peer_handle,
-				&buf,
-				1,
-				(uv_stream_t*)&sc->server_handle,
-				/*ipc_write_cb*/
-				[](uv_write_t* req, int status) {
-				struct ipc_peer_ctx* ctx;
-				ctx = container_of(req, struct ipc_peer_ctx, write_req);
-				uv_close((uv_handle_t*)&ctx->peer_handle,
-					/*ipc_close_cb*/
-					[](uv_handle_t* handle) {
-					struct ipc_peer_ctx* ctx;
-					ctx = container_of(handle, struct ipc_peer_ctx, peer_handle);
-					free(ctx);
-				});
+				rc = uv_accept(ipc_pipe, (uv_stream_t*)&pc->peer_handle);
+				rc = uv_write2(&pc->write_req,
+					(uv_stream_t*)&pc->peer_handle,
+					&buf,
+					1,
+					(uv_stream_t*)&sc->server_handle,
+					/*ipc_write_cb*/
+					[](uv_write_t* req, int status) {
+						struct ipc_peer_ctx* ctx;
+						ctx = container_of(req, struct ipc_peer_ctx, write_req);
+						uv_close((uv_handle_t*)&ctx->peer_handle,
+							/*ipc_close_cb*/
+							[](uv_handle_t* handle) {
+								struct ipc_peer_ctx* ctx;
+								ctx = container_of(handle, struct ipc_peer_ctx, peer_handle);
+								free(ctx);
+							});
+							/*ipc_close_cb*/
+					});
+					/*ipc_write_cb*/
+
+				if (--sc->num_connects == 0)
+					uv_close((uv_handle_t*)ipc_pipe, NULL);
+
 			});
-
-			if (--sc->num_connects == 0)
-				uv_close((uv_handle_t*)ipc_pipe, NULL);
-		});
+			/*ipc_connection_cb*/
 
 		for (i = 0; i < num_servers; i++)
 			uv_sem_post(&servers[i].semaphore);
@@ -479,8 +507,12 @@ public:
 						r = uv_pipe_pending_count(ipc_pipe);
 						type = uv_pipe_pending_type(ipc_pipe);
 
-						if (type == UV_TCP)
+						if (type == UV_TCP) {
 							r = uv_tcp_init(loop, (uv_tcp_t*)ctx->server_handle);
+							if (settings::tcp_no_delay) {
+								r = uv_tcp_nodelay((uv_tcp_t*)ctx->server_handle, 1);
+							}
+						}
 						else if (type == UV_NAMED_PIPE)
 							r = uv_pipe_init(loop, (uv_pipe_t*)ctx->server_handle, 0);
 
@@ -493,8 +525,6 @@ public:
 		r = uv_run(loop, UV_RUN_DEFAULT);
 
 	}
-
-
 
 	void run()
 	{
@@ -518,7 +548,6 @@ public:
 
 		init();
 	}
-
 
 };
 
