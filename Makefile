@@ -19,7 +19,6 @@ OBJ = $(CPP:.cpp=.o)
 
 all: ./deps/rapidjson ./deps/zlib ./deps/gyp ./deps/libuv ./deps/http-parser cleanbin build clean
 
-
 ./deps/http-parser:
 	git clone --depth 1 git://github.com/joyent/http-parser.git ./deps/http-parser
 
