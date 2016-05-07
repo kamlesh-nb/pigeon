@@ -5,9 +5,9 @@ using namespace pigeon;
 
 
 string_builder::string_builder() {
-    reserve(32);
+    reserve(8192);
     cur_pos = 0;
-    length = 32;
+    length = 8192;
 }
 
 string_builder::~string_builder() {

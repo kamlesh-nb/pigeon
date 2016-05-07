@@ -256,28 +256,28 @@ auto pigeon::get_status_msg(HttpStatus status) -> const char* {
 auto pigeon::get_err_msg(const char* msg, HttpStatus status, string_builder* sb) -> void {
 
     string headers;
-    string_builder _sb;
+    string message;
 
     sb->append((char*)err_cached_response);
 
-    _sb.append((char*)err_msg1);
+    message.append(err_msg1);
     char* stat = (char*)std::to_string((int) status).c_str();
-    _sb.append(stat);
-    _sb.append((char*)err_msg3);
+    message.append(stat);
+    message.append(err_msg3);
     char* stat_msg = (char*)get_status_msg(status);
-    _sb.append(stat_msg);
-    _sb.append((char*)err_msg5);
-    _sb.append((char*)msg);
-    _sb.append((char*)err_msg7);
+    message.append(stat_msg);
+    message.append(err_msg5);
+    message.append(msg);
+    message.append(err_msg7);
 
 
 
     headers += get_header_field(HttpHeader::Content_Length);
-    size_t length = _sb.get_length();
+    size_t length = message.size();
+    sb->append((char*)headers.c_str(), headers.size());
     sb->append((char*)std::to_string(length).c_str());
     sb->append((char*)"\r\n\r\n");
-    sb->append(_sb.to_cstr());
-    _sb.clear();
+    sb->append((char*)message.c_str(), message.size());
 
 
 }
