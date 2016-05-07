@@ -26,4 +26,3 @@ clean:
 install:
 	sudo cp $(PROJECT) /usr/local/lib
 	sudo cp ./include/* /usr/local/include/pigeon
-    
