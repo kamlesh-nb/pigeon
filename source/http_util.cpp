@@ -183,14 +183,14 @@ struct mapping {
         };
 
 
-char* cached_date_response = "\r\nDate: ";
-char* err_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: text/html; charset=UTF-8\r\n";
-char* api_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: application/json\r\n";
+const char* cached_date_response = "\r\nDate: ";
+const char* err_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: text/html; charset=UTF-8\r\n";
+const char* api_cached_response = "\r\nConnection: keep-alive\r\nServer: pigeon\r\nAccept_Range: bytes\r\nContent-Type: application/json\r\n";
 
-char *err_msg1 = "<!DOCTYPE html><html><head lang='en'><meta charset='UTF-8'><title>Status</title></head><body><p/><p/><p/><p/><p/><p/><p/><table align=\"center\" style=\"font-family: monospace;font-size: large;background-color: lemonchiffon;border-left-color: green;border-color: red;\"><tr style=\"background: burlywood;\"><th>Status Code</th><th>Message</th></tr><tr><td>";
-char *err_msg3 = "</td><td>";
-char *err_msg5 = "</td></tr><tr><td>Description: </td><td>";
-char *err_msg7 = "</td></tr></table></body></html>";
+const char *err_msg1 = "<!DOCTYPE html><html><head lang='en'><meta charset='UTF-8'><title>Status</title></head><body><p/><p/><p/><p/><p/><p/><p/><table align=\"center\" style=\"font-family: monospace;font-size: large;background-color: lemonchiffon;border-left-color: green;border-color: red;\"><tr style=\"background: burlywood;\"><th>Status Code</th><th>Message</th></tr><tr><td>";
+const char *err_msg3 = "</td><td>";
+const char *err_msg5 = "</td></tr><tr><td>Description: </td><td>";
+const char *err_msg7 = "</td></tr></table></body></html>";
 
 
 char *pigeon::now() {
@@ -207,12 +207,12 @@ char *pigeon::now() {
 
 auto pigeon::get_cached_response(bool is_api, string_builder* sb) -> void {
 
-    sb->append(cached_date_response);
+    sb->append((char*)cached_date_response);
     char* ts = now();
     sb->append(ts);
 
     if (is_api) {
-        sb->append(api_cached_response);
+        sb->append((char*)api_cached_response);
     }
 }
 
@@ -260,22 +260,22 @@ auto pigeon::get_err_msg(const char* msg, HttpStatus status, string_builder* sb)
     string message;
     string headers;
 
-    sb->append(err_msg1);
+    sb->append((char*)err_msg1);
     char* stat = (char*)std::to_string((int) status).c_str();
     sb->append(stat);
-    sb->append(err_msg3);
+    sb->append((char*)err_msg3);
     char* stat_msg = (char*)get_status_msg(status);
     sb->append(stat_msg);
-    sb->append(err_msg5);
+    sb->append((char*)err_msg5);
     sb->append((char*)msg);
-    sb->append(err_msg7);
+    sb->append((char*)err_msg7);
 
-    sb->append(err_cached_response);
+    sb->append((char*)err_cached_response);
 
     headers += get_header_field(HttpHeader::Content_Length);
     size_t length = sb->get_length();
     sb->append((char*)std::to_string(length).c_str());
-    sb->append("\r\n\r\n");
+    sb->append((char*)"\r\n\r\n");
 
 
 

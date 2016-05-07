@@ -302,6 +302,11 @@ public:
 		r = uv_listen((uv_stream_t*)&ctx->server_handle, 128,
 			/*sv_connection_cb*/
 			[](uv_stream_t* server_handle, int status) {
+
+                if (status != 0) {
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
+                }
+
                 int r;
 
                 struct server_ctx* ctx;
@@ -323,7 +328,7 @@ public:
 				r = uv_accept(server_handle, (uv_stream_t*)&client->stream);
 				r = uv_read_start((uv_stream_t*)&client->stream,
 					/*sv_alloc_cb*/
-					[](uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
+					[](uv_handle_t* /*handle*/, size_t suggested_size, uv_buf_t* buf) {
 						buf->base = (char*)malloc(suggested_size);
 						buf->len = suggested_size;
 					}
@@ -400,6 +405,11 @@ public:
 		r = uv_listen((uv_stream_t*)&ctx.ipc_pipe, 128,
 			/*ipc_connection_cb*/
 			[](uv_stream_t* ipc_pipe, int status) {
+
+                if (status != 0) {
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
+                }
+
 				int rc;
 				struct ipc_server_ctx* sc;
 				struct ipc_peer_ctx* pc;
@@ -407,7 +417,8 @@ public:
 				uv_buf_t buf;
 
 				loop = ipc_pipe->loop;
-				buf = uv_buf_init("PING", 4);
+                const char* ping = "PING";
+				buf = uv_buf_init((char*)ping, 4);
 				sc = container_of(ipc_pipe, struct ipc_server_ctx, ipc_pipe);
 				pc = (struct ipc_peer_ctx*)calloc(1, sizeof(*pc));
 
@@ -428,6 +439,10 @@ public:
 					(uv_stream_t*)&sc->server_handle,
 					/*ipc_write_cb*/
 					[](uv_write_t* req, int status) {
+
+                        if (status != 0) {
+                            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
+                        }
 						struct ipc_peer_ctx* ctx;
 						ctx = container_of(req, struct ipc_peer_ctx, write_req);
 						uv_close((uv_handle_t*)&ctx->peer_handle,
@@ -469,19 +484,24 @@ public:
 		uv_pipe_connect(&ctx.connect_req, &ctx.ipc_pipe, IPC_PIPE_NAME.c_str(),
 			/*ipc_connect*/
 			[](uv_connect_t* req, int status) {
+                if (status != 0) {
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
+                }
+
 				int rc;
 				struct ipc_client_ctx* ctx;
 				ctx = container_of(req, struct ipc_client_ctx, connect_req);
 				rc = uv_read_start((uv_stream_t*)&ctx->ipc_pipe,
 					/*ipc_alloc*/
-					[](uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
+					[](uv_handle_t* handle, size_t /*suggested_size*/, uv_buf_t* buf) {
 						struct ipc_client_ctx* ctx;
-						ctx = container_of(handle, struct ipc_client_ctx, ipc_pipe);
+
+                        ctx = container_of(handle, struct ipc_client_ctx, ipc_pipe);
 						buf->base = ctx->scratch;
 						buf->len = sizeof(ctx->scratch);
 					},
 					/*ipc_read*/
-					[](uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
+					[](uv_stream_t* handle, ssize_t /*nread*/, const uv_buf_t* /*buf*/) {
 						int r;
 						struct ipc_client_ctx* ctx;
 						uv_loop_t* loop;
