@@ -1,1 +1,46 @@
+language: cpp
+sudo: required
+dist: trusty
+compiler:
+- clang
+os:
+- linux
+- osx
+before_install:
+- echo $LANG
+- echo $LC_ALL
+- if [ $TRAVIS_OS_NAME == linux ]; then ./scripts/llvm.sh; fi
+- if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install llvm; fi
+- gem update --system
+- gem --version
+before_script:
+- travis_retry bundle
+- if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config=llvm-config-3.6; fi
+- if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure; fi
+script: rake ci
+after_success:
+- if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then ./scripts/deploy.sh release github website triggers; fi
+branches:
+  only:
+  - master
+  - "/^v\\d+\\./"
+notifications:
+  email: false
+  irc:
+    channels:
+    - chat.freenode.net#rubinius
+    template:
+    - "%{repository}/%{branch} (%{commit} - %{author}): %{build_url}: %{message}"
+  webhooks:
+    urls:
+    - https://webhooks.gitter.im/e/9502afd22ca6c8e85fb3
+    on_success: always
+    on_failure: always
+    on_start: always
+env:
+  global:
+  - LANG="en_US.UTF-8"
+  - secure: olbok/GN6rOYvPnHBYWGz7giCoCdLFpT/7WSBHukYO3E0uNeqAUOOgW2BFOwCVWdSEJ/iTvJXZQ4qVZHX+6jRfvILZeGv+D2P93VdD8UFQRoTOfFC7esAo525s9fuKm9ehUGWZxlzGOBHHckky1jn6pEf8mlXAVM5e76dlH0fck=
+  - secure: aqG9eB/PrzQ7XJQN6YX/00sNVvwSB77saxXQzguL2WFjAXB74h6168Hzq+awHtNX/vfOb6ta7fpWLHrA0D+gmZnvTR29VlP6nd0vs1tkdX1/jWbiBHjamRffp+NWVdKbJKYn5iLOGXcuUMOzY/opLKOdvxKZfkxGMxR2tTNLZUE=
+  - secure: eElvNLjuFZAuixJdgom4Kv8RDziE4ArFcSEwYctvprMe/414CAaJcFkjQKg0RrJzAxZ51oGjdcZhEfmjNXcUU1gA5l++IdnlQm0x4kt8r7aql+q2geHzrrjhhwPujT9a8JNtXs6dHnbi+quNlxyVItWzeGJsjyhJzH8hxiFhCYI=
 
