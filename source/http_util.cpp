@@ -1,10 +1,8 @@
 #include <http_util.h>
 #include <ctime>
-#include <string.h>
 #include <chrono>
 #include <sstream>
 #include <iterator>
-#include <zlib.h>
 #include <stdexcept>
 
 using namespace pigeon;
@@ -257,26 +255,29 @@ auto pigeon::get_status_msg(HttpStatus status) -> const char* {
 
 auto pigeon::get_err_msg(const char* msg, HttpStatus status, string_builder* sb) -> void {
 
-    string message;
     string headers;
-
-    sb->append((char*)err_msg1);
-    char* stat = (char*)std::to_string((int) status).c_str();
-    sb->append(stat);
-    sb->append((char*)err_msg3);
-    char* stat_msg = (char*)get_status_msg(status);
-    sb->append(stat_msg);
-    sb->append((char*)err_msg5);
-    sb->append((char*)msg);
-    sb->append((char*)err_msg7);
+    string_builder _sb;
 
     sb->append((char*)err_cached_response);
 
+    _sb.append((char*)err_msg1);
+    char* stat = (char*)std::to_string((int) status).c_str();
+    _sb.append(stat);
+    _sb.append((char*)err_msg3);
+    char* stat_msg = (char*)get_status_msg(status);
+    _sb.append(stat_msg);
+    _sb.append((char*)err_msg5);
+    _sb.append((char*)msg);
+    _sb.append((char*)err_msg7);
+
+
+
     headers += get_header_field(HttpHeader::Content_Length);
-    size_t length = sb->get_length();
+    size_t length = _sb.get_length();
     sb->append((char*)std::to_string(length).c_str());
     sb->append((char*)"\r\n\r\n");
-
+    sb->append(_sb.to_cstr());
+    _sb.clear();
 
 
 }
@@ -345,52 +346,4 @@ auto pigeon::url_decode(const string &in, string &out) -> bool {
     return true;
 
 }
-
-auto pigeon::deflate_string(string& content, string& deflated_content) -> unsigned long {
-	string str(content);
-	z_stream zs;                        // z_stream is zlib's control structure
-	memset(&zs, 0, sizeof(zs));
-	int compressionlevel = Z_BEST_COMPRESSION;
-	if (deflateInit(&zs, compressionlevel) != Z_OK)
-		throw (std::runtime_error("deflateInit failed while compressing."));
-
-	zs.next_in = (Bytef *)str.data();
-	zs.avail_in = static_cast<unsigned int>(str.size());           // set the z_stream's input
-
-	int ret;
-	char outbuffer[32768];
-	std::string outstring;
-
-	// retrieve the compressed bytes blockwise
-	do {
-		zs.next_out = reinterpret_cast<Bytef *>(outbuffer);
-		zs.avail_out = sizeof(outbuffer);
-
-		ret = deflate(&zs, Z_FINISH);
-
-		if (outstring.size() < zs.total_out) {
-			// append the block to the output string
-			outstring.append(outbuffer, zs.total_out - outstring.size());
-		}
-	} while (ret == Z_OK);
-
-	deflateEnd(&zs);
-
-	if (ret != Z_STREAM_END) {          // an error occurred that was not EOF
-		std::ostringstream oss;
-		oss << "Exception during zlib compression: (" << ret << ") " << zs.msg;
-		throw (std::runtime_error(oss.str()));
-	}
-
-	zs.avail_out = zs.total_out;// outstring.size();
- 
-	deflated_content = outstring;
-
-	return zs.total_out;
-}
-
-
- 
-
-
 
