@@ -4,4 +4,4 @@ dist: trusty
 compiler: clang++
 os: linux
 script:
-  - ./build.sh
+  - ./make.sh
