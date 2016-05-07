@@ -38,7 +38,7 @@ build: $(OBJ)
 	ar -cvq $(PROJECT) $(OBJ)
 
 cleanbin:
-	rm $(PROJECT)
+	#rm $(PROJECT)
 
 clean:
 	rm ./source/*.o
