@@ -13,7 +13,7 @@ OBJ = $(CPP:.cpp=.o)
 %.o: %.cpp
 	$(CXX) $(FLAGS) -c $^ -o $@
 
-all: cleanbin build clean install
+all: build clean
 
 build: $(OBJ)
 	ar -cvq $(PROJECT) $(OBJ)
