@@ -3,7 +3,7 @@ PROJECT = ./bin/libpigeon.a
 CPP = $(wildcard ./source/*.cpp)
 
 INC = -I ./include \
-    -I /deps/libuv/include/ \
+    -I /deps/libuv/include \
     -I /deps/rapidjson/include/rapidjson/ \
     -I /deps/http-parser/ \
     -I /deps/zlib/
