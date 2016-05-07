@@ -270,8 +270,6 @@ auto pigeon::get_err_msg(const char* msg, HttpStatus status, string_builder* sb)
     message.append(msg);
     message.append(err_msg7);
 
-
-
     headers += get_header_field(HttpHeader::Content_Length);
     size_t length = message.size();
     sb->append((char*)headers.c_str(), headers.size());

@@ -1,7 +1,5 @@
 #include <http_msg.h>
-#include <http_util.h>
 #include <http_parser.h>
-#include <cstring>
 #include <iostream>
 
 using namespace std;
@@ -17,8 +15,7 @@ http_msg::~http_msg() {
 }
 
 auto http_msg::has_cookies() -> bool {
-    if (cookies.size() > 0) { return true; }
-    else { return false; }
+    return cookies.size() > 0;
 }
 
 auto http_msg::set_header(string &key, string &value) -> void {
@@ -72,7 +69,7 @@ auto http_request::create_response(const char *msg, http_response *response, Htt
     char* status_phrase = (char*)get_status_phrase(status);
     response->buffer->append(status_phrase);
 
-     get_err_msg(msg, status, response->buffer);
+    get_err_msg(msg, status, response->buffer);
 
 }
 
