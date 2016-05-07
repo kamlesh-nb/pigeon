@@ -79,6 +79,29 @@ void string_builder::append(char *str) {
 
 }
 
+
+void string_builder::append(char *str, unsigned long length) {
+    size_t space_remaining;
+    size_t space_required;
+    size_t new_length;
+    size_t size = length;
+
+    space_remaining = length - cur_pos - 1;
+    if (space_remaining < size)  {
+        space_required = size - space_remaining;
+        new_length = length;
+        do {
+            new_length = new_length * 2;
+        } while (new_length < (length + space_required));
+
+        resize(new_length);
+    }
+
+    memcpy(base + cur_pos, str, size);
+    cur_pos += size;
+}
+
+
 char *string_builder::to_cstr() {
     return base;
 }

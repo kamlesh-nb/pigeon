@@ -44,13 +44,23 @@ request_processor::request_processor()
     allowed_expose_headers_hdr_fld = get_header_field(HttpHeader::Access_Control_Expose_Headers);
 
 
+
+
+
+
+
+
 }
 
 request_processor::~request_processor()
 {
+
 }
 
-void request_processor::process(http_context *context)
+
+
+
+void request_processor::process(http_context *context, std::function<void(http_context*)> func)
 {
 
     //check if request is for web api
@@ -66,7 +76,7 @@ void request_processor::process(http_context *context)
     parse_multipart(context);
 
     //execute if there are any request filters registered,
-    //if any of the filter fails, it will terminate the further 
+    //if any of the filter fails, it will terminate the further
 	//processing of request
     if(!execute_request_filters(context)){
         return;
@@ -77,18 +87,33 @@ void request_processor::process(http_context *context)
         handle_cors(context);
     }
 
+    handle_request(context);
+
+    //execute if there are any response filters registered,
+    //if any of the filter fails, it will terminate the further
+	//processing of request
+    if(!execute_response_filters(context)){
+        return;
+    }
+
+    func(context);
+}
+
+
+void request_processor::handle_request(http_context *context) {
+
     if ((context->request->is_api) &
-            (context->request->method == HTTP_GET ||
-            context->request->method == HTTP_PUT ||
-            context->request->method == HTTP_POST ||
-            context->request->method == HTTP_DELETE)) {
+        (context->request->method == HTTP_GET ||
+         context->request->method == HTTP_PUT ||
+         context->request->method == HTTP_POST ||
+         context->request->method == HTTP_DELETE)) {
 
         //process the request if it is for web api
         auto handler = http_handlers::instance()->get(context->request->url);
         if(handler){
             handler->process(context);
         } else {
-            context->request->create_response("Api not registered!", context->response, HttpStatus::NotImplemented);
+            context->request->create_response("Api handler not registered!", context->response, HttpStatus::NotImplemented);
         }
     }
     else
@@ -100,13 +125,6 @@ void request_processor::process(http_context *context)
         } else {
             context->request->create_response("Resurce handler not registered!", context->response, HttpStatus::NotImplemented);
         }
-    }
-
-    //execute if there are any response filters registered,
-    //if any of the filter fails, it will terminate the further 
-	//processing of request
-    if(!execute_response_filters(context)){
-        return;
     }
 
 }

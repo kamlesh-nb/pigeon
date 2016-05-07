@@ -33,6 +33,7 @@ typedef struct {
 	uv_write_t write_req;
 	char *client_address;
 	void *data;
+    void* rp_ptr;
 	char *temp;
 	http_context *context;
 
@@ -72,6 +73,7 @@ struct server_ctx {
 	uv_thread_t thread_id;
 	uv_sem_t semaphore;
 	void* ptr;
+    void* rp_ptr;
 };
 
 struct sockaddr_in listen_addr;
@@ -161,70 +163,54 @@ private:
 		parser_settings.on_message_complete = [](http_parser *parser) -> int {
 
 			client_t *client = (client_t *)parser->data;
-			 
-			http_server::http_server_impl* _impl = reinterpret_cast<http_server::http_server_impl*>(client->data);
-			_impl->process_request(client->context);
+            client->context->data = client;
 
-			uv_buf_t resbuf;
-			resbuf.base = (char*)client->context->response->buffer->to_cstr();
-			resbuf.len = (unsigned long)client->context->response->buffer->get_length();
+			request_processor* rp = reinterpret_cast<request_processor*>(client->rp_ptr);
+			rp->process(client->context, [](http_context* context){
 
-			client->write_req.data = client;
+                client_t* client = (client_t*)context->data;
+                uv_buf_t resbuf;
+                resbuf.base = (char*)client->context->response->buffer->to_cstr();
+                resbuf.len = (unsigned long)client->context->response->buffer->get_length();
 
-			int r = uv_write(&client->write_req,
-				(uv_stream_t*)&client->stream,
-				&resbuf,
-				1,
-				[](uv_write_t *req, int status) {
-				
-						if (status != 0) {
-							logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
-						}
+                client->write_req.data = client;
+                int r = uv_write(&client->write_req,
+                                 (uv_stream_t*)&client->stream,
+                                 &resbuf,
+                                 1,
+                                 [](uv_write_t *req, int status) {
 
-						conn_rec_t* conn = container_of(req, conn_rec_t, shutdown_req);
+                                     if (status != 0) {
+                                         logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
+                                     }
 
-						size_t _write_queue_size = ((uv_stream_t *)conn)->write_queue_size;
+                                     if (!uv_is_closing((uv_handle_t*)req->handle))
+                                     {
+                                         uv_close((uv_handle_t*)req->handle,
+                                                  [](uv_handle_t *handle) {
+                                                      client_t* client = (client_t*)handle->data;
+                                                      client->context->response->buffer->clear();
+                                                      delete client->context->response->buffer;
+                                                      delete client->context;
+                                                      free(client);
+                                                  });
+                                     }
 
-						if (uv_is_writable((uv_stream_t *)req) && _write_queue_size > 0) {
-							uv_shutdown(&conn->shutdown_req, (uv_stream_t *)conn, 
-								[](uv_shutdown_t* req, int status) {
-									conn_rec_t* conn = container_of(req, conn_rec_t, shutdown_req);
-									client_t *client = static_cast<client_t *>(req->data);
 
-									uv_close((uv_handle_t*)&conn->handle, 
-										[](uv_handle_t *handle) {
-											client_t* client = (client_t*)handle->data;
-                                            client->context->response->buffer->clear();
-                                            delete client->context->response->buffer;
-											delete client->context;
-											free(client);
-										});
-							});
-						}
-						else {
-							if (!uv_is_closing((uv_handle_t*)req->handle))
-							{
-								uv_close((uv_handle_t*)req->handle, 
-									[](uv_handle_t *handle) {
-										client_t* client = (client_t*)handle->data;
-                                        client->context->response->buffer->clear();
-                                        delete client->context->response->buffer;
-                                        delete client->context;
-										free(client);
-									});
-							}
-						}
+                                 });
 
-			});
+                if (r != 0) {
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                }
 
-			if (r != 0) {
-				logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
-			}
+            });
 			return 0;
 
 		};
 
 	}
+
+
 
 	/*initialize the server*/
 	void init()
@@ -264,7 +250,8 @@ private:
 		for (i = 0; i < threads; i++) {
 			struct server_ctx* ctx = servers + i;
 			ctx->ptr = this;
-
+            request_processor* rp = new request_processor;
+            ctx->rp_ptr = rp;
 			r = uv_sem_init(&ctx->semaphore, 0);
 			r = uv_thread_create(&ctx->thread_id, [](void* arg) {
 				struct server_ctx *ctx;
@@ -281,11 +268,6 @@ private:
 	}
 
 public:
-
-	/*process request*/
-	void process_request(http_context* context) {
-		RequestProcessor->process(context);
-	}
 
 	/*process the new connections*/
 	void process(void *arg) {
@@ -320,13 +302,17 @@ public:
 		r = uv_listen((uv_stream_t*)&ctx->server_handle, 128,
 			/*sv_connection_cb*/
 			[](uv_stream_t* server_handle, int status) {
+                int r;
 
-				int r;
+                struct server_ctx* ctx;
+                ctx = container_of(server_handle, struct server_ctx, server_handle);
+
 				client_t* client = (client_t*)malloc(sizeof(client_t));
 				client->context = new http_context;
 				client->parser.data = client;
 				client->stream.data = client;
 				client->data = ((uv_stream_t*)server_handle)->data;
+                client->rp_ptr = ctx->rp_ptr;
 
 				r = uv_tcp_init(server_handle->loop, &client->stream);
                 if (settings::tcp_no_delay) {

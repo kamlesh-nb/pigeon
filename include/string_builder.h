@@ -25,6 +25,7 @@ namespace pigeon {
         void reserve(size_t);
         void reset();
         void append(char*);
+        void append(char*, unsigned long);
         char* to_cstr();
         void clear();
 

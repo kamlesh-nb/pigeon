@@ -3,7 +3,7 @@
 
 
 #include <http_context.h>
-
+#include <functional>
 
 namespace pigeon {
 
@@ -25,19 +25,20 @@ namespace pigeon {
         string allowed_credentials_hdr_fld;
         string allowed_expose_headers_hdr_fld;
 
-        bool execute_request_filters(http_context*);
-        void parse_multipart(http_context*);
         void parse_cookies(http_context*);
         void parse_url(http_context*);
-        bool execute_response_filters(http_context*);
+        void parse_multipart(http_context*);
+        bool execute_request_filters(http_context*);
         void handle_cors(http_context *);
+        void handle_request(http_context*);
+        bool execute_response_filters(http_context*);
+
         bool is_api(string &Uri, string &);
 
 	public:
 		request_processor();
 		~request_processor();
-
-		void process(http_context*);
+		void process(http_context*, std::function<void(http_context*)>);
 
 	};
 

@@ -98,7 +98,7 @@ auto http_request::create_response(string &message, http_response *response, Htt
 
     response->get_non_default_headers();
     response->buffer->append((char*)nl);
-    response->buffer->append((char*)message.c_str());
+    response->buffer->append((char*)message.c_str(), message.size());
 
 }
 
@@ -112,20 +112,10 @@ auto http_request::create_response(string &cached_headers, string &message, http
     get_cached_response(is_api, response->buffer);
 
 
-    if (is_api) {
-
-        char* hdrFld = (char*)get_header_field(HttpHeader::Content_Length);
-        response->buffer->append(hdrFld);
-        string sz = std::to_string(message.size());
-        char* size = (char*)sz.c_str();
-        response->buffer->append(size);
-        response->buffer->append((char*)nl);
-    }
-
-    response->buffer->append((char*)cached_headers.c_str());
+    response->buffer->append((char*)cached_headers.c_str(), cached_headers.size());
     response->get_non_default_headers();
     response->buffer->append((char*)nl);
-    response->buffer->append((char*)message.c_str());
+    response->buffer->append((char*)message.c_str(), message.size());
     
 }
 

@@ -13,7 +13,7 @@ namespace pigeon {
 
         http_request *request;
         http_response *response;
-
+        void* data;
         http_context() {
             request = new http_request;
             response = new http_response;
