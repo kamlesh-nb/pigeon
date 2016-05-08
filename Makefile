@@ -10,14 +10,14 @@ INC = -I ./include \
 
 #CXX = g++
 
-FLAGS = -Wall -Wextra -pedantic -pedantic -std=c++11 -O3 $(INC)
+FLAGS = -Wall -Wextra -pedantic -pedantic -std=c++14 -O3 $(INC)
 
 OBJ = $(CPP:.cpp=.o)
 
 %.o: %.cpp
 	$(CXX) $(FLAGS) -c $^ -o $@
 
-all: ./deps/rapidjson ./deps/zlib ./deps/libuv ./deps/http-parser cleanbin build clean
+all: ./deps/rapidjson ./deps/zlib ./deps/libuv ./deps/http-parser build clean
 
 ./deps/http-parser:
 	git clone --depth 1 git://github.com/joyent/http-parser.git ./deps/http-parser
@@ -37,7 +37,7 @@ build: $(OBJ)
 test:
 
 cleanbin:
-	#rm $(PROJECT)
+	rm $(PROJECT)
 
 clean:
 	rm ./source/*.o
