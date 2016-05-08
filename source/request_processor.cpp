@@ -5,10 +5,7 @@
 #include <http_handlers.h>
 #include <regex>
 #include <iostream>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/document.h>
 
-using namespace rapidjson;
 
 using namespace std;
 using namespace pigeon;
