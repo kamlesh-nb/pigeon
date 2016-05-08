@@ -8,9 +8,9 @@ INC = -I ./include \
     -I ./deps/http-parser/ \
     -I ./deps/zlib/
 
-CXX = clang++
+CXX = g++
 
-FLAGS = -Wall -Wextra -pedantic -pedantic-errors -std=c++14 -O3 $(INC)
+FLAGS = -Wall -Wextra -pedantic -pedantic-errors -std=c++11 -O3 $(INC)
 
 OBJ = $(CPP:.cpp=.o)
 
