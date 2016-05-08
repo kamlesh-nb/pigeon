@@ -1,4 +1,4 @@
-PROJECT = ./bin/libpigeon.a
+PROJECT = libpigeon.a
 
 CPP = $(wildcard ./source/*.cpp)
 
