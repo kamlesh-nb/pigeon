@@ -10,7 +10,7 @@ Pigeon is capable of serving static web content and supports native web api, whi
 - HTTP Compression
 - Native WebAPI
 - Resource Cache
-- File Uploads (multipart/form-data parser)
+- File Upload Handlers (multipart/form-data parser)
 
 ##Todo
 - SSL Implementation
