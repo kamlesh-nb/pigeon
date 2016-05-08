@@ -253,12 +253,18 @@ private:
             request_processor* rp = new request_processor;
             ctx->rp_ptr = rp;
 			r = uv_sem_init(&ctx->semaphore, 0);
+            if (r != 0) {
+                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+            }
 			r = uv_thread_create(&ctx->thread_id, [](void* arg) {
 				struct server_ctx *ctx;
 				ctx = (struct server_ctx *)arg;
 				http_server::http_server_impl* _Impl = reinterpret_cast<http_server::http_server_impl*>(ctx->ptr);
 				_Impl->process(ctx);
 			}, ctx);
+            if (r != 0) {
+                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+            }
 		}
 
 		uv_barrier_wait(listeners_created_barrier);
@@ -293,6 +299,10 @@ public:
 			});
 			/*sv_async_cb*/
 
+        if (r != 0) {
+            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        }
+
 		uv_unref((uv_handle_t*)&ctx->async_handle);
 
 		uv_sem_wait(&ctx->semaphore);
@@ -326,6 +336,9 @@ public:
 				http_parser_init(&client->parser, HTTP_REQUEST);
 
 				r = uv_accept(server_handle, (uv_stream_t*)&client->stream);
+                if (r != 0) {
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                }
 				r = uv_read_start((uv_stream_t*)&client->stream,
 					/*sv_alloc_cb*/
 					[](uv_handle_t* /*handle*/, size_t suggested_size, uv_buf_t* buf) {
@@ -369,10 +382,19 @@ public:
 						free(buf->base);
 					});
 					/*sv_read_cb*/
+                if (r != 0) {
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                }
 
 		});
+        if (r != 0) {
+            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        }
 		/*sv_connection_cb*/
 		r = uv_run(loop, UV_RUN_DEFAULT);
+        if (r != 0) {
+            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        }
 
 		uv_loop_delete(loop);
 
@@ -392,16 +414,33 @@ public:
 			int port = settings::port;
 			string addr = settings::address;
 			r = uv_ip4_addr(addr.c_str(), port, &listen_addr);
+            if (r != 0) {
+                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+            }
 			r = uv_tcp_init(loop, (uv_tcp_t*)&ctx.server_handle);
-
+            if (r != 0) {
+                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+            }
 			if (settings::tcp_no_delay) {
 				r = uv_tcp_nodelay((uv_tcp_t*)&ctx.server_handle, 1);
+                if (r != 0) {
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                }
 			}
 			r = uv_tcp_bind((uv_tcp_t*)&ctx.server_handle, (const struct sockaddr*) &listen_addr, 0);
+            if (r != 0) {
+                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+            }
 		}
 
 		r = uv_pipe_init(loop, &ctx.ipc_pipe, 1);
+        if (r != 0) {
+            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        }
 		r = uv_pipe_bind(&ctx.ipc_pipe, IPC_PIPE_NAME.c_str());
+        if (r != 0) {
+            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        }
 		r = uv_listen((uv_stream_t*)&ctx.ipc_pipe, 128,
 			/*ipc_connection_cb*/
 			[](uv_stream_t* ipc_pipe, int status) {
@@ -424,14 +463,26 @@ public:
 
 				if (ipc_pipe->type == UV_TCP) {
 					rc = uv_tcp_init(loop, (uv_tcp_t*)&pc->peer_handle);
+                    if (rc != 0) {
+                        logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(rc));
+                    }
 					if (settings::tcp_no_delay) {
 						rc = uv_tcp_nodelay((uv_tcp_t*)&pc->peer_handle, 1);
+                        if (rc != 0) {
+                            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(rc));
+                        }
 					}
 				}
-				else if (ipc_pipe->type == UV_NAMED_PIPE)
-					rc = uv_pipe_init(loop, (uv_pipe_t*)&pc->peer_handle, 1);
-
+				else if (ipc_pipe->type == UV_NAMED_PIPE) {
+                    rc = uv_pipe_init(loop, (uv_pipe_t *) &pc->peer_handle, 1);
+                    if (rc != 0) {
+                        logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(rc));
+                    }
+                }
 				rc = uv_accept(ipc_pipe, (uv_stream_t*)&pc->peer_handle);
+                if (rc != 0) {
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(rc));
+                }
 				rc = uv_write2(&pc->write_req,
 					(uv_stream_t*)&pc->peer_handle,
 					&buf,
@@ -455,19 +506,31 @@ public:
 							/*ipc_close_cb*/
 					});
 					/*ipc_write_cb*/
+                if (rc != 0) {
+                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(rc));
+                }
 
 				if (--sc->num_connects == 0)
 					uv_close((uv_handle_t*)ipc_pipe, NULL);
 
 			});
 			/*ipc_connection_cb*/
+        if (r != 0) {
+            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        }
 
 		for (i = 0; i < num_servers; i++)
 			uv_sem_post(&servers[i].semaphore);
 
 		r = uv_run(loop, UV_RUN_DEFAULT);
+        if (r != 0) {
+            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        }
 		uv_close((uv_handle_t*)&ctx.server_handle, NULL);
 		r = uv_run(loop, UV_RUN_DEFAULT);
+        if (r != 0) {
+            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        }
 
 		for (i = 0; i < num_servers; i++)
 			uv_sem_wait(&servers[i].semaphore);
@@ -481,6 +544,9 @@ public:
 		ctx.server_handle->data = (void*)"server handle";
 
 		r = uv_pipe_init(loop, &ctx.ipc_pipe, 1);
+        if (r != 0) {
+            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        }
 		uv_pipe_connect(&ctx.connect_req, &ctx.ipc_pipe, IPC_PIPE_NAME.c_str(),
 			/*ipc_connect*/
 			[](uv_connect_t* req, int status) {
@@ -513,24 +579,45 @@ public:
 						loop = ipc_pipe->loop;
 
 						r = uv_pipe_pending_count(ipc_pipe);
+                        if (r != 0) {
+                            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                        }
 						type = uv_pipe_pending_type(ipc_pipe);
 
 						if (type == UV_TCP) {
 							r = uv_tcp_init(loop, (uv_tcp_t*)ctx->server_handle);
+                            if (r != 0) {
+                                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                            }
 							if (settings::tcp_no_delay) {
 								r = uv_tcp_nodelay((uv_tcp_t*)ctx->server_handle, 1);
+                                if (r != 0) {
+                                    logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                                }
 							}
 						}
-						else if (type == UV_NAMED_PIPE)
-							r = uv_pipe_init(loop, (uv_pipe_t*)ctx->server_handle, 0);
+						else if (type == UV_NAMED_PIPE) {
+                            r = uv_pipe_init(loop, (uv_pipe_t *) ctx->server_handle, 0);
+                            if (r != 0) {
+                                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                            }
+                        }
 
 						r = uv_accept(handle, ctx->server_handle);
+                        if (r != 0) {
+                            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+                        }
 						uv_close((uv_handle_t*)&ctx->ipc_pipe, NULL);
 			});
-
+            if (rc != 0) {
+                logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(rc));
+            }
 
 		});
 		r = uv_run(loop, UV_RUN_DEFAULT);
+        if (r != 0) {
+            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r));
+        }
 
 	}
 

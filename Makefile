@@ -34,8 +34,10 @@ all: ./deps/rapidjson ./deps/zlib ./deps/libuv ./deps/http-parser cleanbin build
 build: $(OBJ)
 	ar -cvq $(PROJECT) $(OBJ)
 
+test:
+
 cleanbin:
-	rm $(PROJECT)
+	#rm $(PROJECT)
 
 clean:
 	rm ./source/*.o
