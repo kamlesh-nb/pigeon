@@ -1,11 +1,11 @@
-#include <request_processor.h>
-#include <settings.h>
-#include <http_filters.h>
-#include <multi_part_parser.h>
-#include <http_handlers.h>
+
 #include <regex>
 #include <iostream>
 
+#include "request_processor.h"
+#include "settings.h"
+#include "http_filters.h"
+#include "http_handlers.h"
 
 using namespace std;
 using namespace pigeon;
@@ -144,7 +144,7 @@ void request_processor::parse_multipart(http_context *context)
         if (val == "multipart/form-data") {
             *p++;
             boundary += *p++;
-            multi_part_parser mpp;
+
             mpp.parse(context, boundary);
         }
 

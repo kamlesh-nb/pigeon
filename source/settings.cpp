@@ -3,11 +3,11 @@
 //
 
 #include <uv.h>
-#include <settings.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/document.h>
 #include <fstream>
-#include <logger.h>
+#include "settings.h"
+#include "logger.h"
 
 using namespace rapidjson;
 using namespace pigeon;

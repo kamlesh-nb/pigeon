@@ -2,8 +2,9 @@
 #define PIGEON_REQUEST_PROCESSOR_H
 
 
-#include <http_context.h>
+#include "http_context.h"
 #include <functional>
+#include "multi_part_parser.h"
 
 namespace pigeon {
 
@@ -34,6 +35,7 @@ namespace pigeon {
         bool execute_response_filters(http_context*);
 
         bool is_api(string &Uri, string &);
+        multi_part_parser mpp;
 
 	public:
 		request_processor();

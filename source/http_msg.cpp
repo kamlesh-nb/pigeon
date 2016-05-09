@@ -1,8 +1,6 @@
-#include <http_msg.h>
-#include <http_parser.h>
-#include <iostream>
+#include "http_msg.h"
+#include "http_parser.h"
 
-using namespace std;
 using namespace pigeon;
 
 
@@ -73,10 +71,10 @@ auto http_request::create_response(const char *msg, http_response *response, Htt
 
 }
 
-auto http_request::create_response(string &message, http_response *response, HttpStatus status) -> void {
+auto http_request::create_response(string &message, http_response *response, HttpStatus status, bool deflate) -> void {
 
+    string compressed_msg;
     response->status = (unsigned int) status;
-
     response->buffer = new string_builder;
 
     char* status_phrase = (char*)get_status_phrase(status);
@@ -87,15 +85,34 @@ auto http_request::create_response(string &message, http_response *response, Htt
 
         char* hdrFld = (char*)get_header_field(HttpHeader::Content_Length);
         response->buffer->append(hdrFld);
-        string sz = std::to_string(message.size());
-        char* size = (char*)sz.c_str();
-        response->buffer->append(size);
-        response->buffer->append((char*)nl);
+        string sz; char* size;
+        if(deflate){
+            sz = std::to_string(deflate_string(message, compressed_msg));
+            size = (char*)sz.c_str();
+            response->buffer->append(size);
+            response->buffer->append((char*)nl);
+            response->buffer->append((char*)get_header_field(HttpHeader::Content_Type));
+            response->buffer->append((char*)nl);
+        } else {
+            sz = std::to_string(message.size());
+            size = (char*)sz.c_str();
+            response->buffer->append(size);
+            response->buffer->append((char*)nl);
+        }
+
+
+
     }
 
     response->get_non_default_headers();
     response->buffer->append((char*)nl);
-    response->buffer->append((char*)message.c_str(), message.size());
+
+    if(deflate){
+        response->buffer->append((char*)compressed_msg.c_str(), compressed_msg.size());
+    } else {
+        response->buffer->append((char*)message.c_str(), message.size());
+    }
+
 
 }
 

@@ -5,10 +5,10 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
-#include <http_util.h>
 #include <unordered_map>
 #include <sstream>
-#include <string_builder.h>
+#include "http_util.h"
+#include "string_builder.h"
 
 using namespace std;
 
@@ -93,7 +93,7 @@ namespace pigeon {
 
         auto create_response(const char *, http_response *response, HttpStatus status) -> void;
 
-        auto create_response(string &, http_response *response, HttpStatus status) -> void;
+        auto create_response(string &, http_response *response, HttpStatus status, bool deflate) -> void;
 
         auto create_response(string &, string &, http_response *response, HttpStatus status) -> void;
 

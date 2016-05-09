@@ -6,10 +6,10 @@
 #include <iterator>
 #include <sstream>
 #include <fstream>
-#include <settings.h>
 #include <algorithm>
-#include <multi_part_parser.h>
 #include <regex>
+#include "settings.h"
+#include "multi_part_parser.h"
 
 using namespace pigeon;
 

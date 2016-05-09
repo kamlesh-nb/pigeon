@@ -3,11 +3,12 @@
 //
 
 #include <sstream>
-#include <logger.h>
-#include <resource_handler.h>
 #include <iostream>
 #include <iterator>
 #include <regex>
+#include "settings.h"
+#include "logger.h"
+#include "resource_handler.h"
 
 using namespace pigeon;
 using namespace std;
@@ -90,7 +91,6 @@ void resource_handler::get(http_context *context) {
 
 }
 
-
 void resource_handler::post(http_context *context) {
     context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
 }
@@ -104,7 +104,7 @@ void resource_handler::del(http_context *context) {
 }
 
 void resource_handler::options(http_context *context) {
-    context->request->create_response(context->response->message, context->response, HttpStatus::OK);
+    context->request->create_response(context->response->message, context->response, HttpStatus::OK, false);
 }
 
 void resource_handler::process(http_context *context) {

@@ -1,9 +1,11 @@
-#include <http_util.h>
+
 #include <ctime>
 #include <chrono>
 #include <sstream>
 #include <iterator>
 #include <stdexcept>
+#include <zlib.h>
+#include "http_util.h"
 
 using namespace pigeon;
 
@@ -344,4 +346,48 @@ auto pigeon::url_decode(const string &in, string &out) -> bool {
     return true;
 
 }
+
+auto ::pigeon::deflate_string(string& in, string& out) -> unsigned long {
+
+    z_stream zs;                        // z_stream is zlib's control structure
+    memset(&zs, 0, sizeof(zs));
+    int compressionlevel = Z_BEST_COMPRESSION;
+    if (deflateInit(&zs, compressionlevel) != Z_OK)
+        throw (std::runtime_error("deflateInit failed while compressing."));
+
+    zs.next_in = (Bytef *) in.data();
+    zs.avail_in = static_cast<unsigned int>(in.size());           // set the z_stream's input
+
+    int ret;
+    char outbuffer[32768];
+    std::string outstring;
+
+    // retrieve the compressed bytes blockwise
+    do {
+        zs.next_out = reinterpret_cast<Bytef *>(outbuffer);
+        zs.avail_out = sizeof(outbuffer);
+
+        ret = deflate(&zs, Z_FINISH);
+
+        if (outstring.size() < zs.total_out) {
+            // append the block to the output string
+            outstring.append(outbuffer, zs.total_out - outstring.size());
+        }
+    } while (ret == Z_OK);
+
+    deflateEnd(&zs);
+
+    if (ret != Z_STREAM_END) {          // an error occurred that was not EOF
+        std::ostringstream oss;
+        oss << "Exception during zlib compression: (" << ret << ") " << zs.msg;
+        throw (std::runtime_error(oss.str()));
+    }
+
+    zs.avail_out = zs.total_out;// outstring.size();
+    out = outstring;
+
+    return zs.total_out;
+}
+
+
 

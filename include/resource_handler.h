@@ -5,8 +5,8 @@
 #ifndef PIGEON_RESOURCE_HANDLER_H
 #define PIGEON_RESOURCE_HANDLER_H
 
-#include <http_handler_base.h>
-#include <cache.h>
+#include "http_handler_base.h"
+#include "cache.h"
 
 namespace pigeon {
 
