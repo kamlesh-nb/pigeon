@@ -24,5 +24,5 @@ Pigeon is capable of serving static web content and json data via web api (writt
 
 ##Getting Started
 
-Please refer wiki to get started.
+[Please refer wiki to get started.](https://github.com/kamlesh-bambarde/pigeon/wiki)
 
