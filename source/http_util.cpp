@@ -386,7 +386,7 @@ auto ::pigeon::deflate_string(string& in, string& out) -> unsigned long {
     zs.avail_out = zs.total_out;// outstring.size();
     out = outstring;
 
-    return zs.total_out;
+    return outstring.size();
 }
 
 

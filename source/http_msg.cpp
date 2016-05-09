@@ -91,8 +91,7 @@ auto http_request::create_response(string &message, http_response *response, Htt
             size = (char*)sz.c_str();
             response->buffer->append(size);
             response->buffer->append((char*)nl);
-            response->buffer->append((char*)get_header_field(HttpHeader::Content_Type));
-            response->buffer->append((char*)nl);
+            response->buffer->append((char*)get_header_field(HttpHeader::Content_Encoding));
         } else {
             sz = std::to_string(message.size());
             size = (char*)sz.c_str();
