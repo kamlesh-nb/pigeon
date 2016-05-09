@@ -4,7 +4,7 @@
 
 Pigeon is a high performance micro web framework written in C++. It is built on top of libuv which is a multi-platform support library with a focus on asynchronous I/O.
 
-Pigeon is capable of serving static web content and data via web api that can be written in C++. It possible to run Html5 application built using AngularJs/ReactJs or other javascript frameworks for Html5 Application Development. The web api can be used to serve json data as a response to ajax calls from the Html5 Applications.
+Pigeon is capable of serving static web content and data via web api that can be written in C++. It is possible to run Html5 application built using AngularJs/ReactJs or other javascript frameworks for Html5 Application Development, on Pigeon. The web api can be used to serve json data as a response to ajax calls from the Html5 Applications.
 
 ##Features
 
@@ -16,6 +16,7 @@ Pigeon is capable of serving static web content and data via web api that can be
 - File Watcher (libuv based)
 - multipart/form-data parser
 - Cookie parser
+- CORS Headers
 
 ##Todo
 - SSL Implementation

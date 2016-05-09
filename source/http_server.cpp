@@ -1,11 +1,12 @@
 
 
-#include <malloc.h>
+
 
 #include "http_server.h"
 #include "http_context.h"
 #include "settings.h"
-#include "http_parser.h"
+#include <http_parser.h>
+#include <malloc.h>
 #include "logger.h"
 #include "cache.h"
 #include "http_handlers.h"
@@ -18,7 +19,6 @@ using namespace pigeon;
 #define LOG(r) \
 if (r) { \
 logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r)); \
-exit(1); \
 }
 
 #define container_of(ptr, type, member) \
@@ -93,7 +93,6 @@ class http_server::http_server_impl {
 
 private:
 
-	request_processor* RequestProcessor;
 	/*setup htp_parser callback lambda's*/
 	void parser() {
 
@@ -214,12 +213,14 @@ private:
 
 	}
 
-
-
 	/*initialize the server*/
 	void init()
 	{
-		uv_async_t* service_handle = 0;
+
+
+
+
+        uv_async_t* service_handle = 0;
 
 #ifndef _WIN32
 		signal(SIGPIPE, SIG_IGN);
@@ -273,6 +274,7 @@ private:
 
 	}
 
+
 public:
 
 	/*process the new connections*/
@@ -283,9 +285,9 @@ public:
 		uv_loop_t* loop;
 
 		ctx = (struct server_ctx *)arg;
-		loop = uv_loop_new();
+        loop = uv_loop_new();
 
-		ctx->loop = loop;
+		//ctx->loop = loop;
 
 		uv_barrier_wait(listeners_created_barrier);
 
@@ -314,7 +316,7 @@ public:
                 LOG(status);
 
                 int r;
-
+                handle_storage_t* storage;
                 struct server_ctx* ctx;
                 ctx = container_of(server_handle, struct server_ctx, server_handle);
 
@@ -324,6 +326,8 @@ public:
 				client->stream.data = client;
 				client->data = ((uv_stream_t*)server_handle)->data;
                 client->rp_ptr = ctx->rp_ptr;
+
+                storage = (handle_storage_t*)malloc(sizeof(*storage));
 
 				r = uv_tcp_init(server_handle->loop, &client->stream);
                 if (settings::tcp_no_delay) {
@@ -456,10 +460,7 @@ public:
 					(uv_stream_t*)&sc->server_handle,
 					/*ipc_write_cb*/
 					[](uv_write_t* req, int status) {
-
-                        if (status != 0) {
-                            logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(status));
-                        }
+                        LOG(status);
 						struct ipc_peer_ctx* ctx;
 						ctx = container_of(req, struct ipc_peer_ctx, write_req);
 						uv_close((uv_handle_t*)&ctx->peer_handle,
@@ -549,9 +550,10 @@ public:
                             LOG(r);
                         }
 
-						r = uv_accept(handle, ctx->server_handle);
+                        r = uv_accept(handle, ctx->server_handle);
                         LOG(r);
-						uv_close((uv_handle_t*)&ctx->ipc_pipe, NULL);
+                        uv_close((uv_handle_t*)&ctx->ipc_pipe, NULL);
+
 			});
             LOG(rc);
 
@@ -568,8 +570,6 @@ public:
 		cache::get()->load(settings::resource_location);
 
 		http_handlers::instance()->add("resource", new resource_handler());
-		RequestProcessor = new request_processor();
-
 		parser();
 
 
@@ -585,8 +585,6 @@ public:
 	}
 
 };
-
-
 
 http_server::http_server()
 {
