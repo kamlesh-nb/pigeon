@@ -6,22 +6,15 @@ namespace pigeon {
 
 	class http_server
 	{
-	
 	private:
 		class http_server_impl;
 		http_server_impl* _Impl;
-
 	public:
-
 		http_server();
 		~http_server();
-
 		void start();
-	
-
 	};
 
-	
 }
 
 

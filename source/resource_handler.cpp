@@ -13,7 +13,6 @@
 using namespace pigeon;
 using namespace std;
 
-
 resource_handler::resource_handler() {
     resource_location = settings::resource_location;
     default_page = settings::default_page;

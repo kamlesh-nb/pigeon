@@ -8,13 +8,9 @@
 namespace pigeon {
 
     class http_handler_base {
-
-
     public:
-
         virtual ~http_handler_base() {
         }
-
         virtual void get(http_context *context) {
 			context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
 		}
@@ -48,13 +44,11 @@ namespace pigeon {
             }
 
         }
-
     };
-
 	template<typename T>
 	inline std::shared_ptr<http_handler_base> create_handler() {
 		return std::make_shared<T>();
-	};
+	}
 
 }
 

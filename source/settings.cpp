@@ -36,7 +36,6 @@ vector<string> settings::response_filters;
 vector<string> settings::cors_allowed_origins;
 vector<string> settings::cors_allowed_methods;
 
-
 auto settings::load_setting() -> void {
 
     try {

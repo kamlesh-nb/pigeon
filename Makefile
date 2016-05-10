@@ -10,7 +10,7 @@ INC = -I ./include \
 
 #CXX = g++
 
-FLAGS = -Wall -Wextra -pedantic -pedantic -std=c++14 -g3 $(INC)
+FLAGS = -Wall -Wextra -pedantic -pedantic -std=c++14 -O3 $(INC)
 
 OBJ = $(CPP:.cpp=.o)
 

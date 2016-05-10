@@ -86,8 +86,8 @@ void request_processor::process(http_context *context, std::function<void(http_c
     func(context);
 }
 
-
-void request_processor::handle_request(http_context *context) {
+void request_processor::handle_request(http_context *context)
+{
 
     if ((context->request->is_api) &
         (context->request->method == HTTP_GET ||
@@ -96,7 +96,7 @@ void request_processor::handle_request(http_context *context) {
          context->request->method == HTTP_DELETE)) {
 
         //process the request if it is for web api
-        auto handler = http_handlers::instance()->get(context->request->url);
+        auto handler = http_handlers::instance()->create(context->request->url);
         if(handler){
             handler->process(context);
         } else {
@@ -106,7 +106,7 @@ void request_processor::handle_request(http_context *context) {
     else
     {
         //process the request if it is for static content
-        auto handler = http_handlers::instance()->get("resource");
+        auto handler = http_handlers::instance()->create("resource");
         if(handler){
             handler->process(context);
         } else {
@@ -115,7 +115,6 @@ void request_processor::handle_request(http_context *context) {
     }
 
 }
-
 
 void request_processor::parse_multipart(http_context *context)
 {
@@ -146,7 +145,7 @@ bool request_processor::execute_request_filters(http_context *context)
     bool retval = true;
 
     for(auto& filter:settings::request_filters){
-        auto flt = http_filters::instance()->get(filter);
+        auto flt = http_filters::instance()->create(filter);
         if(flt) {
             if(!flt->execute(context)) {
                 retval = false;
@@ -163,7 +162,7 @@ bool request_processor::execute_response_filters(http_context *context)
     bool retval = true;
 
     for(auto& filter:settings::response_filters){
-        auto flt = http_filters::instance()->get(filter);
+        auto flt = http_filters::instance()->create(filter);
         if(flt) {
             if(!flt->execute(context)) {
                 retval = false;

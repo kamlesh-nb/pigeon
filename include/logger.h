@@ -13,33 +13,22 @@
 
 using namespace std;
 
-
 namespace pigeon {
 
-
     class logger {
-
+    private:
         static std::mutex _mtx;
         static std::shared_ptr<logger> instance;
         ofstream lf;
-
         logger();
-
     public:
-
-
         logger(const logger &lgr);
         logger& operator = (logger const &);
         ~logger();
-
         void write(LogType, Severity, string);
-
         void write(LogType, string);
-
         void close();
-
         static std::shared_ptr<logger> &get();
-
 
     };
 }

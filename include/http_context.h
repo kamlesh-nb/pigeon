@@ -10,7 +10,6 @@
 namespace pigeon {
 
     struct http_context {
-
         http_request *request;
         http_response *response;
         void* data;
@@ -18,12 +17,10 @@ namespace pigeon {
             request = new http_request;
             response = new http_response;
         }
-
         ~http_context() {
             delete request;
             delete response;
         }
-
     };
 
 }

@@ -3,10 +3,8 @@
 
 using namespace pigeon;
 
-
 const char* nl = "\r\n";
 const char* e = nl + strlen(nl);
-
 
 http_msg::~http_msg() {
 

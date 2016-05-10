@@ -11,7 +11,6 @@ namespace pigeon {
 	class request_processor
 	{
 	private:
-
         string allowed_origins_cfg;
         string allowed_methods_cfg;
         string allowed_headers_cfg;
@@ -36,12 +35,10 @@ namespace pigeon {
 
         bool is_api(string &Uri, string &);
         multi_part_parser mpp;
-
 	public:
 		request_processor();
 		~request_processor();
 		void process(http_context*, std::function<void(http_context*)>);
-
 	};
 
 }

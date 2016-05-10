@@ -569,7 +569,7 @@ public:
 		settings::load_setting();
 		cache::get()->load(settings::resource_location);
 
-		http_handlers::instance()->add("resource", new resource_handler());
+		http_handlers::instance()->add("resource", create_handler<resource_handler>);
 		parser();
 
 

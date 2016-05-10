@@ -9,19 +9,13 @@
 
 namespace pigeon {
 
-
     class multi_part_parser {
-
     private:
-
         vector<string> file_contents;
         string boundary;
         form parse_part(string, string &boundary);
-
     public:
-
         void parse(http_context *, string);
-
     };
 
 }

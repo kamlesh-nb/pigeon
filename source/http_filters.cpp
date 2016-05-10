@@ -23,13 +23,12 @@ http_filters& http_filters::operator = (const http_filters& filters) {
     return *this;
 }
 
-
-void http_filters::register_filter(const string& filter_name, CreateFilter func)
+void http_filters::add(const string& filter_name, CreateFilter func)
 {
 	registry[filter_name] = func;
 }
 
-std::shared_ptr<http_filter_base> http_filters::Create(const std::string &filter_name) const
+std::shared_ptr<http_filter_base> http_filters::create(const std::string &filter_name) const
 {
 	std::shared_ptr<http_filter_base> _filter;
 	filters::const_iterator regEntry = registry.find(filter_name);
@@ -39,16 +38,6 @@ std::shared_ptr<http_filter_base> http_filters::Create(const std::string &filter
 	}
 	return _filter;
 }
-
-
-void http_filters::add(string filter_name, http_filter_base *filter) {
-    filters.emplace(std::pair<string, http_filter_base *>(filter_name, filter));
-}
-
-http_filter_base *http_filters::get(string &filter_name) {
-    return filters[filter_name];
-}
-
 
 std::shared_ptr<http_filters> &http_filters::instance() {
     static std::shared_ptr<http_filters> tmp = temp;

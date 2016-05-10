@@ -14,12 +14,10 @@ string_builder::~string_builder() {
 
 }
 
-
 void string_builder::reset() {
     cur_pos = 0;
     memset(base, '\0', length);
 }
-
 
 void string_builder::clear() {
     free(base);
@@ -40,7 +38,6 @@ void string_builder::resize(size_t sz) {
     length = sz;
 
 }
-
 
 char* string_builder::find(char * str) {
     char * pch;
@@ -79,7 +76,6 @@ void string_builder::append(char *str) {
 
 }
 
-
 void string_builder::append(char *str, unsigned long length) {
     size_t space_remaining;
     size_t space_required;
@@ -100,7 +96,6 @@ void string_builder::append(char *str, unsigned long length) {
     memcpy(base + cur_pos, str, size);
     cur_pos += size;
 }
-
 
 char *string_builder::to_cstr() {
     return base;

@@ -23,20 +23,12 @@ http_handlers& http_handlers::operator = (const http_handlers& handlers) {
     return *this;
 }
 
-void http_handlers::add(string handler_name, http_handler_base *handler) {
-    handlers.emplace(std::pair<string, http_handler_base *>(handler_name, handler));
-}
-
-http_handler_base *http_handlers::get(string handler_name) {
-    return handlers[handler_name];
-}
-
-void http_handlers::register_handler(const string& handler_name, CreateHandler func)
+void http_handlers::add(const string& handler_name, CreateHandler func)
 {
 	registry[handler_name] = func;
 }
 
-std::shared_ptr<http_handler_base> http_handlers::Create(const std::string& handler_name) const
+std::shared_ptr<http_handler_base> http_handlers::create(const std::string& handler_name) const
 {
 	std::shared_ptr<http_handler_base> _handler;
 	handlers::const_iterator regEntry = registry.find(handler_name);
@@ -45,10 +37,6 @@ std::shared_ptr<http_handler_base> http_handlers::Create(const std::string& hand
 		_handler = regEntry->second();
 	}
 	return _handler;
-}
-
-http_handler_base *http_handlers::get() {
-    return handlers["resource"];
 }
 
 std::shared_ptr<http_handlers> &http_handlers::instance() {
