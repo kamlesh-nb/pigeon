@@ -15,7 +15,6 @@ Pigeon is capable of serving static web content and json data via web api (writt
 - Static Resource Cache
 - File Watcher (libuv based)
 - multipart/form-data parser
-- Cookie parser
 - CORS Headers
 
 ##Todo
