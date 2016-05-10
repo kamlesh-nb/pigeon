@@ -40,22 +40,12 @@ request_processor::request_processor()
     allowed_credentials_hdr_fld = get_header_field(HttpHeader::Access_Control_Allow_Credentials);
     allowed_expose_headers_hdr_fld = get_header_field(HttpHeader::Access_Control_Expose_Headers);
 
-
-
-
-
-
-
-
 }
 
 request_processor::~request_processor()
 {
 
 }
-
-
-
 
 void request_processor::process(http_context *context, std::function<void(http_context*)> func)
 {

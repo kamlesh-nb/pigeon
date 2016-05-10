@@ -26,12 +26,6 @@ namespace pigeon {
 
         void get(http_context *) override;
 
-        void post(http_context *) override;
-
-        void put(http_context *) override;
-
-        void del(http_context *) override;
-
         void process(http_context *) override;
 
         void options(http_context *);

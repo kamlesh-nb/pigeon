@@ -91,18 +91,6 @@ void resource_handler::get(http_context *context) {
 
 }
 
-void resource_handler::post(http_context *context) {
-    context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
-}
-
-void resource_handler::put(http_context *context) {
-    context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
-}
-
-void resource_handler::del(http_context *context) {
-    context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
-}
-
 void resource_handler::options(http_context *context) {
     context->request->create_response(context->response->message, context->response, HttpStatus::OK, false);
 }
