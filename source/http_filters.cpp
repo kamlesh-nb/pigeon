@@ -24,6 +24,23 @@ http_filters& http_filters::operator = (const http_filters& filters) {
 }
 
 
+void http_filters::register_filter(const string& filter_name, CreateFilter func)
+{
+	registry[filter_name] = func;
+}
+
+std::shared_ptr<http_filter_base> http_filters::Create(const std::string &filter_name) const
+{
+	std::shared_ptr<http_filter_base> _filter;
+	filters::const_iterator regEntry = registry.find(filter_name);
+	if (regEntry != registry.end())
+	{
+		_filter = regEntry->second();
+	}
+	return _filter;
+}
+
+
 void http_filters::add(string filter_name, http_filter_base *filter) {
     filters.emplace(std::pair<string, http_filter_base *>(filter_name, filter));
 }

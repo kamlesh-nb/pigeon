@@ -23,6 +23,11 @@ namespace pigeon {
 
     };
 
+	template<typename T>
+	inline std::shared_ptr<http_filter_base> create_filtler() {
+		return std::make_shared<T>();
+	};
+
 }
 
 #endif //PIGEON_HTTP_FILTER_BASE_H

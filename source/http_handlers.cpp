@@ -31,6 +31,21 @@ http_handler_base *http_handlers::get(string handler_name) {
     return handlers[handler_name];
 }
 
+void http_handlers::register_handler(const string& handler_name, CreateHandler func)
+{
+	registry[handler_name] = func;
+}
+
+std::shared_ptr<http_handler_base> http_handlers::Create(const std::string& handler_name) const
+{
+	std::shared_ptr<http_handler_base> _handler;
+	handlers::const_iterator regEntry = registry.find(handler_name);
+	if (regEntry != registry.end())
+	{
+		_handler = regEntry->second();
+	}
+	return _handler;
+}
 
 http_handler_base *http_handlers::get() {
     return handlers["resource"];
