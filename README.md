@@ -19,7 +19,6 @@ Pigeon is capable of serving static web content and json data via web api (writt
 
 ##Todo
 - SSL Implementation
-- Built-in json parser & bson
 
 ##Getting Started
 
