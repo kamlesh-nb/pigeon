@@ -25,7 +25,7 @@ Pigeon performance was compared with that of NodeJS, to serve a static resource 
 weighttp was used to measure the performance of two frameworks and and following is the result.
 
 ####Pigeon results
-
+```c++
 weighttp -n 100000 -c 64 -t 4 "http://127.0.0.1:8002/index.html"
 weighttp 0.4 - a lightweight and simple webserver benchmarking tool
 
@@ -36,9 +36,9 @@ finished in 2 sec, 386 millisec and 491 microsec, 41902 req/s, 40622 kbyte/s
 requests: 100000 total, 100000 started, 100000 done, 100000 succeeded, 0 failed, 0 errored
 status codes: 100000 2xx, 0 3xx, 0 4xx, 0 5xx
 traffic: 99270840 bytes total, 28770840 bytes http, 70500000 bytes data
-
+```
 ####NodeJS Results
-
+```c++
 weighttp -n 100000 -c 64 -t 4 "http://127.0.0.1:3000/index.html"
 weighttp 0.4 - a lightweight and simple webserver benchmarking tool
 
@@ -49,7 +49,7 @@ finished in 35 sec, 894 millisec and 225 microsec, 2785 req/s, 2701 kbyte/s
 requests: 100000 total, 100000 started, 100000 done, 100000 succeeded, 0 failed, 0 errored
 status codes: 100000 2xx, 0 3xx, 0 4xx, 0 5xx
 traffic: 99300000 bytes total, 28800000 bytes http, 70500000 bytes data
-
+```
 As you can see Pigeon has outperformed NodeJS, its time to go native with Pigeon now :).
 
 ##Getting Started
