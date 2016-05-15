@@ -9,6 +9,7 @@
 #include <sstream>
 #include "http_util.h"
 #include "string_builder.h"
+#include "file_info.h"
 
 using namespace std;
 
@@ -21,6 +22,7 @@ namespace pigeon {
         string temp;
     protected:
         unordered_map<string, string> cookies;
+        auto accepts_deflated() -> bool;
     public:
         virtual ~http_msg();
         int http_major_version;
@@ -28,6 +30,7 @@ namespace pigeon {
         string content;
         string_builder* buffer;
         auto has_cookies() -> bool;
+
         virtual auto set_header(string &, string &) -> void;
         virtual auto get_header(string) -> string&;
         virtual auto set_cookie(string &, string &) -> void;
@@ -43,7 +46,6 @@ namespace pigeon {
     class http_response : public http_msg {
     public:
         virtual ~http_response();
-        unsigned int status;
         string message;
     };
 
@@ -51,7 +53,6 @@ namespace pigeon {
     class http_request : public http_msg {
     private:
         unordered_map<string, string> parameters;
-        shared_ptr<http_response> response;
     public:
         virtual ~http_request();
         string url;
@@ -63,7 +64,7 @@ namespace pigeon {
         auto set_parameter(string &, string &) -> void;
         auto create_response(const char *, http_response *response, HttpStatus status) -> void;
         auto create_response(string &, http_response *response, HttpStatus status, bool deflate) -> void;
-        auto create_response(string &, string &, http_response *response, HttpStatus status) -> void;
+        auto create_response(file_info&, http_response *response, HttpStatus status) -> void;
     };
 
 }

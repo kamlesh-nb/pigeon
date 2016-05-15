@@ -14,6 +14,19 @@ auto http_msg::has_cookies() -> bool {
     return cookies.size() > 0;
 }
 
+
+auto http_msg::accepts_deflated() -> bool {
+
+    ///check if http compression is accepted
+    string accept_enc = get_header("Accept-Encoding");
+    std::size_t pos = string::npos;
+    if (accept_enc.size() > 0) {
+        pos = accept_enc.find("gzip");
+    }
+    return pos != string::npos;
+
+}
+
 auto http_msg::set_header(string &key, string &value) -> void {
 
     headers.emplace(std::pair<string, string>(key, value));
@@ -61,22 +74,16 @@ auto http_request::set_parameter(string &key, string &value) -> void {
 
 auto http_request::create_response(const char *msg, http_response *response, HttpStatus status) -> void {
     response->buffer = new string_builder;
-
-    char* status_phrase = (char*)get_status_phrase(status);
-    response->buffer->append(status_phrase);
-
+    get_status_phrase(status, response->buffer);
     get_err_msg(msg, status, response->buffer);
-
 }
 
 auto http_request::create_response(string &message, http_response *response, HttpStatus status, bool deflate) -> void {
 
     string compressed_msg;
-    response->status = (unsigned int) status;
     response->buffer = new string_builder;
 
-    char* status_phrase = (char*)get_status_phrase(status);
-    response->buffer->append(status_phrase);
+    get_status_phrase(status, response->buffer);
     get_cached_response(is_api, response->buffer);
 
     if (is_api && (method != HTTP_OPTIONS)) {
@@ -84,7 +91,8 @@ auto http_request::create_response(string &message, http_response *response, Htt
         char* hdrFld = (char*)get_header_field(HttpHeader::Content_Length);
         response->buffer->append(hdrFld);
         string sz; char* size;
-        if(deflate){
+
+        if(deflate && accepts_deflated()){
             sz = std::to_string(deflate_string(message, compressed_msg));
             size = (char*)sz.c_str();
             response->buffer->append(size);
@@ -113,20 +121,24 @@ auto http_request::create_response(string &message, http_response *response, Htt
 
 }
 
-auto http_request::create_response(string &cached_headers, string &message, http_response *response, HttpStatus status) -> void {
+auto http_request::create_response(file_info& fi, http_response *response, HttpStatus status) -> void {
 
-    response->status = (unsigned int) status;
     response->buffer = new string_builder;
 
-    char* status_phrase = (char*)get_status_phrase(status);
-    response->buffer->append(status_phrase);
+    get_status_phrase(status, response->buffer);
     get_cached_response(is_api, response->buffer);
+    if(accepts_deflated()){
+        response->buffer->append((char*)fi.compresses_cached_headers.c_str(), fi.compresses_cached_headers.size());
+        response->get_non_default_headers();
+        response->buffer->append((char*)nl);
+        response->buffer->append((char*)fi.compressed_content.c_str(), fi.compressed_content.size());
+    } else {
+        response->buffer->append((char*)fi.cached_headers.c_str(), fi.cached_headers.size());
+        response->get_non_default_headers();
+        response->buffer->append((char*)nl);
+        response->buffer->append((char*)fi.content.c_str(), fi.content.size());
+    }
 
-
-    response->buffer->append((char*)cached_headers.c_str(), cached_headers.size());
-    response->get_non_default_headers();
-    response->buffer->append((char*)nl);
-    response->buffer->append((char*)message.c_str(), message.size());
     
 }
 

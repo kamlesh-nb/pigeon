@@ -62,25 +62,9 @@ void resource_handler::get(http_context *context) {
             }
         }
 
-        ///check if http compression is accepted
-        string accept_enc = context->request->get_header("Accept-Encoding");
 
-        std::size_t pos;
+        context->request->create_response(fi, context->response, HttpStatus::OK);
 
-        if (accept_enc.size() > 0) {
-            pos = accept_enc.find("gzip");
-        }
-        else {
-            pos = string::npos;
-        }
-
-        if (pos != string::npos) {
-            context->request->create_response(fi.compresses_cached_headers, fi.compressed_content, context->response,
-                                              HttpStatus::OK);
-        }
-        else {
-            context->request->create_response(fi.cached_headers, fi.content, context->response, HttpStatus::OK);
-        }
 
     }
     catch (std::exception &ex) {

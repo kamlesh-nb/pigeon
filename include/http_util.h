@@ -85,7 +85,7 @@ namespace pigeon {
     char *now();
     auto get_header_field(HttpHeader hdr) -> const char*;
     auto get_header_field(HttpHeader hdr, string&) -> void;
-    auto get_status_phrase(HttpStatus status) -> const char*;
+    auto get_status_phrase(HttpStatus status, string_builder* sb) -> void;
 	auto get_status_msg(HttpStatus status) -> const char*;
 	auto get_err_msg(const char*, HttpStatus status, string_builder*) -> void;
 	auto get_mime_type(string &extension) -> const string;

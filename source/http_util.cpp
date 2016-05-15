@@ -235,14 +235,13 @@ auto pigeon::get_header_field(HttpHeader hdr, string& data) -> void {
     }
 }
 
-auto pigeon::get_status_phrase(HttpStatus status) -> const char* {
+auto pigeon::get_status_phrase(HttpStatus status, string_builder* sb) -> void {
 
     for (statusphrase *m = statusphrases; m->status_code; ++m) {
         if (m->status_code == static_cast<int>(status)) {
-            return m->status_phrase;
+            sb->append((char*)m->status_phrase);
         }
     }
-    return "Unknown";
 }
 
 auto pigeon::get_status_msg(HttpStatus status) -> const char* {
