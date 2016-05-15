@@ -24,7 +24,7 @@ Pigeon is capable of serving static web content and json data via web api (writt
 Pigeon performance was compared with that of NodeJS, to serve a static resource of 705 bytes in size, 
 weighttp was used to measure the performance of two frameworks and and following is the result.
 
-####Pigeon results
+######Pigeon Results
 ```c++
 weighttp -n 100000 -c 64 -t 4 "http://127.0.0.1:8002/index.html"
 weighttp 0.4 - a lightweight and simple webserver benchmarking tool
@@ -37,7 +37,7 @@ requests: 100000 total, 100000 started, 100000 done, 100000 succeeded, 0 failed,
 status codes: 100000 2xx, 0 3xx, 0 4xx, 0 5xx
 traffic: 99270840 bytes total, 28770840 bytes http, 70500000 bytes data
 ```
-####NodeJS Results
+######NodeJS Results
 ```c++
 weighttp -n 100000 -c 64 -t 4 "http://127.0.0.1:3000/index.html"
 weighttp 0.4 - a lightweight and simple webserver benchmarking tool
