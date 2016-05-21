@@ -87,7 +87,7 @@ namespace pigeon {
     auto get_header_field(HttpHeader hdr, string&) -> void;
     auto get_status_phrase(HttpStatus status, string_builder* sb) -> void;
 	auto get_status_msg(HttpStatus status) -> const char*;
-	auto get_err_msg(const char*, HttpStatus status, string_builder*) -> void;
+	auto get_err_msg(const char*, bool is_api, HttpStatus status, string_builder*) -> void;
 	auto get_mime_type(string &extension) -> const string;
 	auto get_log_type(LogType type) -> const string;
 	auto get_severity(Severity severe) -> const string;

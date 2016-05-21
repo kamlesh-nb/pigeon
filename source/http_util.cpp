@@ -192,6 +192,10 @@ const char *err_msg3 = "</td><td>";
 const char *err_msg5 = "</td></tr><tr><td>Description: </td><td>";
 const char *err_msg7 = "</td></tr></table></body></html>";
 
+const char* api_err_msg1 = "{ \"Status\":";
+const char* api_err_msg2 = ", \"StatusDescription:\"";
+const char* api_err_msg3 = ", \"ErrorDescription\":";
+const char* api_err_msg4 = "}";
 
 char *pigeon::now() {
 
@@ -254,22 +258,33 @@ auto pigeon::get_status_msg(HttpStatus status) -> const char* {
     return "Unknown";
 }
 
-auto pigeon::get_err_msg(const char* msg, HttpStatus status, string_builder* sb) -> void {
+auto pigeon::get_err_msg(const char* msg, bool is_api, HttpStatus status, string_builder* sb) -> void {
 
     string headers;
     string message;
 
     sb->append((char*)err_cached_response);
-
-    message.append(err_msg1);
-    char* stat = (char*)std::to_string((int) status).c_str();
-    message.append(stat);
-    message.append(err_msg3);
-    char* stat_msg = (char*)get_status_msg(status);
-    message.append(stat_msg);
-    message.append(err_msg5);
-    message.append(msg);
-    message.append(err_msg7);
+    if(is_api){
+        message.append(err_msg1);
+        char* stat = (char*)std::to_string((int) status).c_str();
+        message.append(stat);
+        message.append(err_msg3);
+        char* stat_msg = (char*)get_status_msg(status);
+        message.append(stat_msg);
+        message.append(err_msg5);
+        message.append(msg);
+        message.append(err_msg7);
+    } else {
+        message.append(api_err_msg1);
+        char* stat = (char*)std::to_string((int) status).c_str();
+        message.append(stat);
+        message.append(api_err_msg2);
+        char* stat_msg = (char*)get_status_msg(status);
+        message.append(stat_msg);
+        message.append(api_err_msg3);
+        message.append(msg);
+        message.append(api_err_msg4);
+    }
 
     headers += get_header_field(HttpHeader::Content_Length);
     size_t length = message.size();
@@ -277,7 +292,6 @@ auto pigeon::get_err_msg(const char* msg, HttpStatus status, string_builder* sb)
     sb->append((char*)std::to_string(length).c_str());
     sb->append((char*)"\r\n\r\n");
     sb->append((char*)message.c_str(), message.size());
-
 
 }
 

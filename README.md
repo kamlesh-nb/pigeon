@@ -50,7 +50,7 @@ requests: 100000 total, 100000 started, 100000 done, 100000 succeeded, 0 failed,
 status codes: 100000 2xx, 0 3xx, 0 4xx, 0 5xx
 traffic: 99300000 bytes total, 28800000 bytes http, 70500000 bytes data
 ```
-As you can see Pigeon has outperformed NodeJS, its time to go native with Pigeon now :).
+As you can see Pigeon has outperformed NodeJS.
 
 ##Getting Started
 

@@ -75,12 +75,14 @@ auto http_request::set_parameter(string &key, string &value) -> void {
 auto http_request::create_response(const char *msg, http_response *response, HttpStatus status) -> void {
     response->buffer = new string_builder;
     get_status_phrase(status, response->buffer);
-    get_err_msg(msg, status, response->buffer);
+    get_err_msg(msg, is_api , status, response->buffer);
 }
 
 auto http_request::create_response(string &message, http_response *response, HttpStatus status, bool deflate) -> void {
 
     string compressed_msg;
+    bool accept_deflated = accepts_deflated();
+
     response->buffer = new string_builder;
 
     get_status_phrase(status, response->buffer);
@@ -92,7 +94,7 @@ auto http_request::create_response(string &message, http_response *response, Htt
         response->buffer->append(hdrFld);
         string sz; char* size;
 
-        if(deflate && accepts_deflated()){
+        if(deflate && accept_deflated){
             sz = std::to_string(deflate_string(message, compressed_msg));
             size = (char*)sz.c_str();
             response->buffer->append(size);
@@ -104,15 +106,12 @@ auto http_request::create_response(string &message, http_response *response, Htt
             response->buffer->append(size);
             response->buffer->append((char*)nl);
         }
-
-
-
     }
 
     response->get_non_default_headers();
     response->buffer->append((char*)nl);
 
-    if(deflate){
+    if(deflate && accept_deflated){
         response->buffer->append((char*)compressed_msg.c_str(), compressed_msg.size());
     } else {
         response->buffer->append((char*)message.c_str(), message.size());

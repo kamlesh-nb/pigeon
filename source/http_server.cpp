@@ -7,6 +7,7 @@
 #include "settings.h"
 #include <http_parser.h>
 #include <malloc.h>
+#include <iostream>
 #include "logger.h"
 #include "cache.h"
 #include "http_handlers.h"
@@ -16,9 +17,13 @@
 
 using namespace pigeon;
 
+
+#define MAXHANDLES 16384
+
 #define LOG(r) \
 if (r) { \
 logger::get()->write(LogType::Error, Severity::Critical, uv_err_name(r)); \
+exit(1);\
 }
 
 #define container_of(ptr, type, member) \
@@ -181,30 +186,41 @@ private:
                 resbuf.len = (unsigned long)client->context->response->buffer->get_length();
 
                 client->write_req.data = client;
-                int r = uv_write(&client->write_req,
-                                 (uv_stream_t*)&client->stream,
-                                 &resbuf,
-                                 1,
-                                 [](uv_write_t *req, int status) {
+                if (uv_is_writable((uv_stream_t*)&client->stream)) {
+                    int r = uv_write(&client->write_req,
+                                     (uv_stream_t *) &client->stream,
+                                     &resbuf,
+                                     1,
+                                     [](uv_write_t *req, int status) {
 
-                                     LOG(status);
+                                         LOG(status);
 
-                                     if (!uv_is_closing((uv_handle_t*)req->handle))
-                                     {
-                                         uv_close((uv_handle_t*)req->handle,
-                                                  [](uv_handle_t *handle) {
-                                                      client_t* client = (client_t*)handle->data;
-                                                      client->context->response->buffer->clear();
-                                                      delete client->context->response->buffer;
-                                                      delete client->context;
-                                                      free(client);
-                                                  });
-                                     }
+                                         if (!uv_is_closing((uv_handle_t *) req->handle)) {
+                                             uv_close((uv_handle_t *) req->handle,
+                                                      [](uv_handle_t *handle) {
+                                                          client_t *client = (client_t *) handle->data;
+                                                          client->context->response->buffer->clear();
+                                                          delete client->context->response->buffer;
+                                                          delete client->context;
+                                                          free(client);
+                                                      });
+                                         }
 
 
-                                 });
+                                     });
+                    LOG(r);
+                } else {
+                    uv_close((uv_handle_t *)&client->stream,
+                             [](uv_handle_t *handle) {
+                                 client_t *client = (client_t *) handle->data;
+                                 client->context->response->buffer->clear();
+                                 delete client->context->response->buffer;
+                                 delete client->context;
+                                 free(client);
+                             });
+                }
 
-                LOG(r);
+
 
             });
 			return 0;
@@ -309,39 +325,36 @@ public:
 		receive_listen_handle(loop, (uv_stream_t*)&ctx->server_handle);
 		uv_sem_post(&ctx->semaphore);
 
-		r = uv_listen((uv_stream_t*)&ctx->server_handle, 128,
+		r = uv_listen((uv_stream_t*)&ctx->server_handle, MAXHANDLES,
 			/*sv_connection_cb*/
 			[](uv_stream_t* server_handle, int status) {
 
                 LOG(status);
 
                 int r;
-                handle_storage_t* storage;
                 struct server_ctx* ctx;
                 ctx = container_of(server_handle, struct server_ctx, server_handle);
 
 				client_t* client = (client_t*)malloc(sizeof(client_t));
+                http_parser_init(&client->parser, HTTP_REQUEST);
+
 				client->context = new http_context;
 				client->parser.data = client;
 				client->stream.data = client;
-				client->data = ((uv_stream_t*)server_handle)->data;
+				client->data = server_handle->data;
                 client->rp_ptr = ctx->rp_ptr;
-
-                storage = (handle_storage_t*)malloc(sizeof(*storage));
 
 				r = uv_tcp_init(server_handle->loop, &client->stream);
                 if (settings::tcp_no_delay) {
-                    r = uv_tcp_nodelay((uv_tcp_t*)&client->stream, 1);
+                    r = uv_tcp_nodelay(&client->stream, 1);
                 }
-				http_parser_init(&client->parser, HTTP_REQUEST);
 
 				r = uv_accept(server_handle, (uv_stream_t*)&client->stream);
                 LOG(r);
 				r = uv_read_start((uv_stream_t*)&client->stream,
 					/*sv_alloc_cb*/
 					[](uv_handle_t* /*handle*/, size_t suggested_size, uv_buf_t* buf) {
-						buf->base = (char*)malloc(suggested_size);
-						buf->len = suggested_size;
+                        *buf = uv_buf_init((char*) malloc(suggested_size), suggested_size);
 					}
 					/*sv_alloc_cb*/
 					,
@@ -393,7 +406,8 @@ public:
 	}
 
 	void dispatch_listen_handles(uv_handle_type type, unsigned int num_servers, struct server_ctx* servers) {
-		int r;
+
+        int r;
 		struct ipc_server_ctx ctx;
 		uv_loop_t* loop;
 		unsigned int i;
@@ -421,7 +435,7 @@ public:
         LOG(r);
 		r = uv_pipe_bind(&ctx.ipc_pipe, IPC_PIPE_NAME.c_str());
         LOG(r);
-		r = uv_listen((uv_stream_t*)&ctx.ipc_pipe, 128,
+		r = uv_listen((uv_stream_t*)&ctx.ipc_pipe, MAXHANDLES,
 			/*ipc_connection_cb*/
 			[](uv_stream_t* ipc_pipe, int status) {
 
@@ -497,6 +511,7 @@ public:
 	}
 
 	void receive_listen_handle(uv_loop_t* loop, uv_stream_t* server_handle) {
+
 		int r;
 		struct ipc_client_ctx ctx;
 		ctx.server_handle = server_handle;
@@ -534,7 +549,7 @@ public:
 						loop = ipc_pipe->loop;
 
 						r = uv_pipe_pending_count(ipc_pipe);
-                        LOG(r);
+
 						type = uv_pipe_pending_type(ipc_pipe);
 
 						if (type == UV_TCP) {
@@ -555,6 +570,7 @@ public:
                         uv_close((uv_handle_t*)&ctx->ipc_pipe, NULL);
 
 			});
+            /*ipc_read*/
             LOG(rc);
 
 		});
