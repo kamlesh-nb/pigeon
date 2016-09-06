@@ -16,10 +16,11 @@ namespace pigeon {
         virtual bool execute(http_context *) = 0;
         virtual void clean() = 0;
     };
-	template<typename T>
-	inline std::shared_ptr<http_filter_base> create_filtler() {
-		return std::make_shared<T>();
-	}
+
+    template<typename T>
+    inline std::shared_ptr<http_filter_base> createfiltler() {
+        return std::make_shared<T>();
+    }
 
 }
 

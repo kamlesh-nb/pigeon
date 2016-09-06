@@ -8,7 +8,6 @@
 #include <fstream>
 #include <algorithm>
 #include <regex>
-#include "settings.h"
 #include "multi_part_parser.h"
 
 using namespace pigeon;

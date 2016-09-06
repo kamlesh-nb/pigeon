@@ -12,17 +12,17 @@ namespace pigeon {
         virtual ~http_handler_base() {
         }
         virtual void get(http_context *context) {
-			context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
-		}
+            context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
+        }
         virtual void put(http_context *context) {
-			context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
-		}
+            context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
+        }
         virtual void post(http_context *context) {
-			context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
-		}
+            context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
+        }
         virtual void del(http_context *context) {
-			context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
-		}
+            context->request->create_response("Not Implemented!", context->response, HttpStatus::NotImplemented);
+        }
         virtual void process(http_context *context) {
 
             switch (context->request->method) {
@@ -45,10 +45,11 @@ namespace pigeon {
 
         }
     };
-	template<typename T>
-	inline std::shared_ptr<http_handler_base> create_handler() {
-		return std::make_shared<T>();
-	}
+
+    template<typename T>
+    inline std::shared_ptr<http_handler_base> createhandler() {
+        return std::make_shared<T>();
+    }
 
 }
 

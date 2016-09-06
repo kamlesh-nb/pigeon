@@ -1,5 +1,9 @@
-#ifndef FILE_INFO_H
-#define FILE_INFO_H
+//
+// Created by kamlesh on 9/5/16.
+//
+
+#ifndef PIGEON_FILE_INFO_H
+#define PIGEON_FILE_INFO_H
 
 #include <string>
 
@@ -28,4 +32,4 @@ namespace pigeon {
 
 }
 
-#endif //FILE_INFO_H
+#endif //PIGEON_FILE_INFO_H

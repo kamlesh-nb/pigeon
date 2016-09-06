@@ -6,16 +6,15 @@
 #include <iostream>
 #include <iterator>
 #include <regex>
-#include "settings.h"
-#include "logger.h"
+#include "app_context.h"
 #include "resource_handler.h"
 
 using namespace pigeon;
 using namespace std;
 
 resource_handler::resource_handler() {
-    resource_location = settings::resource_location;
-    default_page = settings::default_page;
+    resource_location = app_context::get()->get_resource_location();
+    default_page = app_context::get()->get_default_page();
 }
 
 resource_handler::~resource_handler() {
@@ -45,7 +44,7 @@ void resource_handler::get(http_context *context) {
         std::string full_path = resource_location + request_path;
 
         file_info fi(full_path);
-        cache::get()->get_item(fi);
+        app_context::get()->get_item(fi);
 
         if (fi.file_size == 0) {
             context->request->create_response("Resource you requested cannot be found on the server!", context->response, HttpStatus::NotFound);
@@ -68,7 +67,7 @@ void resource_handler::get(http_context *context) {
 
     }
     catch (std::exception &ex) {
-        logger::get()->write(LogType::Error, Severity::Critical, ex.what());
+        app_context::get()->write(LogType::Error, Severity::Critical, ex.what());
         context->request->create_response(ex.what(), context->response, HttpStatus::InternalTcpServerError);
     }
 

@@ -1,5 +1,9 @@
-#ifndef HTTP_UTIL_H
-#define HTTP_UTIL_H
+//
+// Created by kamlesh on 9/5/16.
+//
+
+#ifndef PIGEON_HTTP_UTIL_H
+#define PIGEON_HTTP_UTIL_H
 
 #include <string>
 #include <vector>
@@ -34,7 +38,6 @@ namespace pigeon {
         Connection
     };
     enum class HttpStatus {
-
         Continue = 100,
         SwitchingProtocols = 101,
         Checkpoint = 103,
@@ -86,16 +89,17 @@ namespace pigeon {
     auto get_header_field(HttpHeader hdr) -> const char*;
     auto get_header_field(HttpHeader hdr, string&) -> void;
     auto get_status_phrase(HttpStatus status, string_builder* sb) -> void;
-	auto get_status_msg(HttpStatus status) -> const char*;
-	auto get_err_msg(const char*, bool is_api, HttpStatus status, string_builder*) -> void;
-	auto get_mime_type(string &extension) -> const string;
-	auto get_log_type(LogType type) -> const string;
-	auto get_severity(Severity severe) -> const string;
-	auto url_decode(const string &in, string &out) -> bool;
-	auto deflate_string(string&, string&) -> unsigned long;
+    auto get_status_msg(HttpStatus status) -> const char*;
+    auto get_err_msg(const char*, bool is_api, HttpStatus status, string_builder*) -> void;
+    auto get_mime_type(string &extension) -> const string;
+    auto get_log_type(LogType type) -> const string;
+    auto get_severity(Severity severe) -> const string;
+    auto url_decode(const string &in, string &out) -> bool;
+    auto deflate_string(string&, string&) -> unsigned long;
 
 }
 
 
-#endif //HTTP_UTIL_H
 
+
+#endif //PIGEON_HTTP_UTIL_H

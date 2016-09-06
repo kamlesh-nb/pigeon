@@ -2,15 +2,35 @@
 #define PIGEON_REQUEST_PROCESSOR_H
 
 
-#include "http_context.h"
+
 #include <functional>
+#include <memory>
+#include <unordered_map>
+#include <string>
+
+#include "http_context.h"
+#include "http_handler_base.h"
+#include "http_filter_base.h"
 #include "multi_part_parser.h"
+#include "app_context.h"
+
+using namespace std;
+
 
 namespace pigeon {
 
 	class request_processor
 	{
 	private:
+		typedef std::shared_ptr<http_filter_base>(*CreateFilter)();
+		typedef std::unordered_map<std::string, CreateFilter> filters;
+		filters http_filters;
+
+		typedef std::shared_ptr<http_handler_base>(*CreateHandler)();
+		typedef std::unordered_map<std::string, CreateHandler> handlers;
+		handlers http_handlers;
+
+
         string allowed_origins_cfg;
         string allowed_methods_cfg;
         string allowed_headers_cfg;

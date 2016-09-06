@@ -1,13 +1,16 @@
+//
+// Created by kamlesh on 9/5/16.
+//
 
 #include <ctime>
 #include <chrono>
 #include <sstream>
 #include <iterator>
-#include <stdexcept>
 #include <zlib.h>
 #include "http_util.h"
 
-using namespace pigeon;
+using  namespace pigeon;
+
 
 struct logtype {
     int log_id;
@@ -360,7 +363,7 @@ auto pigeon::url_decode(const string &in, string &out) -> bool {
 
 }
 
-auto ::pigeon::deflate_string(string& in, string& out) -> unsigned long {
+auto pigeon::deflate_string(string& in, string& out) -> unsigned long {
 
     z_stream zs;                        // z_stream is zlib's control structure
     memset(&zs, 0, sizeof(zs));
@@ -401,6 +404,3 @@ auto ::pigeon::deflate_string(string& in, string& out) -> unsigned long {
 
     return outstring.size();
 }
-
-
-

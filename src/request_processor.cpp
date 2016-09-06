@@ -3,9 +3,8 @@
 #include <iostream>
 
 #include "request_processor.h"
-#include "settings.h"
-#include "http_filters.h"
-#include "http_handlers.h"
+#include "app_context.h"
+
 
 using namespace std;
 using namespace pigeon;
@@ -24,13 +23,14 @@ enum cookie_state {
 
 request_processor::request_processor()
 {
+    auto cors_hearders = app_context::get()->get_cors_headers();
     //one time loading of all the cors headers cosfigured in service.json
-    allowed_origins_cfg = settings::cors_headers["Access-Control-Allow-Origin"];
-    allowed_methods_cfg = settings::cors_headers["Access-Control-Allow-Methods"];
-    allowed_headers_cfg = settings::cors_headers["Access-Control-Allow-Headers"];
-    allowed_max_age_cfg = settings::cors_headers["Access-Control-Max-Age"];
-    allowed_credential_cfg = settings::cors_headers["Access-Control-Allow-Credentials"];
-    allowed_expose_headers_cfg = settings::cors_headers["Access-Control-Expose-Headers"];
+    allowed_origins_cfg = cors_hearders["Access-Control-Allow-Origin"];
+    allowed_methods_cfg = cors_hearders["Access-Control-Allow-Methods"];
+    allowed_headers_cfg = cors_hearders["Access-Control-Allow-Headers"];
+    allowed_max_age_cfg = cors_hearders["Access-Control-Max-Age"];
+    allowed_credential_cfg = cors_hearders["Access-Control-Allow-Credentials"];
+    allowed_expose_headers_cfg = cors_hearders["Access-Control-Expose-Headers"];
 
     //one time loading of all the header names that has to be sent for cors requests
     allowed_origins_hdr_fld = get_header_field(HttpHeader::Access_Control_Allow_Origin);
@@ -51,7 +51,7 @@ void request_processor::process(http_context *context, std::function<void(http_c
 {
 
     //check if request is for web api
-    context->request->is_api = is_api(context->request->url, settings::api_route);
+    context->request->is_api = is_api(context->request->url, app_context::get()->get_api_route());
 
     //parse cookies if any
     parse_cookies(context);
@@ -70,7 +70,7 @@ void request_processor::process(http_context *context, std::function<void(http_c
     }
 
     //if cors is enabled for the service, deal with it
-    if(settings::enable_cors){
+    if(app_context::get()->get_enable_cors()){
         handle_cors(context);
     }
 
@@ -96,7 +96,7 @@ void request_processor::handle_request(http_context *context)
          context->request->method == HTTP_DELETE)) {
 
         //process the request if it is for web api
-        auto handler = http_handlers::instance()->create(context->request->url);
+        auto handler = app_context::get()->create_handler(context->request->url);
         if(handler){
             handler->process(context);
         } else {
@@ -106,11 +106,11 @@ void request_processor::handle_request(http_context *context)
     else
     {
         //process the request if it is for static content
-        auto handler = http_handlers::instance()->create("resource");
+        auto handler = app_context::get()->create_handler("resource");
         if(handler){
             handler->process(context);
         } else {
-            context->request->create_response("Resurce handler not registered!", context->response, HttpStatus::NotImplemented);
+            context->request->create_response("Resource handler not registered!", context->response, HttpStatus::NotImplemented);
         }
     }
 
@@ -143,9 +143,9 @@ void request_processor::parse_multipart(http_context *context)
 bool request_processor::execute_request_filters(http_context *context)
 {
     bool retval = true;
-
-    for(auto& filter:settings::request_filters){
-        auto flt = http_filters::instance()->create(filter);
+    vector<string> request_filters = app_context::get()->get_request_filters();
+    for(auto& filter:request_filters){
+        auto flt = app_context::get()->create_filter(filter);
         if(flt) {
             if(!flt->execute(context)) {
                 retval = false;
@@ -160,9 +160,9 @@ bool request_processor::execute_request_filters(http_context *context)
 bool request_processor::execute_response_filters(http_context *context)
 {
     bool retval = true;
-
-    for(auto& filter:settings::response_filters){
-        auto flt = http_filters::instance()->create(filter);
+    vector<string> response_filters = app_context::get()->get_response_filters();
+    for(auto& filter:response_filters){
+        auto flt = app_context::get()->create_filter(filter);
         if(flt) {
             if(!flt->execute(context)) {
                 retval = false;
