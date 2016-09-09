@@ -1,7 +1,10 @@
-#include <iostream>
+#include "http_server.h"
+
+using namespace pigeon;
 
 int main(){
 
-        std::cout "Hello World!!!" << std::endl;
+    http_server hs;
+    hs.start();
 	return 0;
 }
