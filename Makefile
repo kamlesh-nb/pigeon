@@ -6,12 +6,12 @@ INC = -I ./include \
     -I ./deps/libuv/include \
     -I ./deps/rapidjson/include/ \
     -I ./deps/http-parser/ \
-    -I ./deps/zlib/
+    -I ./deps/zlib/ \
     -i ./src/impl
 
 #CXX = g++
 
-FLAGS = -Wall -Wextra -Werror -pedantic -std=c++14 -O3 $(INC)
+FLAGS = -Wall -Wextra -std=c++14 -O3 $(INC)
 
 OBJ = $(CPP:.cpp=.o)
 
@@ -41,7 +41,7 @@ cleanbin:
 	rm $(PROJECT)
 
 clean:
-	rm ./source/*.o
+	rm ./src/*.o
 install:
 	sudo cp $(PROJECT) /usr/local/lib
 	sudo cp ./include/* /usr/local/include/pigeon
