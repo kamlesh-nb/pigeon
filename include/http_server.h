@@ -37,7 +37,6 @@ namespace pigeon {
 
     class http_server {
     private:
-		class tls;
 		class msg_parser;
         class listener;
 		class tcp_listener;

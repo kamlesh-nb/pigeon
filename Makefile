@@ -1,17 +1,17 @@
 PROJECT = libpigeon.a
 
-CPP = $(wildcard ./source/*.cpp)
+CPP = $(wildcard ./src/*.cpp)
 
 INC = -I ./include \
     -I ./deps/libuv/include \
     -I ./deps/rapidjson/include/ \
     -I ./deps/http-parser/ \
     -I ./deps/zlib/ \
-    -i ./src/impl
+    -I ./src/impl
 
-#CXX = g++
+CXX = g++
 
-FLAGS = -Wall -Wextra -std=c++14 -O3 $(INC)
+FLAGS = -Wall -Wextra -pedantic -std=c++14 -O3 $(INC)
 
 OBJ = $(CPP:.cpp=.o)
 

@@ -24,7 +24,7 @@ private:
     }
 public:
 
-    tls_tcp_listener(){m_tls = new tls; msgParser = new msg_parser; requestProcessor = new request_processor; }
+    tls_tcp_listener(){ msgParser = new msg_parser; requestProcessor = new request_processor; }
     virtual ~tls_tcp_listener(){}
 
     virtual void create() override {

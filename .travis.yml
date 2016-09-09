@@ -6,7 +6,7 @@ before_install:
 - sudo apt-get update -qq
 
 install:
-- sudo apt-get install -qq g++-6
-- export CXX="g++-6"
+- sudo apt-get install -qq g++-4.9
+- export CXX="g++-4.9"
 
 script: "bash -c ./build.sh"
