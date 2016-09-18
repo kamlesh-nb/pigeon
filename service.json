@@ -12,11 +12,15 @@
   "file_upload_location": "/home/kamlesh/reactut/public/uploads",
   "default_page": "index.html",
   "api_route": "/api/",
-  "db_conn_string": "localhost:27017",
   "log_location": "/home/kamlesh/Documents/log/service.log",
   "request_filters": ["testreq1", "testreq2", "testreq3"],
   "response_filters": ["testres1", "testres2", "testres3"],
   "enable_cors": false,
+  "db_settings": {
+    "DbType": "rdb",
+    "IPAddress": "127.0.0.1",
+    "Port": "28015"
+  },
   "cors_headers": {
     "Access-Control-Allow-Origin": "http://foo.example",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
