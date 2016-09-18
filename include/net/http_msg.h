@@ -10,7 +10,6 @@
 #include "file_info.h"
 #include "http_util.h"
 #include "string_builder.h"
-#include "http_context.h"
 
 using namespace std;
 

@@ -10,8 +10,6 @@
 #include <string>
 #include "data/rdb/result_set.h"
 #include "rdb_connection.h"
-#include "http_context.h"
-using namespace pigeon::net;
 
 using namespace std;
 
@@ -40,7 +38,7 @@ namespace pigeon {
                 statement* group(string data);
                 statement* orderBy(string data);
                 statement* db(string name);
-                void run(http_context*, std::function<void(http_context*)> func);
+                void run();
             };
         }
     }

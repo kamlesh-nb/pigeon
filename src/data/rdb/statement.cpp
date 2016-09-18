@@ -16,11 +16,11 @@ statement::~statement() {
 }
 
 
-void statement::run(http_context* context, std::function<void(http_context*)> func) {
+void statement::run() {
     msg.append("[1,");
     msg.append(child.top());
     msg.append("{}]]");
-    mConnection->send_query(msg, func);
+    mConnection->send_query(msg);
 
 }
 

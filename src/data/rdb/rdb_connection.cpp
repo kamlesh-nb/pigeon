@@ -37,9 +37,8 @@ rdb_connection::~rdb_connection() {
 
 }
 
-void rdb_connection::send_query(std::string query, std::function<void(http_context*)> func) {
+void rdb_connection::send_query(std::string query) {
     ++token;
-    query_complete_cb = func;
 
     char header[12];
     memcpy(header, &token, 8);
