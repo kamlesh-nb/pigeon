@@ -4,8 +4,9 @@
 
 #ifndef PIGEON_RDB_CONNECTION_H
 #define PIGEON_RDB_CONNECTION_H
-
+#include "data/rdb/R.h"
 #include "data/db_connection.h"
+
 
 
 namespace pigeon {
@@ -20,7 +21,8 @@ namespace pigeon {
                 virtual bool get_status() override;
                 rdb_connection(uv_loop_t* loop);
                 virtual ~rdb_connection() override;
-                virtual void send_query(std::string string) override;
+                void send_query(std::string string, R* r);
+
                 virtual int connect(std::string string, int i) override;
                 virtual int connect(std::string string, int i, std::string string1) override;
                 virtual void on_read(uv_stream_t *handle, ssize_t nread, const uv_buf_t *buf) override;

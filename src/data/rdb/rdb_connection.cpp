@@ -6,13 +6,12 @@
 #include <assert.h>
 #include <iostream>
 #include <sstream>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/document.h>
+
 
 #include "data/rdb/rdb_connection.h"
 #include "data/rdb/protocol_defs.h"
 
-using namespace rapidjson;
+
 using namespace pigeon::data::rdb;
 
 #define LOG_DBUV_ERR(msg, code) do {                                                      \
@@ -37,7 +36,7 @@ rdb_connection::~rdb_connection() {
 
 }
 
-void rdb_connection::send_query(std::string query) {
+void rdb_connection::send_query(std::string query, R* r) {
     ++token;
 
     char header[12];
@@ -51,16 +50,14 @@ void rdb_connection::send_query(std::string query) {
 
     memcpy(buffer.base, (char*)query.c_str(), query.size());
     buffer.len = query.size();
-    request->data = this;
+    request->data = r;
 
-
-    std::cout << query << std::endl;
-    int r = uv_write(request, conn_req.handle, &buffer, 1, [](uv_write_t* req, int status){
-        rdb_connection* ptr = static_cast<rdb_connection*>(req->data);
-        ptr->on_write(req, status);
+    int res = uv_write(request, conn_req.handle, &buffer, 1, [](uv_write_t* req, int status){
+        R* ptr = static_cast<R*>(req->data);
+        ptr->on_query_sent(req, status);
     });
 
-    if(r) LOG_DBUV_ERR("rdb write error", r);
+    if(res) LOG_DBUV_ERR("rdb write error", res);
 
 }
 
@@ -87,18 +84,6 @@ void rdb_connection::on_read(uv_stream_t *handle, ssize_t nread, const uv_buf_t 
     if(nread >= 0) {
        if(nread == 8){
            status = true;
-       } else {
-           char* c = buf->base;
-           while(true){
-              if(*c == '{'){
-                  break;
-              }
-               else { ++c; }
-           }
-            Document doc;
-            doc.Parse(c);
-            std::string res(c);
-            std::cout << res << std::endl;
        }
     }
     else {

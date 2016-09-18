@@ -58,7 +58,7 @@ int request_handler::process(http_context *context){
     //parse cookies if any
     parse_cookies(context);
 
-    //parse url for statement string parameters
+    //parse url for R string parameters
     parse_url(context);
 
     //check if content type is multipart/form-data, parse content if it is
