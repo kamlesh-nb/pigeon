@@ -1,110 +1,56 @@
 //
-// Created by kamlesh on 9/12/16.
+// Created by kamlesh on 9/22/16.
 //
 
+#include <net/HttpServer.h>
 #include "data/rdb/R.h"
-#include "data/rdb/rdb_connection.h"
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/document.h>
+#include "data/rdb/RdbConnection.h"
 
-
-#define LOG_RUV_ERR(msg, code) do {                                                      \
-	fprintf(stderr, "%s: [%s: %s]\n", msg, uv_err_name((code)), uv_strerror((code)));   \
-	assert(0);                                                                          \
-} while (0);
-
-using namespace rapidjson;
 using namespace pigeon::data::rdb;
+using namespace pigeon::net;
 
-R::R(http_context*){
-
-}
-
+R::R(){}
 R::~R() {
 
 }
-
-result_set* R::parse_result(char *) {
-    return nullptr;
+R R::db(string name){
+    dbname += "[\"";
+    dbname += name;
+    dbname += "\"]]" ;
+    return *this;
 }
-
-
-void R::on_fetch_result(uv_stream_t *handle, ssize_t nread, const uv_buf_t *buf) {
-    if(nread >= 0) {
-
-            char* c = buf->base;
-            while(true){
-                if(*c == '{'){
-                    break;
-                }
-                else { ++c; }
-            }
-            result_set* res = parse_result(c);
-            requestCb(m_http_context, res);
-    }
-    else {
-        uv_close((uv_handle_t*)handle,
-                 [](uv_handle_t* handle){
-
-                 });
-    }
-    free(buf->base);
-}
-
-
-void R::on_query_sent(uv_write_t *req, int status){
-    if(status) LOG_RUV_ERR("rdb write error", status);
-    uv_read_start(req->handle,
-                  [](uv_handle_t* /*handle*/, size_t suggested_size, uv_buf_t* buf) {
-                      *buf = uv_buf_init((char*)malloc(suggested_size), suggested_size);
-                  },
-                  [](uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf){
-                      R* ptr = static_cast<R*>(handle->data);
-                      ptr->on_fetch_result(handle, nread, buf);
-                  });
-
-}
-
-void R::run(db_connection* conn, request_cb func_cb) {
-    msg.append("[1,");
-    msg.append(child.top());
-    msg.append("{}]]");
-    requestCb = func_cb;
-    rdb_connection* c = static_cast<rdb_connection*>(conn);
-    c->send_query(msg, this);
-}
-
-R* R::table(string tablename){
+R R::table(string tablename){
     string cmd;
     if (dbname.size()){
         cmd += "[15,[[14,";
         cmd += dbname;
         cmd += ",\"";
         cmd += tablename;
-        cmd += "\"],";
+        cmd += "\"]";
     }
     else
     {
         cmd +=  "[[14,";
         cmd += ",\"";
         cmd += tablename;
-        cmd += "\"]],";
+        cmd += "\"]]";
     }
     child.push(cmd);
-    return this;
+    return *this;
 }
-R* R::filter(string filter_criteria){
+R R::filter(string filter_criteria){
     string cmd;
     cmd +=  "[39,[" ;
     cmd += child.top();
+    cmd += "],";
     cmd += filter_criteria;
-    cmd +=  "]]";
+    cmd +=  "]";
     child.pop();
     child.push(cmd);
 
-    return this;
+    return *this;
 }
-R* R::insert(string data){
+R R::insert(string data){
     string cmd;
     cmd +=   "[56,[";
     cmd += child.top();
@@ -112,9 +58,9 @@ R* R::insert(string data){
     cmd += "]]";
     child.pop();
     child.push(cmd);
-    return this;
+    return *this;
 }
-R* R::get(string data){
+R R::get(string data){
     string cmd;
     cmd +=   "[16,[";
     cmd += child.top();
@@ -122,9 +68,9 @@ R* R::get(string data){
     cmd += "]]";
     child.pop();
     child.push(cmd);
-    return this;
+    return *this;
 }
-R* R::getAll(string data){
+R R::getAll(string data){
     string cmd;
     cmd +=   "[78,[";
     cmd += child.top();
@@ -132,9 +78,9 @@ R* R::getAll(string data){
     cmd += "]]";
     child.pop();
     child.push(cmd);
-    return this;
+    return *this;
 }
-R* R::eqJoin(string data){
+R R::eqJoin(string data){
 
     string cmd;
     cmd +=   "[50,[";
@@ -143,9 +89,9 @@ R* R::eqJoin(string data){
     cmd += "]]";
     child.pop();
     child.push(cmd);
-    return this;
+    return *this;
 }
-R* R::outerJoin(string data){
+R R::outerJoin(string data){
     string cmd;
     cmd +=   "[49,[";
     cmd += child.top();
@@ -153,9 +99,9 @@ R* R::outerJoin(string data){
     cmd += "]]";
     child.pop();
     child.push(cmd);
-    return this;
+    return *this;
 }
-R* R::innerJoin(string data){
+R R::innerJoin(string data){
     string cmd;
     cmd +=   "[48,[";
     cmd += child.top();
@@ -163,9 +109,9 @@ R* R::innerJoin(string data){
     cmd += "]]";
     child.pop();
     child.push(cmd);
-    return this;
+    return *this;
 }
-R* R::zip(string data){
+R R::zip(string data){
     string cmd;
     cmd +=   "[72,[";
     cmd += child.top();
@@ -173,9 +119,9 @@ R* R::zip(string data){
     cmd += "]]";
     child.pop();
     child.push(cmd);
-    return this;
+    return *this;
 }
-R* R::group(string data){
+R R::group(string data){
     string cmd;
     cmd +=   "[144,[";
     cmd += child.top();
@@ -183,9 +129,9 @@ R* R::group(string data){
     cmd += "]]";
     child.pop();
     child.push(cmd);
-    return this;
+    return *this;
 }
-R* R::orderBy(string data){
+R R::orderBy(string data){
     string cmd;
     cmd +=   "[41,[";
     cmd += child.top();
@@ -193,13 +139,14 @@ R* R::orderBy(string data){
     cmd += "]]";
     child.pop();
     child.push(cmd);
-    return this;
-}
-R* R::db(string name){
-    dbname += "[\"";
-    dbname += name;
-    dbname += "\"]]" ;
-    return this;
+    return *this;
 }
 
-
+void R::run(HttpContext* context, std::function<void(HttpContext*, ResultSet&)> pOnQueryComplete) {
+    msg.append("[1,");
+    msg.append(child.top());
+    msg.append("],{}]");
+    client_t* client = static_cast<client_t*>(context->data);
+    RdbConnection* ptrRdbConnection = static_cast<RdbConnection*>(client->dbConnection);
+    ptrRdbConnection->SendQuery(msg, context, pOnQueryComplete);
+}

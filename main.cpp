@@ -1,23 +1,32 @@
-#include <net/http_server.h>
-#include "data/rdb/rdb_connection.h"
-#include "app.h"
+#include "AppService.h"
+#include "net/HttpServer.h"
+#include "data/rdb/R.h"
+#include "data/rdb/RdbConnection.h"
+
+#include <iostream>
+
 using namespace pigeon;
 using namespace pigeon::net;
 using namespace pigeon::data::rdb;
 
-int hello(http_context* context){
+int hello(HttpContext* context){
 
-    client_t* client = static_cast<client_t*>(context->data);
-    rdb_connection* rdbConnection = static_cast<rdb_connection*>(client->dbConnection);
-    R r(context);
-
-    r.db("aw")->table("employees")->run(rdbConnection, [](http_context* context, result_set* rs){
-
+    //.filter("{ \"Country\": \"US\"}")
+    R r;
+    r.db("aw").table("employees").filter("{ \"Country\": \"US\"}").run(context,
+    [](HttpContext* context, ResultSet& rs) -> void {
+        while(rs.HasRows()){
+            string country = rs.GetString("Country");
+            uint empId = rs.GetUint("EmployeeID");
+        }
+        string res = rs.ToJson();
+        context->Request->CreateResponse(res.c_str(), context->Response, HttpStatus::OK);
     });
+
 }
 int main(){
-    app a;
-    a.add_route("/api/hello", 1, hello);
-    a.start();
+    AppService a;
+    a.AddRoute("/api/hello", 1, hello);
+    a.Start();
 	return 0;
 }

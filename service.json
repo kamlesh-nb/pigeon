@@ -1,27 +1,27 @@
 {
-  "service_name": "test-service",
-  "worker_threads": 3,
-  "address": "127.0.0.1",
-  "port": 8002,
-  "tcp_no_delay": true,
-  "use_ssl": false,
-  "ssl_cert_file": "/home/kamlesh/Documents/re-app/pigen.pem",
-  "ssl_key_file": "/home/kamlesh/Documents/re-app/pigen.pem",
-  "document_root": "/home/kamlesh/CppProjects/i-think.io/app/build",
-  "resource_location": "/home/kamlesh/CppProjects/i-think.io/app/build",
-  "file_upload_location": "/home/kamlesh/reactut/public/uploads",
-  "default_page": "index.html",
-  "api_route": "/api/",
-  "log_location": "/home/kamlesh/Documents/log/service.log",
-  "request_filters": ["testreq1", "testreq2", "testreq3"],
-  "response_filters": ["testres1", "testres2", "testres3"],
-  "enable_cors": false,
-  "db_settings": {
+  "ServiceName": "test-service",
+  "WorkerThreads": 3,
+  "IPAddress": "127.0.0.1",
+  "Port": 8002,
+  "TcpNoDelay": true,
+  "UseSsl": false,
+  "SslCertFile": "/home/kamlesh/Documents/re-app/pigen.pem",
+  "SslKeyFile": "/home/kamlesh/Documents/re-app/pigen.pem",
+  "DocumentRoot": "/home/kamlesh/CppProjects/i-think.io/app/build",
+  "ResourceLocation": "/home/kamlesh/CppProjects/i-think.io/app/build",
+  "FileUploadLocation": "/home/kamlesh/reactut/public/uploads",
+  "DefaultPage": "index.html",
+  "ApiRoute": "/api/",
+  "LogLocation": "/home/kamlesh/Documents/log/service.log",
+  "RequestFilters": ["testreq1", "testreq2", "testreq3"],
+  "ResponseFilters": ["testres1", "testres2", "testres3"],
+  "EnableCORS": false,
+  "DbSettings": {
     "DbType": "rdb",
     "IPAddress": "127.0.0.1",
     "Port": "28015"
   },
-  "cors_headers": {
+  "CORSHeaders": {
     "Access-Control-Allow-Origin": "http://foo.example",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
     "Access-Control-Allow-Headers": "X-PINGARUNER",
@@ -29,8 +29,8 @@
     "Access-Control-Allow-Credentials": "false",
     "Access-Control-Expose-Headers": "none"
   },
-  "app_settings": {
-    "custom_log_location": "none",
-    "backtest_duration": "3"
+  "AppSettings": {
+    "CustomLogLocation": "none",
+    "BackTestDuration": "3"
   }
 }
