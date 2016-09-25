@@ -50,7 +50,7 @@ RequestHandler::RequestHandler(FileCache* p_cache) : m_cache (p_cache){
 RequestHandler::~RequestHandler() {
 
 }
-int RequestHandler::StartProcess(HttpContext *context){
+void RequestHandler::StartProcess(HttpContext *context){
 
     //check if request is for web api
     context->Request->is_api = IsApi(context->Request->url, Settings::ApiRoute);
@@ -68,7 +68,7 @@ int RequestHandler::StartProcess(HttpContext *context){
     //if any of the filter fails, it will terminate the further
     //processing of request
     if(!ExecuteRequestFilters(context)){
-        return -1;
+        return;
     }
 
     //if cors is enabled for the service, deal with it
@@ -88,7 +88,7 @@ int RequestHandler::StartProcess(HttpContext *context){
 //    func(context);
 
 }
-int RequestHandler::HandleRequest(HttpContext *context){
+void RequestHandler::HandleRequest(HttpContext *context){
 
     if ((context->Request->is_api) &
         (context->Request->method == HTTP_GET ||
@@ -116,10 +116,11 @@ int RequestHandler::HandleRequest(HttpContext *context){
     else
     {
         GetResource(context);
+        FinishProcess(context);
     }
 
 }
-int RequestHandler::MarseMultiPartData(HttpContext *context){
+void RequestHandler::MarseMultiPartData(HttpContext *context){
 
     //check if the request if really for multipart/form-data
     string content_type = context->Request->GetHeader("Content-Type");
@@ -141,7 +142,7 @@ int RequestHandler::MarseMultiPartData(HttpContext *context){
 
     }
 }
-int RequestHandler::ExecuteRequestFilters(HttpContext *context){
+bool RequestHandler::ExecuteRequestFilters(HttpContext *context){
     bool retval = true;
     vector<string> request_filters = Settings::RequestFilters;
     for(auto& filter:request_filters){
@@ -156,7 +157,7 @@ int RequestHandler::ExecuteRequestFilters(HttpContext *context){
     return retval;
 
 }
-int RequestHandler::ExecuteResponseFilters(HttpContext *context){
+bool RequestHandler::ExecuteResponseFilters(HttpContext *context){
     bool retval = true;
     vector<string> response_filters = Settings::ResponseFilters;
     for(auto& filter:response_filters){
@@ -171,7 +172,7 @@ int RequestHandler::ExecuteResponseFilters(HttpContext *context){
     return retval;
 
 }
-int RequestHandler::HandleCORSHeaders(HttpContext *context){
+void RequestHandler::HandleCORSHeaders(HttpContext *context){
     string origin = context->Request->GetHeader("Origin");
     string host = context->Request->GetHeader("Host");
 
@@ -208,7 +209,7 @@ int RequestHandler::HandleCORSHeaders(HttpContext *context){
     }
 
 }
-int RequestHandler::ParseCookies(HttpContext *context){
+void RequestHandler::ParseCookies(HttpContext *context){
 
     cookie_state_ = key_start;
     string cookies = context->Request->GetHeader("Cookie");
@@ -250,7 +251,7 @@ int RequestHandler::ParseCookies(HttpContext *context){
     }
 
 }
-int RequestHandler::ParseUrl(HttpContext *context){
+void RequestHandler::ParseUrl(HttpContext *context){
 
     url_state_ = url_start;
     string url_source = context->Request->url;
@@ -304,7 +305,7 @@ bool RequestHandler::IsApi(string &Uri, string &apiroute){
     std::size_t pos = Uri.find(apiroute);
     return pos != string::npos;
 }
-int RequestHandler::FinishProcess(HttpContext *context){
+void RequestHandler::FinishProcess(HttpContext *context){
 
     client_t* client = (client_t*)context->data;
     uv_buf_t resbuf;
@@ -329,7 +330,6 @@ int RequestHandler::FinishProcess(HttpContext *context){
                                           });
                              }
 
-
                          });
     } else {
         uv_close((uv_handle_t *)&client->stream,
@@ -342,22 +342,21 @@ int RequestHandler::FinishProcess(HttpContext *context){
                  });
     }
 
-    return 0;
 }
-int RequestHandler::GetResource(HttpContext *context) {
+void RequestHandler::GetResource(HttpContext *context) {
 
     std::string request_path;
 
     if (!UrlDecode(context->Request->url, request_path)) {
         context->Request->CreateResponse("Resource you requested cannot be found on the server!", context->Response,
                                          HttpStatus::NotFound);
-        return -1;
+        return;
     }
 
     if (request_path.empty() || request_path[0] != '/' || request_path.find("..") != std::string::npos) {
         context->Request->CreateResponse("Resource you requested cannot be found on the server!", context->Response,
                                          HttpStatus::NotFound);
-        return -1;
+        return;
     }
 
     if (request_path[request_path.size() - 1] == '/') {
@@ -373,13 +372,13 @@ int RequestHandler::GetResource(HttpContext *context) {
     if(!fi){
         context->Request->CreateResponse("Resource you requested cannot be found on the server!", context->Response,
                                          HttpStatus::NotFound);
-        return -1;
+        return;
     }
 
     if (fi->file_size == 0) {
         context->Request->CreateResponse("Resource you requested cannot be found on the server!", context->Response,
                                          HttpStatus::NotFound);
-        return -1;
+        return;
     }
 
     ///check if the file is modified, if not send status 304
@@ -388,14 +387,14 @@ int RequestHandler::GetResource(HttpContext *context) {
     if (if_modified_since.size() > 0) {
         if (if_modified_since == fi->last_write_time) {
             context->Request->CreateResponse("", context->Response, HttpStatus::NotModified);
-            return -1;
+            return;
         }
     }
 
 
     context->Request->CreateResponse(*fi, context->Response, HttpStatus::OK);
 
-    return 0;
+    return;
 
 }
 void RequestHandler::AddRoute(std::string route, int method, OnHandlerExecution func){

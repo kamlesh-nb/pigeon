@@ -16,8 +16,8 @@ namespace pigeon {
         namespace rdb {
             class RdbConnection : public IDbConnection {
             private:
-                HttpContext* mHttpContext;
-                std::function<void(HttpContext*, ResultSet&)> mOnQueryComplete;
+                HttpContext mHttpContext;
+                std::function<void(HttpContext&, ResultSet&)> mOnQueryComplete;
                 void SendConnectPacket();
             public:
                 void Handshake(uv_connect_t *conn_req, int status);
@@ -25,7 +25,7 @@ namespace pigeon {
                 virtual bool GetStatus() override;
                 RdbConnection(uv_loop_t* loop);
                 virtual ~RdbConnection() override;
-                void SendQuery(std::string query, HttpContext* context, std::function<void(HttpContext*, ResultSet&)> pOnQueryComplete);
+                void SendQuery(std::string query, HttpContext& context, std::function<void(HttpContext&, ResultSet&)> pOnQueryComplete);
                 ResultSet ParseResult(char*);
                 void OnQuerySent(uv_write_t *req, int status);
                 void OnFetchResult(uv_stream_t *handle, ssize_t nread, const uv_buf_t *buf);

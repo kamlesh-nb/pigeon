@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <iostream>
 #include <sstream>
+#include <net/HttpServer.h>
 
 #include "net/HttpServer.h"
 #include "data/rdb/RdbConnection.h"
@@ -38,19 +39,6 @@ RdbConnection::RdbConnection(uv_loop_t *loop) {
 RdbConnection::~RdbConnection() {
 }
 
-ResultSet RdbConnection::ParseResult(char* data){
-//    char* begin = data;
-//    doc = new Document;
-//    if(begin){
-//        while (true){
-//            if(*begin == '{'){
-//                break;
-//            } else { ++begin; }
-//        }
-//        doc->Parse(begin);
-//    }
-//    return ResultSet(doc);
-}
 
 void RdbConnection::OnQuerySent(uv_write_t *req, int status){
     if(status) LOG_DBUV_ERR("rdb write error", status);
@@ -67,11 +55,46 @@ void RdbConnection::OnQuerySent(uv_write_t *req, int status){
 
 void RdbConnection::OnFetchResult(uv_stream_t *handle, ssize_t nread, const uv_buf_t *buf){
     if(nread >= 0) {
-        ResultSet resultSet(buf->base);
+        ResultSet resultSet;
+        resultSet.ParseResult(buf->base);
         mOnQueryComplete(mHttpContext, resultSet);
-        client_t* client = static_cast<client_t*>(mHttpContext->data);
-        client->requestHandler->ExecuteResponseFilters(mHttpContext);
-        client->requestHandler->FinishProcess(mHttpContext);
+        client_t* client = static_cast<client_t*>(mHttpContext.data);
+      //  client->requestHandler->ExecuteResponseFilters(&mHttpContext);
+
+        uv_buf_t resbuf;
+        resbuf.base = (char*) client->context->Response->buffer->ToCStr();
+        resbuf.len = (unsigned long) client->context->Response->buffer->GetLength();
+        std::cout << client->stream.type << std::endl;
+        client->write_req.data = client;
+        if (uv_is_writable((uv_stream_t*)&client->stream)) {
+            int r = uv_write(&client->write_req,
+                             (uv_stream_t *) &client->stream,
+                             &resbuf,
+                             1,
+                             [](uv_write_t *req, int status) {
+                                 if (!uv_is_closing((uv_handle_t *) req->handle)) {
+                                     uv_close((uv_handle_t *) req->handle,
+                                              [](uv_handle_t *handle) {
+                                                  client_t *client = (client_t *) handle->data;
+                                                  client->context->Response->buffer->Clear();
+                                                  delete client->context->Response->buffer;
+                                                  delete client->context;
+                                                  free(client);
+                                              });
+                                 }
+
+                             });
+        } else {
+            uv_close((uv_handle_t *)&client->stream,
+                     [](uv_handle_t *handle) {
+                         client_t *client = (client_t *) handle->data;
+                         client->context->Response->buffer->Clear();
+                         delete client->context->Response->buffer;
+                         delete client->context;
+                         free(client);
+                     });
+        }
+//        client->requestHandler->FinishProcess(&mHttpContext);
     }
     else {
         uv_close((uv_handle_t*)handle, [](uv_handle_t* handle){});
@@ -79,7 +102,7 @@ void RdbConnection::OnFetchResult(uv_stream_t *handle, ssize_t nread, const uv_b
     free(buf->base);
 }
 
-void RdbConnection::SendQuery(std::string query, HttpContext* context, std::function<void(HttpContext*, ResultSet&)> pOnQueryComplete) {
+void RdbConnection::SendQuery(std::string query, HttpContext& context, std::function<void(HttpContext&, ResultSet&)> pOnQueryComplete) {
     ++token;
 
     char header[12];

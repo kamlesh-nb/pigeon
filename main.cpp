@@ -13,16 +13,16 @@ int hello(HttpContext* context){
 
     //.filter("{ \"Country\": \"US\"}")
     R r;
-    r.db("aw").table("employees").filter("{ \"Country\": \"US\"}").run(context,
-    [](HttpContext* context, ResultSet& rs) -> void {
+    r.db("aw").table("employees").filter("{ \"Country\": \"US\"}").run(*context,
+    [](HttpContext& context, ResultSet& rs) -> void {
         while(rs.HasRows()){
             string country = rs.GetString("Country");
             uint empId = rs.GetUint("EmployeeID");
         }
         string res = rs.ToJson();
-        context->Request->CreateResponse(res.c_str(), context->Response, HttpStatus::OK);
+        context.Request->CreateResponse(res.c_str(), context.Response, HttpStatus::OK);
     });
-
+    return 0;
 }
 int main(){
     AppService a;

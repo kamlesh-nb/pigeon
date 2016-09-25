@@ -49,17 +49,17 @@ namespace pigeon {
             RequestHandler(FileCache*);
             ~RequestHandler();
 
-            int HandleRequest(HttpContext *context);
-            int MarseMultiPartData(HttpContext *context);
-            int ExecuteRequestFilters(HttpContext *context);
-            int ExecuteResponseFilters(HttpContext *context);
-            int HandleCORSHeaders(HttpContext *context);
-            int ParseCookies(HttpContext *context);
-            int ParseUrl(HttpContext *context);
+            void HandleRequest(HttpContext *context);
+            void MarseMultiPartData(HttpContext *context);
+            bool ExecuteRequestFilters(HttpContext *context);
+            bool ExecuteResponseFilters(HttpContext *context);
+            void HandleCORSHeaders(HttpContext *context);
+            void ParseCookies(HttpContext *context);
+            void ParseUrl(HttpContext *context);
             bool IsApi(string &Uri, string &apiroute);
-            int StartProcess(HttpContext *context);
-            int FinishProcess(HttpContext *context);
-            int GetResource(HttpContext *context);
+            void StartProcess(HttpContext *context);
+            void FinishProcess(HttpContext *context);
+            void GetResource(HttpContext *context);
             void AddRoute(std::string route, int method, OnHandlerExecution func);
             void AddFilter(std::string filter, OnHandlerExecution func);
         };

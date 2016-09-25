@@ -142,11 +142,11 @@ R R::orderBy(string data){
     return *this;
 }
 
-void R::run(HttpContext* context, std::function<void(HttpContext*, ResultSet&)> pOnQueryComplete) {
+void R::run(HttpContext& context, std::function<void(HttpContext&, ResultSet&)> pOnQueryComplete) {
     msg.append("[1,");
     msg.append(child.top());
     msg.append("],{}]");
-    client_t* client = static_cast<client_t*>(context->data);
+    client_t* client = static_cast<client_t*>(context.data);
     RdbConnection* ptrRdbConnection = static_cast<RdbConnection*>(client->dbConnection);
     ptrRdbConnection->SendQuery(msg, context, pOnQueryComplete);
 }

@@ -35,7 +35,7 @@ namespace pigeon {
                 R zip(string data);
                 R group(string data);
                 R orderBy(string data);
-                void run(HttpContext*, std::function<void(HttpContext*, ResultSet&)>);
+                void run(HttpContext&, std::function<void(HttpContext&, ResultSet&)>);
             };
         }
     }

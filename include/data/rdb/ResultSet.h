@@ -19,14 +19,14 @@ namespace pigeon {
             class ResultSet {
             private:
                 unsigned int response_type;
-                unsigned int response_notes[];
                 string json;
                 Value::ConstValueIterator row;
                 unsigned int cur_row_index;
                 SizeType size;
             public:
-                ResultSet(char*);
+                ResultSet();
                 ~ResultSet();
+                void ParseResult(char*);
                 bool HasRows();
                 uint GetUint(string);
                 int GetInt(string);
