@@ -3,6 +3,11 @@
 #include "TcpListener.ipp"
 #include "TlsTcpListener.ipp"
 
+#ifdef _WIN32
+#define PIPENAME "\\\\?\\pipe\\"
+#elif
+#define PIPENAME "/tmp/"
+#endif
 
 
 using namespace pigeon;
@@ -14,14 +19,14 @@ private:
     uv_pipe_t* ipc_server;
     uv_tcp_t* tcp_server;
     FileCache* m_cache;
-    uint  threads;
+    unsigned int  threads;
 
     struct sockaddr_in listen_addr;
     std::string pipe_name;
     std::vector<Listener*> listeners;
 
     void RemoveFSLink(){
-        pipe_name = "/tmp/";
+        pipe_name.append(PIPENAME);
         pipe_name.append(Settings::ServiceName);
 
         uv_fs_t req;
@@ -137,9 +142,15 @@ public:
         buf = uv_buf_init((char*)ping, 4);
 
         uv_pipe_t *client = (uv_pipe_t*)malloc(sizeof(uv_pipe_t));
+		
         r = uv_pipe_init(cloop, client, 1);
+		if (r) LOG_UV_ERR("uv_pipe_init pipe init error", r);
+		
         r = uv_accept(server, (uv_stream_t*)client);
+		if (r) LOG_UV_ERR("uv_accept pipe accept error", r);
+
         write_req->data = this;
+		 
 
         r = uv_write2(write_req,
                       (uv_stream_t*)client,

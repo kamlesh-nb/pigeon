@@ -9,7 +9,6 @@
 #include <http_parser.h>
 #include <memory>
 #include <assert.h>
-#include <data/IDbConnection.h>
 #include "AppService.h"
 #include "FileCache.h"
 #include "RequestHandler.h"
@@ -19,7 +18,8 @@
 	assert(0);                                                                          \
 } while (0);
 
-using namespace pigeon::data;
+
+
 
 namespace pigeon {
 	namespace net {
@@ -31,7 +31,6 @@ namespace pigeon {
             uv_write_t write_req;
             char* client_address;
             void* data;
-			IDbConnection* dbConnection;
             RequestHandler* requestHandler;
             HttpContext *context;
             char *temp;

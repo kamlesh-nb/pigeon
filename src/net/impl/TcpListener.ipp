@@ -6,10 +6,15 @@
 #include "Settings.h"
 #include "Listener.ipp"
 #include "MessageParser.ipp"
-#include "data/rdb/RdbConnection.h"
 
 using namespace pigeon::net;
-using namespace pigeon::data::rdb;
+
+#ifdef _WIN32
+#define PIPENAME "\\\\?\\pipe\\"
+#elif
+#define PIPENAME "/tmp/"
+#endif
+
 
 class HttpServer::TcpListener : public HttpServer::Listener {
 
@@ -37,7 +42,7 @@ public:
     virtual ~TcpListener(){}
 
     virtual void Create() override {
-        pipe_name = "/tmp/";
+        pipe_name.append(PIPENAME);
         pipe_name.append(Settings::ServiceName);
         t = std::thread(&TcpListener::Start, this);
     }
@@ -57,19 +62,12 @@ public:
         ipc_pipe->data = this;
         ready = true;
 
-
-        if(Settings::DbSettings["DbType"] == "rdb"){
-            dbConnection = new RdbConnection(loop);
-            string ip_address = Settings::DbSettings["IPAddress"];
-            int port = std::stoi(Settings::DbSettings["Port"]);
-            dbConnection->Connect(ip_address, port);
-        }
-
         Wait();
         get_handle(loop);
         Post();
 
         r = uv_run(loop, UV_RUN_DEFAULT);
+
     }
 
     virtual void Post() override {
@@ -81,6 +79,7 @@ public:
     }
 
     virtual void OnIpcConnect(uv_connect_t *uv_connect, int i) override {
+
         int r;
 
         r = uv_read_start(uv_connect->handle,
@@ -93,7 +92,8 @@ public:
                               tcp_listener_ptr->OnIpcRead(client, nread, buf);
                           });
 
-        if (r) LOG_UV_ERR("tcl_listener ipc read error", r);
+        if (r) LOG_UV_ERR("uv_read_start ipc read error", r);
+
     }
 
     virtual void OnIpcRead(uv_stream_t *stream, ssize_t ssize, const uv_buf_t *buf) override {
@@ -142,7 +142,6 @@ public:
         client->data = this;
         client->context->data = client;
         client->requestHandler = requestHandler;
-        client->dbConnection = dbConnection;
         client->loop = loop;
 
         r = uv_tcp_init(server_handle->loop, &client->stream);

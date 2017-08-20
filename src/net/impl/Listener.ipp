@@ -20,7 +20,6 @@ protected:
     uv_stream_t* server_handle;
     MessageParser* msgParser;
     RequestHandler* requestHandler;
-    IDbConnection* dbConnection;
 
     char scratch[16];
 
