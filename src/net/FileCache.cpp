@@ -186,6 +186,7 @@ void FileCache::CacheItem(string &file) {
 
 
     }
+    is.close();
 }
 
 void FileCache::LoadFiles(string filepath, uv_fs_t *req) {
